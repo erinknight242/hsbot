@@ -1,1 +1,1 @@
-hubot: bin/hubot -a hipchat
+hsbot: bin/hubot -a hipchat
