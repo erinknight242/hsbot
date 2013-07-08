@@ -9,7 +9,7 @@
 radius = 5
 austinOffice = '10415 Morado Circle, Austin, TX 78759'
 houstonOffice = '10111 Richmond Ave, Houston, TX 77042'
-limit = 20
+limit = 5
 category = 'food'
 
 yelpApiKey = "Jk8TwgtdkAhGL1-1jeVokg"
