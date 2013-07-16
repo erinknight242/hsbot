@@ -2,7 +2,7 @@
 #   Gets information on food trucks at the office.
 #
 # Commands:
-#   hubot food truck - Returns the current list of jobs from The Resumator
+#   hubot food truck - Returns the food truck that is scheduled for the Avallon that day.
 
 date = require 'datejs'
 
