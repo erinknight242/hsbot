@@ -12,6 +12,8 @@
 
 module.exports = (robot) ->
 
+  ignoredPhrases = ['', 'who', 'what', 'where', 'when', 'why', 'image', 'animate', 'echo', 'translate', 'youtube']
+  includesIgnoredPhrase = (x) -> x in ignoredPhrases
   getAmbiguousUserText = (users) ->
     "Be more specific, I know #{users.length} people named like that: #{(user.name for user in users).join(", ")}"
 
@@ -43,7 +45,7 @@ module.exports = (robot) ->
     name    = msg.match[1].trim()
     newRole = msg.match[2].trim()
 
-    unless name in ['', 'who', 'what', 'where', 'when', 'why']
+    unless name.split(" ").some(includesIgnoredPhrase)
       unless newRole.match(/^not\s+/i)
         users = robot.brain.usersForFuzzyName(name)
         if users.length is 1
@@ -67,7 +69,7 @@ module.exports = (robot) ->
     name    = msg.match[1].trim()
     newRole = msg.match[2].trim()
 
-    unless name in ['', 'who', 'what', 'where', 'when', 'why']
+    unless name.split(" ").some(includesIgnoredPhrase)
       users = robot.brain.usersForFuzzyName(name)
       if users.length is 1
         user = users[0]
