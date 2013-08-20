@@ -47,6 +47,25 @@ flipChar = (cha) =>
     when ';' then return '\u061B'
     when '9' then return '6'
     when '6' then return '9'
+    when '\u0250' then return 'a'
+    when '\u0254' then return 'c'
+    when '\u01DD' then return 'e'
+    when '\u025F' then return 'f'
+    when '\u0265' then return 'h'
+    when '\u0131' then return 'i'
+    when '\u0638' then return 'j'
+    when '\u029E' then return 'k'
+    when '\u05DF' then return 'l'
+    when '\u026F' then return 'm'
+    when '\u0279' then return 'r'
+    when '\u0287' then return 't'
+    when '\u028C' then return 'v'
+    when '\u028D' then return 'w'
+    when '\u028E' then return 'y'
+    when ',' then return "\'"
+    when '\u02D9' then return '.'
+    when '\u203E' then return '_'
+    when '\u061B' then return ';'
     else return cha
 
 module.exports = (robot) ->
