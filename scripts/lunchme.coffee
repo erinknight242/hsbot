@@ -9,6 +9,7 @@
 radius = 5
 austinOffice = '10415 Morado Circle, Austin, TX 78759'
 houstonOffice = '10111 Richmond Ave, Houston, TX 77042'
+dallasOffice = '5400 Knoll Trail Dr, Dallas, TX 75248'
 limit = 5
 category = 'food'
 
@@ -25,11 +26,18 @@ barks = [
 ]
 
 module.exports = (robot) ->
-  robot.respond /(?:(austin|houston)[- ])?lunch me([- ](.+))?/i, (msg) ->
+  robot.respond /(?:(austin|houston|dallas)[- ])?lunch me([- ](.+))?/i, (msg) ->
     term = msg.match[3] or 'lunch';
     q = term: term, ywsid: yelpApiKey
     q.limit = limit
-    q.location = if msg.match[1] == 'houston' then houstonOffice else austinOffice
+
+    if msg.match[1] == 'dallas'
+      q.location = dallasOffice
+    else if msg.match[1] == 'houston'
+      q.location = houstonOffice
+    else
+      q.location = austinOffice
+
     q.radius = radius
     q.category = category
     msg.http("http://api.yelp.com/business_review_search")
