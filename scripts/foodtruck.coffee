@@ -8,7 +8,7 @@ date = require 'datejs'
 
 module.exports = (robot) ->
   robot.respond /food truck$/i, (msg) ->
-    trucks = [null, ["Keith's BBQ", "Evil Weiner"], "Short Bus Subs", null, ["Chaat Shop", "The Ginger Armadillo"], [null, "Wunder Pig"], null]
+    trucks = [null, ["Keith's BBQ", null], "Short Bus Subs", null, ["Chaat Shop", "The Ginger Armadillo"], [null, "Wunder Pig"], null]
     truck = trucks[new Date().getDay()]
     if truck
         if truck.length == 2
