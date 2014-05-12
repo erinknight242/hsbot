@@ -33,8 +33,8 @@ module.exports = (robot) ->
 
     if msg.match[1] == 'dallas'
       q.location = dallasOffice
-	  q.limit = 4
-	  q.term = 'Cheesecake Factory'
+      q.limit = 4
+      q.term = 'Cheesecake Factory'
     else if msg.match[1] == 'houston'
       q.location = houstonOffice
     else
