@@ -5,16 +5,16 @@
 #   hubot where is mercury - find a conference room by name
 
 conferenceRooms = {
-  mercury: "http://i.imgur.com/0m2y6yG.png",
-  zinc: "http://i.imgur.com/0m2y6yG.png",
-  silver: "http://i.imgur.com/0m2y6yG.png",
-  titanium: "http://i.imgur.com/0m2y6yG.png",
-  oxygen: "http://i.imgur.com/0m2y6yG.png",
-  hydrogen: "http://i.imgur.com/0m2y6yG.png",
-  silicon: "http://i.imgur.com/0m2y6yG.png",
-  carbon: "http://i.imgur.com/0m2y6yG.png",
-  nitrogen: "http://i.imgur.com/0m2y6yG.png",
-  promethium: "http://i.imgur.com/0m2y6yG.png"
+  mercury: "http://i.imgur.com/AZfkrM8.png",
+  zinc: "http://i.imgur.com/z8JcXX5.png",
+  silver: "http://i.imgur.com/sT3pAGO.png",
+  titanium: "http://i.imgur.com/ZUqPTp7.png",
+  oxygen: "http://i.imgur.com/5eHK2Hd.png",
+  hydrogen: "http://i.imgur.com/48mayHi.png",
+  silicon: "http://i.imgur.com/rvw1Y5P.png",
+  carbon: "http://i.imgur.com/9CeF1oB.png",
+  nitrogen: "http://i.imgur.com/MqF2DZz.png",
+  promethium: "http://i.imgur.com/zxwVDru.png"
 }
 
 barks = [
