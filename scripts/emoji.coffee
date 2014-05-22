@@ -32,4 +32,4 @@ module.exports = (robot) ->
     if textEmojis[key]
       msg.send textEmojis[key]
     else      
-      msg.send 'http://localhost:3000/' + key
+      msg.send 'http://givemeemoji.herokuapp.com/' + key
