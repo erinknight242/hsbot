@@ -27,9 +27,11 @@ fs = require('fs');
 module.exports = (robot) ->
   robot.respond /:+\w*:+/i, (msg) ->
     
-    key = msg.message.text.match(/:+\w*:+/)[0].match(/[^:]\w*[^:]/).toString().toLowerCase();
+    keys = msg.message.text.match(/:([a-zA-Z_0-9-]+):/gi)#[0].match(/[^:]\w*[^:]/).toString().toLowerCase()
     
-    if textEmojis[key]
-      msg.send textEmojis[key]
-    else      
-      msg.send 'http://givemeemoji.herokuapp.com/' + key
+    for key in keys
+      strippedKey = key.match(/[^:][a-zA-Z_0-9-]+[^:]/).toString().toLowerCase()
+      if textEmojis[strippedKey]
+        msg.send textEmojis[strippedKey]
+      else      
+        msg.send 'http://givemeemoji.herokuapp.com/' + strippedKey
