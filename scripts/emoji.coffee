@@ -15,7 +15,7 @@
 #   emoticons from http://www.emoji-cheat-sheet.com/
 #
 # Author:
-#   seanbiefeld
+#   Sean G. BSiefeld
 
 fs = require('fs');
 
