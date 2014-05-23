@@ -21,7 +21,15 @@ fs = require('fs');
 
 `textEmojis = {
   finn: '| (•□•) |',
-  jake: '(❍ᴥ❍ ʋ)'  
+  jake: '(❍ᴥ❍ ʋ)',
+  smiling: '(ʘ‿ʘ)',
+  disapprove: '(ಠ_ಠ)',
+  "devious-smile": '(ಠ⌣ಠ)',
+  devious: '(ಠ‿ಠ)',
+  crying: '(ಥ﹏ಥ)',
+  raging: 'ლ(ಠ益ಠლ)',
+  "eye-rolling": '◔̯◔',
+  shrugging: '¯\\(°_o)/¯'
 }`
 
 module.exports = (robot) ->
