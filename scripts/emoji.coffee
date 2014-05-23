@@ -8,7 +8,7 @@
 #   None
 #
 # Commands:
-#   hubot :house:
+#   :house:
 #      => house.png
 #
 # Notes:
@@ -33,7 +33,7 @@ fs = require('fs');
 }`
 
 module.exports = (robot) ->
-  robot.respond /:+\w*:+/i, (msg) ->
+  robot.hear /:+\w*:+/i, (msg) ->
     
     keys = msg.message.text.match(/:([a-zA-Z_0-9-]+):/gi)
     
