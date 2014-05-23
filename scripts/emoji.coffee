@@ -15,7 +15,7 @@
 #   emoticons from http://www.emoji-cheat-sheet.com/
 #
 # Author:
-#   Sean G. BSiefeld
+#   Sean G. Biefeld
 
 fs = require('fs');
 
@@ -35,11 +35,11 @@ fs = require('fs');
 module.exports = (robot) ->
   robot.respond /:+\w*:+/i, (msg) ->
     
-    keys = msg.message.text.match(/:([a-zA-Z_0-9-]+):/gi)#[0].match(/[^:]\w*[^:]/).toString().toLowerCase()
+    keys = msg.message.text.match(/:([a-zA-Z_0-9-]+):/gi)
     
     for key in keys
       strippedKey = key.match(/[^:][a-zA-Z_0-9-]+[^:]/).toString().toLowerCase()
       if textEmojis[strippedKey]
         msg.send textEmojis[strippedKey]
       else      
-        msg.send 'http://givemeemoji.herokuapp.com/' + strippedKey
+        msg.send 'http://givemeemoji.herokuapp.com/' + strippedKey + '.png'
