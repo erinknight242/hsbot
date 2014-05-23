@@ -33,12 +33,14 @@ fs = require('fs');
 }`
 
 module.exports = (robot) ->
-  robot.hear /:+\w*:+/i, (msg) ->
-    
-    keys = msg.message.text.match(/:([a-zA-Z_0-9-]+):/gi)
-    
+  robot.hear /:[a-zA-Z_0-9+-]+:/i, (msg) ->
+    #console.log "msg: " + msg.message.text
+    delimiter = /:/gi
+    keys = msg.message.text.match(/:([a-zA-Z_0-9-+-]+):/gi)
+    #console.log "keys: " + keys
     for key in keys
-      strippedKey = key.match(/[^:][a-zA-Z_0-9-]+[^:]/).toString().toLowerCase()
+      strippedKey = key.toString().toLowerCase().replace(delimiter, "")
+      #console.log "strippedKey: " + strippedKey
       if textEmojis[strippedKey]
         msg.send textEmojis[strippedKey]
       else      
