@@ -8,7 +8,7 @@
 #   None
 #
 # Commands:
-#   hubot :house:
+#   :house:
 #      => house.png
 #
 # Notes:
