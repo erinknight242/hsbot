@@ -14,7 +14,8 @@ conferenceRooms = {
   silicon: "http://i.imgur.com/rvw1Y5P.png",
   carbon: "http://i.imgur.com/9CeF1oB.png",
   nitrogen: "http://i.imgur.com/MqF2DZz.png",
-  promethium: "http://i.imgur.com/zxwVDru.png"
+  promethium: "http://i.imgur.com/zxwVDru.png",
+  jimmy: "http://i.imgur.com/0m2y6yG.png"
 }
 
 barks = [
