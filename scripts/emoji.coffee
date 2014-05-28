@@ -33,6 +33,10 @@ fs = require('fs');
 }`
 
 module.exports = (robot) ->
+
+  robot.respond /emoji help$/i, (msg) ->
+    msg.send "http://givemeemoji.herokuapp.com/help/"
+
   robot.respond /:+\w*:+/i, (msg) ->
     
     keys = msg.message.text.match(/:([a-zA-Z_0-9-]+):/gi)#[0].match(/[^:]\w*[^:]/).toString().toLowerCase()
