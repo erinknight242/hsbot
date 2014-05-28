@@ -8,14 +8,14 @@
 #   None
 #
 # Commands:
-#   :house:
+#   hubot :house:
 #      => house.png
 #
 # Notes:
 #   emoticons from http://www.emoji-cheat-sheet.com/
 #
 # Author:
-#   Sean G. Biefeld
+#   Sean G. BSiefeld
 
 fs = require('fs');
 
@@ -33,15 +33,17 @@ fs = require('fs');
 }`
 
 module.exports = (robot) ->
-  robot.hear /:[a-zA-Z_0-9+-]+:/i, (msg) ->
-    #console.log "msg: " + msg.message.text
-    delimiter = /:/gi
-    keys = msg.message.text.match(/:([a-zA-Z_0-9-+-]+):/gi)
-    #console.log "keys: " + keys
+
+  robot.respond /emoji help$/i, (msg) ->
+    msg.send "http://givemeemoji.herokuapp.com/help/"
+
+  robot.respond /:+\w*:+/i, (msg) ->
+    
+    keys = msg.message.text.match(/:([a-zA-Z_0-9-]+):/gi)
+    
     for key in keys
-      strippedKey = key.toString().toLowerCase().replace(delimiter, "")
-      #console.log "strippedKey: " + strippedKey
+      strippedKey = key.match(/[^:][a-zA-Z_0-9-]+[^:]/).toString().toLowerCase()
       if textEmojis[strippedKey]
         msg.send textEmojis[strippedKey]
       else      
-        msg.send 'http://givemeemoji.herokuapp.com/' + strippedKey + '.png'
+        msg.send 'http://givemeemoji.herokuapp.com/' + strippedKey
