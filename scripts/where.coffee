@@ -15,7 +15,11 @@ conferenceRooms = {
   carbon: "http://i.imgur.com/9CeF1oB.png",
   nitrogen: "http://i.imgur.com/MqF2DZz.png",
   promethium: "http://i.imgur.com/zxwVDru.png",
-  jimmy: "http://i.imgur.com/0m2y6yG.png"
+  jimmy: "http://i.imgur.com/0m2y6yG.png",
+  neocoltrane: "http://i.imgur.com/H8FUzPS.png",
+  davis: "http://i.imgur.com/dmJ2BDv.png",
+  brubeck: "http://i.imgur.com/v1AhrJQ.png",
+  parker: "http://i.imgur.com/pE20nhD.png"
 }
 
 barks = [
