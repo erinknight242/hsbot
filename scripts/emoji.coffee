@@ -39,7 +39,7 @@ module.exports = (robot) ->
 
   robot.respond /:+\w*:+/i, (msg) ->
     
-    keys = msg.message.text.match(/:([a-zA-Z_0-9-]+):/gi)#[0].match(/[^:]\w*[^:]/).toString().toLowerCase()
+    keys = msg.message.text.match(/:([a-zA-Z_0-9-]+):/gi)
     
     for key in keys
       strippedKey = key.match(/[^:][a-zA-Z_0-9-]+[^:]/).toString().toLowerCase()
