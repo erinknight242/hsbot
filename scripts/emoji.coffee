@@ -37,7 +37,7 @@ module.exports = (robot) ->
   robot.respond /emoji help$/i, (msg) ->
     msg.send "http://givemeemoji.herokuapp.com/help.txt"
 
-  robot.hear /:[a-zA-Z_0-9+-]+:/i, (msg) ->
+  robot.hear /^(:[a-zA-Z_0-9+-]+:)|[^0-9a-zA-Z](:[a-zA-Z_0-9+-]+:)/ig, (msg) ->
     #console.log "msg: " + msg.message.text
     delimiter = /:/gi
     keys = msg.message.text.match(/:([a-zA-Z_0-9-+-]+):/gi)
