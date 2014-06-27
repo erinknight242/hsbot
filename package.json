@@ -27,7 +27,11 @@
     "hubot-hipchat": ">2.4.5",
     "hubot":         "= 2.5.1",
     "hubot-scripts": ">= 2.4.2",
-    "datejs": "0.0.2"
+    "datejs": "0.0.2",
+    "underscore": "1.6.0",
+    "underscore.string": "2.3.3",
+    "soupselect": "0.2.0",
+    "htmlparser": "1.7.7"
   },
 
   "engines": {
