@@ -21,8 +21,12 @@ module.exports = (robot) ->
             truck = truck[Date.today().getWeek() % 2]
         if not truck
             truck = trucks[new Date().getDay()][(Date.today().getWeek() + 1) % 2]
-            msg.send "No food truck today, but next week it will be #{truck.name}"
+            message = "No food truck today, but next week it will be #{truck.name}"
+            message = message + if truck.name == "Short Bus Subs" then " (sandwich)" else ""
+            msg.send message
             return
-        msg.send "The food truck for " + Date.today().toString("dddd") + " is #{truck.name}, which you can verify here: #{truck.site} (chompy)"
+        message = "The food truck for " + Date.today().toString("dddd") + " is #{truck.name}, which you can verify here: #{truck.site} (chompy)"
+        message = message + if truck.name == "Short Bus Subs" then " (sandwich)" else ""
+        msg.send message
     else
         msg.send "Awww beans! There's no food truck today. (sadpanda) Try `hsbot lunch me`! ;)"
