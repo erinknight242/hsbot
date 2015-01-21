@@ -15,7 +15,7 @@ module.exports = (robot) ->
               [{name: "Rosarito Foodtruck", site: "https://twitter.com/rosaritoatx"}, {name: "The Ginger Armadillo", site: "http://thegingerarmadillo.com/locate"}],
               [null, null],
               null]
-    truck = trucks[4]
+    truck = trucks[new Date().getDay()]
     if truck
         if truck.length == 2
             truck = truck[Date.today().getWeek() % 2]
