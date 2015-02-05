@@ -19,6 +19,7 @@ module.exports = (robot) ->
       rooms = JSON.parse(body).rooms
 
   robot.respond /timehop/i, (msg) ->
+    console.log msg
     jid = msg.user?.reply_to
     room_id = _.findWhere(rooms, { xmpp_jid: jid }).room_id
     targetDate = Date.today().add({ years: -1 })
