@@ -7,7 +7,7 @@
 date = require 'datejs'
 
 module.exports = (robot) ->
-  robot.respond /food truck$/i, (msg) ->
+  robot.respond /(food truck|foodtruck)$/i, (msg) ->
     trucks = [null,
               [{name: "Keiths BBQ", site: "http://keithsbbq.com/"}, {name: "Mission Hot Dogs", site: "https://twitter.com/MissionHotDogs"}],
               [null, {name: "Short Bus Subs", site: "http://www.shortbussubs.com/event-calendar.html"}],
