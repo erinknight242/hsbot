@@ -1,11 +1,13 @@
 # Description:
-#   blarg
+#   hsbot will go back in time and try to nab a snippet of conversation from that room long ago.
+#   You can use days/weeks/months/years in any order, with or without puncation, enjoy!
 #
 # Dependencies:
-#   datejs, https
+#   datejs, https, underscore
 #
 # Commands:
-#   hubot timehop
+#   hubot timehop – go back one year
+#   hubot timehop 1 year, 2 months, 3 weeks, 4 days – go back a specific amount of time
 
 date = require 'datejs'
 https = require 'https'
@@ -14,6 +16,23 @@ _ = require 'underscore'
 rooms = []
 auth_token = process.env.HUBOT_HIPCHAT_TOKEN
 
+getDatePartValue = (parts, pattern) ->
+  part = _.find(parts, (p) -> p.match pattern)
+  index = _.indexOf(parts, part)
+  return parts[index + 1]
+
+fluxCapacitate = (input) ->
+  parts = input.split(/[ ,]+/).reverse()
+  if parts.length > 1
+    d = getDatePartValue parts, /^d(.*)/gi || 0
+    m = getDatePartValue parts, /^m(.*)/gi || 0
+    w = getDatePartValue parts, /^w(.*)/gi || 0
+    y = getDatePartValue parts, /^y(.*)/gi || 0
+  else
+    y = 1
+
+  return { years: 0-y, months: 0-m, days: 0-d, weeks: 0-w }
+
 module.exports = (robot) ->
 
   robot.http("https://api.hipchat.com/v1/rooms/list?auth_token=#{auth_token}")
@@ -21,11 +40,13 @@ module.exports = (robot) ->
       rooms = JSON.parse(body).rooms
       console.log "#{rooms.length} rooms loaded into memory for timehop"
 
-  robot.respond /timehop/i, (msg) ->
+  robot.respond /timehop( me)?( (.*))?/i, (msg) ->
+    txt = msg.match[3]
+    dateShift = fluxCapacitate(txt || '1')
     jid = msg.message.user.reply_to
     room = _.findWhere(rooms, { xmpp_jid: jid })
     room_id = room?.room_id || 67789
-    targetDate = Date.today().setTimezoneOffset(-600).add({ years: -1 })
+    targetDate = Date.today().setTimezoneOffset(+600).add(dateShift)
     targetDateFormatted = targetDate.toString("yyyy-MM-dd")
     robot.http("https://api.hipchat.com/v1/rooms/history?auth_token=#{auth_token}&room_id=#{room_id}&date=#{targetDateFormatted}")
       .get() (err, res, body) ->
@@ -33,11 +54,11 @@ module.exports = (robot) ->
         data = JSON.parse(body) 
 
         if (!data)
-          msg.send "Great Scott, there was a problem!"
+          msg.send "(greatscott) Great Scott, there was a problem!"
           return
 
         if (data.error)
-          msg.send "Great Scott, there was a problem! #{data.error.message}"
+          msg.send "(greatscott) Great Scott, there was a problem! #{data.error.message}"
           return
 
         if (data.messages.length < 1)
@@ -45,5 +66,5 @@ module.exports = (robot) ->
           return
 
         message = msg.random data.messages
-        messageDate = Date.parse(message.date).setTimezoneOffset(-600).toString('MMM dS, yyyy @ h:mm tt')
+        messageDate = Date.parse(message.date).setTimezoneOffset(+600).toString('MMM dS, yyyy @ h:mm tt')
         msg.send "/quote \"#{message.message}\" – #{message.from.name} (#{messageDate})"
