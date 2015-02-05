@@ -19,10 +19,8 @@ module.exports = (robot) ->
       rooms = JSON.parse(body).rooms
 
   robot.respond /timehop/i, (msg) ->
-    console.log msg
     jid = msg.user?.reply_to
-    room_id = _.findWhere(rooms, { xmpp_jid: jid }) || 'headspring'
-    console.log room_id
+    room_id = _.findWhere(rooms, { xmpp_jid: jid }).room_id
     targetDate = Date.today().add({ years: -1 })
     targetDateFormatted = targetDate.toString("yyyy-MM-dd")
     robot.http("https://api.hipchat.com/v1/rooms/history?auth_token=#{process.env.HUBOT_HIPCHAT_TOKEN}&room_id=#{room_id}&date=#{targetDateFormatted}")
