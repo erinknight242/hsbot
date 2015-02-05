@@ -17,11 +17,12 @@ module.exports = (robot) ->
   robot.http("https://api.hipchat.com/v1/rooms/list?auth_token=#{process.env.HUBOT_HIPCHAT_TOKEN}")
     .get() (err, res, body) ->
       rooms = JSON.parse(body).rooms
+      console.log "#{rooms.length} rooms loaded into memory for timehop"
 
   robot.respond /timehop/i, (msg) ->
-    console.log msg
-    jid = msg.user?.reply_to
-    room_id = _.findWhere(rooms, { xmpp_jid: jid }).room_id
+    jid = msg.message.user.reply_to
+    room = _.findWhere(rooms, { xmpp_jid: jid })
+    room_id = room?.room_id || 67789
     targetDate = Date.today().add({ years: -1 })
     targetDateFormatted = targetDate.toString("yyyy-MM-dd")
     robot.http("https://api.hipchat.com/v1/rooms/history?auth_token=#{process.env.HUBOT_HIPCHAT_TOKEN}&room_id=#{room_id}&date=#{targetDateFormatted}")
