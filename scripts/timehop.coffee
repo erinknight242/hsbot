@@ -12,9 +12,11 @@ https = require 'https'
 _ = require 'underscore'
 
 rooms = []
+auth_token = process.env.HUBOT_HIPCHAT_TOKEN
 
 module.exports = (robot) ->
-  robot.http("https://api.hipchat.com/v1/rooms/list?auth_token=#{process.env.HUBOT_HIPCHAT_TOKEN}")
+
+  robot.http("https://api.hipchat.com/v1/rooms/list?auth_token=#{auth_token}")
     .get() (err, res, body) ->
       rooms = JSON.parse(body).rooms
       console.log "#{rooms.length} rooms loaded into memory for timehop"
@@ -23,9 +25,9 @@ module.exports = (robot) ->
     jid = msg.message.user.reply_to
     room = _.findWhere(rooms, { xmpp_jid: jid })
     room_id = room?.room_id || 67789
-    targetDate = Date.today().add({ years: -1 })
+    targetDate = Date.today().setTimezoneOffset(-600).add({ years: -1 })
     targetDateFormatted = targetDate.toString("yyyy-MM-dd")
-    robot.http("https://api.hipchat.com/v1/rooms/history?auth_token=#{process.env.HUBOT_HIPCHAT_TOKEN}&room_id=#{room_id}&date=#{targetDateFormatted}")
+    robot.http("https://api.hipchat.com/v1/rooms/history?auth_token=#{auth_token}&room_id=#{room_id}&date=#{targetDateFormatted}")
       .get() (err, res, body) ->
 
         data = JSON.parse(body) 
@@ -43,5 +45,5 @@ module.exports = (robot) ->
           return
 
         message = msg.random data.messages
-        messageDate = Date.parse(message.date).toString('MMM dS, yyyy @ h:mm tt')
+        messageDate = Date.parse(message.date).setTimezoneOffset(-600).toString('MMM dS, yyyy @ h:mm tt')
         msg.send "/quote \"#{message.message}\" – #{message.from.name} (#{messageDate})"
