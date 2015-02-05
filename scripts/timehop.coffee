@@ -14,6 +14,11 @@ module.exports = (robot) ->
   robot.respond /timehop/i, (msg) ->
     targetDate = Date.today().add({ years: -1 })
     targetDateFormatted = targetDate.toString("yyyy-MM-dd")
+
+    console.log process.env.HUBOT_HIPCHAT_TOKEN
+    console.log msg.message.room
+    console.log targetDateFormatted
+
     robot.http("https://api.hipchat.com/v1/rooms/history?auth_token=#{process.env.HUBOT_HIPCHAT_TOKEN}&room_id=#{msg.message.room}&date=#{targetDate}")
       .get() (err, res, body) ->
         data = JSON.parse(body) 
