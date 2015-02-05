@@ -9,13 +9,23 @@
 
 date = require 'datejs'
 https = require 'https'
+_ = require 'underscore'
+
+rooms = []
 
 module.exports = (robot) ->
+  robot.http("https://api.hipchat.com/v1/rooms/list?auth_token=#{process.env.HUBOT_HIPCHAT_TOKEN}")
+    .get() (err, res, body) ->
+      rooms = JSON.parse(body).rooms
+
   robot.respond /timehop/i, (msg) ->
+    console.log msg
+    jid = msg.user?.reply_to
+    room_id = _.findWhere(rooms, { xmpp_jid: jid }) || 'headspring'
+    console.log room_id
     targetDate = Date.today().add({ years: -1 })
     targetDateFormatted = targetDate.toString("yyyy-MM-dd")
-    console.log msg.message
-    robot.http("https://api.hipchat.com/v1/rooms/history?auth_token=#{process.env.HUBOT_HIPCHAT_TOKEN}&room_id=#{msg.message.room}&date=#{targetDateFormatted}")
+    robot.http("https://api.hipchat.com/v1/rooms/history?auth_token=#{process.env.HUBOT_HIPCHAT_TOKEN}&room_id=#{room_id}&date=#{targetDateFormatted}")
       .get() (err, res, body) ->
 
         data = JSON.parse(body) 
@@ -28,7 +38,7 @@ module.exports = (robot) ->
           msg.send "Great Scott, there was a problem! #{data.error.message}"
           return
 
-        if (data.length < 1)
+        if (data.messages.length < 1)
           msg.send "No chats found on #{targetDate.toString('MMM dS, yyyy')}"
           return
 
