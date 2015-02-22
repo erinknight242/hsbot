@@ -1,0 +1,7 @@
+C:\repositories\hsbot\server\HS.Bot.Models\bin\Debug\HS.Bot.Models.dll
+C:\repositories\hsbot\server\HS.Bot.Models\bin\Debug\HS.Bot.Models.pdb
+C:\repositories\hsbot\server\HS.Bot.Models\bin\Debug\MediatR.dll
+C:\repositories\hsbot\server\HS.Bot.Models\bin\Debug\MediatR.pdb
+C:\repositories\hsbot\server\HS.Bot.Models\bin\Debug\MediatR.xml
+C:\repositories\hsbot\server\HS.Bot.Models\obj\Debug\HS.Bot.Models.dll
+C:\repositories\hsbot\server\HS.Bot.Models\obj\Debug\HS.Bot.Models.pdb

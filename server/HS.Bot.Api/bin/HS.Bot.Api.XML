@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>HS.Bot.Api</name>
+    </assembly>
+    <members>
+        <member name="T:HS.Bot.Api.DependencyResolution.StructureMapDependencyScope">
+            <summary>
+            The structure map dependency scope.
+            </summary>
+        </member>
+        <member name="T:HS.Bot.Api.DependencyResolution.StructureMapWebApiDependencyResolver">
+            <summary>
+            The structure map dependency resolver.
+            </summary>
+        </member>
+        <member name="T:HS.Bot.Api.DependencyResolution.StructureMapWebApiDependencyScope">
+            <summary>
+            The structure map web api dependency scope.
+            </summary>
+        </member>
+        <member name="M:HS.Bot.Api.DependencyResolution.StructureMapWebApiDependencyResolver.#ctor(StructureMap.IContainer)">
+            <summary>
+            Initializes a new instance of the <see cref="T:HS.Bot.Api.DependencyResolution.StructureMapWebApiDependencyResolver"/> class.
+            </summary>
+            <param name="container">
+            The container.
+            </param>
+        </member>
+        <member name="M:HS.Bot.Api.DependencyResolution.StructureMapWebApiDependencyResolver.BeginScope">
+            <summary>
+            The begin scope.
+            </summary>
+            <returns>
+            The System.Web.Http.Dependencies.IDependencyScope.
+            </returns>
+        </member>
+    </members>
+</doc>

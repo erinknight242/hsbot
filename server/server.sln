@@ -1,0 +1,48 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HS.Bot.Api", "HS.Bot.Api\HS.Bot.Api.csproj", "{058A9DB9-6D34-47D8-9239-BFDFA12EEA7D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PublishScripts", "PublishScripts", "{E95DC249-3F99-4D10-A305-F8EDDEB39444}"
+	ProjectSection(SolutionItems) = preProject
+		PublishScripts\AzureWebsitePublishModule.psm1 = PublishScripts\AzureWebsitePublishModule.psm1
+		PublishScripts\Publish-WebApplicationWebsite.ps1 = PublishScripts\Publish-WebApplicationWebsite.ps1
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Configurations", "Configurations", "{A2D26DF1-F2C2-4BF4-B62E-900B2729C27C}"
+	ProjectSection(SolutionItems) = preProject
+		PublishScripts\Configurations\HSBotApi-WAWS-dev.json = PublishScripts\Configurations\HSBotApi-WAWS-dev.json
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HS.Bot.Core", "HS.Bot.Core\HS.Bot.Core.csproj", "{7796C49E-63EC-409E-A297-4348FF651EBA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HS.Bot.Requests", "HS.Bot.Requests\HS.Bot.Requests.csproj", "{D6376FF0-7329-4656-B985-BC08BA92BF57}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{058A9DB9-6D34-47D8-9239-BFDFA12EEA7D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{058A9DB9-6D34-47D8-9239-BFDFA12EEA7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{058A9DB9-6D34-47D8-9239-BFDFA12EEA7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{058A9DB9-6D34-47D8-9239-BFDFA12EEA7D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7796C49E-63EC-409E-A297-4348FF651EBA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7796C49E-63EC-409E-A297-4348FF651EBA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7796C49E-63EC-409E-A297-4348FF651EBA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7796C49E-63EC-409E-A297-4348FF651EBA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D6376FF0-7329-4656-B985-BC08BA92BF57}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D6376FF0-7329-4656-B985-BC08BA92BF57}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D6376FF0-7329-4656-B985-BC08BA92BF57}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D6376FF0-7329-4656-B985-BC08BA92BF57}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A2D26DF1-F2C2-4BF4-B62E-900B2729C27C} = {E95DC249-3F99-4D10-A305-F8EDDEB39444}
+	EndGlobalSection
+EndGlobal
