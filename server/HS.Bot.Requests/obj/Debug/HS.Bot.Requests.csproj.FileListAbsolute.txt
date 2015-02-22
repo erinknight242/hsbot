@@ -1,7 +1,0 @@
-C:\repositories\hsbot\server\HS.Bot.Requests\bin\Debug\HS.Bot.Requests.dll
-C:\repositories\hsbot\server\HS.Bot.Requests\bin\Debug\HS.Bot.Requests.pdb
-C:\repositories\hsbot\server\HS.Bot.Requests\bin\Debug\MediatR.dll
-C:\repositories\hsbot\server\HS.Bot.Requests\bin\Debug\MediatR.pdb
-C:\repositories\hsbot\server\HS.Bot.Requests\bin\Debug\MediatR.xml
-C:\repositories\hsbot\server\HS.Bot.Requests\obj\Debug\HS.Bot.Requests.dll
-C:\repositories\hsbot\server\HS.Bot.Requests\obj\Debug\HS.Bot.Requests.pdb

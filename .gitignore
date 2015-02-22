@@ -1,2 +1,39 @@
 node_modules
 .DS_Store*
+
+# Visual Studio profiler
+*.psess
+*.vsp
+*.vspx
+
+# ReSharper is a .NET coding add-in
+_ReSharper*
+
+# NuGet Packages Directory
+packages
+
+# Publish Web Output
+*.Publish.xml
+# Windows Azure Build Output
+csx
+*.build.csdef
+# Windows Store app package directory
+AppPackages/
+# Others
+[Bb]in
+[Oo]bj
+sql
+TestResults
+[Tt]est[Rr]esult*
+*.Cache
+ClientBin
+[Ss]tyle[Cc]op.*
+~$*
+*.dbmdl
+Generated_Code #added for RIA/Silverlight projects
+
+# Backup & report files from converting an old project file to a newer
+# Visual Studio version. Backup files are not needed, because we have git ;-)
+_UpgradeReport_Files/
+Backup*/
+UpgradeLog*.XML
