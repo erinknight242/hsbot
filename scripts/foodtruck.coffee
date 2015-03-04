@@ -7,7 +7,7 @@
 date = require 'datejs'
 
 module.exports = (robot) ->
-  robot.respond /food truck$/i, (msg) ->
+  robot.respond /(food truck|foodtruck)$/i, (msg) ->
     trucks = [null,
               [{name: "Keiths BBQ", site: "http://keithsbbq.com/"}, {name: "Mission Hot Dogs", site: "https://twitter.com/MissionHotDogs"}],
               [null, {name: "Short Bus Subs", site: "http://www.shortbussubs.com/event-calendar.html"}],
@@ -15,7 +15,7 @@ module.exports = (robot) ->
               [{name: "Rosarito Foodtruck", site: "https://twitter.com/rosaritoatx"}, {name: "The Ginger Armadillo", site: "http://thegingerarmadillo.com/locate"}],
               [null, null],
               null]
-    truck = trucks[4]
+    truck = trucks[new Date().getDay()]
     if truck
         if truck.length == 2
             truck = truck[Date.today().getWeek() % 2]
