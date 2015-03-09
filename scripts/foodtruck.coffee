@@ -30,3 +30,5 @@ module.exports = (robot) ->
         msg.send message
     else
         msg.send "Awww beans! There's no food truck today. (sadpanda) Try `hsbot lunch me`! ;)"
+  robot.respond /food truck schedule$/i, (msg) ->
+    msg.send "Here is the food truck schedule for The Avallon: https://raw.githubusercontent.com/hulahomer/hsbot/master/foodtruckschedule.jpg"
