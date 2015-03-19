@@ -1,6 +1,8 @@
 # Description:
 #   Listens for messages in ALL CAPS to tell the user to simmer down
 
+odds  = [1...100]
+
 quips = [
 	"Whoa Captain Capitals, simmer down...",
 	"Easy killer, CAPS never got anyone anywhere...",
@@ -11,5 +13,7 @@ quips = [
 ]
 
 module.exports = (robot) ->
-	robot.hear /([A-Z\s]){7,}/g, (msg) ->
-		msg.send msg.random quips
+	robot.hear /^([A-Z\s]{8,})+$/g, (msg) ->
+		val = msg.random odds
+		if val > 25
+			msg.send msg.random quips
