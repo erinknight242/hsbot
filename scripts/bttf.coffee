@@ -12,4 +12,4 @@ module.exports = (robot) ->
 	robot.hear /(.+)?(road)(.+)?/i, (msg) ->
 		val = msg.random odds
 		if val > 50
-			msg.send "Roads? Where were going, we don't need roads"
+			msg.send "Roads? Where we're going, we don't need roads."
