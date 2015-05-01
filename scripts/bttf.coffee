@@ -4,12 +4,12 @@
 odds  = [1...100]
 
 module.exports = (robot) ->
-	robot.hear /(.+)?(heavy)(.+)?/i, (msg) ->
+	robot.hear \bheavy\b, (msg) ->
 		val = msg.random odds
 		if val > 50
 			msg.send "There's that word again. Heavy. Why are things so heavy in the future?"
 
-	robot.hear /(.+)?(road)(.+)?/i, (msg) ->
+	robot.hear \broad(s)?\b, (msg) ->
 		val = msg.random odds
 		if val > 50
 			msg.send "Roads? Where we're going, we don't need roads."
