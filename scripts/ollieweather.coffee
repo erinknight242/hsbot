@@ -1,24 +1,13 @@
 # Description:
-#   Let hubot tell you where to go for lunch.
+#   ..and now lets go to Ollie Williams for our forecast
 #
 # Commands:
-#   hubot lunch me - find a place to eat
-#   hubot lunch me tacos - find what you are in the mood for
-#   hubot houston lunch me - find a place in Houston, too!
+#   hubot weather - get your forecast
+#   hubot houston weather - get your forecast for a specific city
 
 austinId = 4671654
 houstonId = 4699066
 dallasId = 4684888
-
-barks = [
-  "How about {0}?",
-  "Are you in the mood for {0}?",
-  "When's the last time you had {0}?",
-  "If I were not an artificial intellegence, I would eat at {0}.",
-  "You should get {0}. (awyeah)",
-  "Perhaps you would like something from {0}.",
-  "Have you ever tried {0}?"
-]
 
 module.exports = (robot) ->
   robot.respond /(?:(austin|houston|dallas)[- ])?weather([- ](.+))?/i, (msg) ->
