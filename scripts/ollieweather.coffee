@@ -28,8 +28,8 @@ module.exports = (robot) ->
         wind = forecast.wind.speed;
         
         if(main == 'Rain' && wind > 10)
-          msg.send "It's rainin sideways!";
+          msg.send "(ollie) It's rainin sideways!";
         else if(main == 'Rain')
-          msg.send "It's gon rain";
+          msg.send "(ollie) It's gon rain";
         else
           msg.send main;
