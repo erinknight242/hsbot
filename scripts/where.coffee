@@ -15,7 +15,7 @@ conferenceRooms = {
   carbon: "http://i.imgur.com/9CeF1oB.png",
   nitrogen: "http://i.imgur.com/MqF2DZz.png",
   promethium: "http://i.imgur.com/zxwVDru.png",
-  jimmy: "http://i.imgur.com/06Sz7zV.jpg",
+  jimmy: "https://s3.amazonaws.com/grabbagoftimg/jimmy.png",
   neocoltrane: "http://i.imgur.com/H8FUzPS.png",
   davis: "http://i.imgur.com/v1AhrJQ.png",
   brubeck: "http://i.imgur.com/dmJ2BDv.png",
