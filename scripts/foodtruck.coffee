@@ -10,7 +10,7 @@ module.exports = (robot) ->
   robot.respond /(food truck|foodtruck)$/i, (msg) ->
     trucks = [null,
               [{name: "Mission Hot Dogs", site: "https://twitter.com/MissionHotDogs"}, {name: "Savery Grilled Cheese", site: "http://www.saverygrilledcheese.com"}],
-              [{name: "Travaasa Farm Truck", site: "http://www.travaasa.com/austin/food-truck"}, {name: "Short Bus Subs", site: "http://www.shortbussubs.com/event-calendar.html"}],
+              [{name: "Cafe Ybor", site: "http://www.cafeybor.com"}, {name: "Short Bus Subs", site: "http://www.shortbussubs.com/event-calendar.html"}],
               [null, {name: "Ground Up", site: "http://www.grounduptruck.com/"}],
               [{name: "Rosarito Foodtruck", site: "https://twitter.com/rosaritoatx"}, {name: "The Ginger Armadillo", site: "http://thegingerarmadillo.com/locate"}],
               [{name: "Load A Bowl", site: "http://www.loadabowlaustin.com/"}, {name: "WunderPig", site: "http://www.wunderpig.com/"}],
