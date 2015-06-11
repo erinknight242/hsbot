@@ -29,7 +29,7 @@ barks = [
 ]
 
 module.exports = (robot) ->
-  robot.respond /where ?is ([^\?]*)[\?]*/i, (msg) ->
+  robot.respond /where ?[i']s ([^\?]*)[\?]*/i, (msg) ->
     term = msg.match[1].toLowerCase().trim()
     location = conferenceRooms[term]
     if location?
