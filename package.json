@@ -17,7 +17,12 @@
     "hubot-redis-brain": "0.0.3",
     "hubot-rules": "^0.1.1",
     "hubot-scripts": "^2.16.1",
-    "hubot-shipit": "^0.2.0"
+    "hubot-shipit": "^0.2.0",
+    "datejs": "0.0.2",
+    "underscore": "1.6.0",
+    "underscore.string": "2.3.3",
+    "soupselect": "0.2.0",
+    "htmlparser": "1.7.7"
   },
   "engines": {
     "node": "0.10.x"
