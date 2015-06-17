@@ -11,7 +11,8 @@ request_payload = JSON.stringify({"jsonrpc": "2.0", "id": 1, "method": "{0}"})
 
 get_mopidy_url = (office = "dallas") ->
   # todo: add other office urls when they come online; for now it's only Dallas
-  process.env.HUBOT_JUKEBOX_DALLAS_URL or "http://localhost:6680/mopidy/rpc"
+  #"http://jukebox.local:8080/mopidy/rpc"
+    "http://localhost:6680/mopidy/rpc"
 
 module.exports = (robot) ->
   robot.respond /(?:(austin|houston|dallas)[- ])?what[']?s playing([- ](.+))?/i, (msg) ->
@@ -24,7 +25,7 @@ module.exports = (robot) ->
 
         if tl_track.length == 0
           msg.send "I can't tell what's playing on the Jukebox. (shrug)"
-                  
+
         artist_names = (artist.name for artist in tl_track.track.artists)
         msg.send "Now playing #{tl_track.track.name} by #{artist_names.reduce (x, y) -> x + ', ' + y}"
 
@@ -38,32 +39,40 @@ module.exports = (robot) ->
       .post(data) (err, res, body) ->
         if res.statusCode isnt 200
           msg.send "I can't pause the #{office} jukebox. (shrug)"
-          
+
         msg.send "#{office} jukebox paused."
-        
+
 
   robot.respond /(?:(austin|houston|dallas)[- ])?resume music/i, (msg) ->
     office = msg.match[1]
     mopidy_url = get_mopidy_url(office)
     data = request_payload.replace("{0}", "core.playback.resume")
-    
+
     msg.http(mopidy_url)
       .post(data) (err, res, body) ->
         if res.statusCode isnt 200
           msg.send "I can't resume the #{office} jukebox. (shrug)"
-          
+
         msg.send "#{office} jukebox resumed."
-        
+
 
   robot.respond /(?:(austin|houston|dallas)[- ])?play next/i, (msg) ->
     office = msg.match[1]
     mopidy_url = get_mopidy_url(office)
     data = request_payload.replace("{0}", "core.playback.next")
-    
+
     msg.http(mopidy_url)
       .post(data) (err, res, body) ->
         if res.statusCode isnt 200
           msg.send "I can't play next on the #{office} jukebox. (shrug)"
-          
+
         msg.send "Next song playing on #{office} jukebox."
-        
+
+  robot.respond /(?:(austin|houston|dallas)[- ])?shuffle([- ](.+))?/i, (msg) ->
+    office = msg.match[1]
+    mopidy_url = get_mopidy_url(office)
+    data = request_payload.replace("{0}", "core.tracklist.shuffle")
+
+    msg.http(mopidy_url)
+    .post(data) (err, res, body) ->
+      msg.send "I shook things up"
