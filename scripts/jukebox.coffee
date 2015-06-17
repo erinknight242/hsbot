@@ -11,8 +11,7 @@ request_payload = JSON.stringify({"jsonrpc": "2.0", "id": 1, "method": "{0}"})
 
 get_mopidy_url = (office = "dallas") ->
   # todo: add other office urls when they come online; for now it's only Dallas
-  #"http://jukebox.local:8080/mopidy/rpc"
-    "http://localhost:6680/mopidy/rpc"
+  process.env.HUBOT_JUKEBOX_DALLAS_URL or "http://localhost:6680/mopidy/rpc"
 
 module.exports = (robot) ->
   robot.respond /(?:(austin|houston|dallas)[- ])?what[']?s playing([- ](.+))?/i, (msg) ->
@@ -21,11 +20,14 @@ module.exports = (robot) ->
 
     msg.http(mopidy_url)
       .post(data) (err, res, body) ->
+        if res is null
+          msg.send "Nothing is playing"
+          return
         tl_track = JSON.parse(body).result
 
-        if tl_track.length == 0
+        if tl_track is null or tl_track.length == 0
           msg.send "I can't tell what's playing on the Jukebox. (shrug)"
-
+          return
         artist_names = (artist.name for artist in tl_track.track.artists)
         msg.send "Now playing #{tl_track.track.name} by #{artist_names.reduce (x, y) -> x + ', ' + y}"
 
@@ -75,4 +77,7 @@ module.exports = (robot) ->
 
     msg.http(mopidy_url)
     .post(data) (err, res, body) ->
-      msg.send "I shook things up"
+      if res is null || res.statusCode isnt 200
+        msg.send "I couldn't shake things up"
+      else
+        msg.send "I shook things up"
