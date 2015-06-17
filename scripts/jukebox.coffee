@@ -11,7 +11,7 @@ request_payload = JSON.stringify({"jsonrpc": "2.0", "id": 1, "method": "{0}"})
 
 get_mopidy_url = (office = "dallas") ->
   # todo: add other office urls when they come online; for now it's only Dallas
-  "http://jukebox.local:8080/mopidy/rpc"
+  process.env.HUBOT_JUKEBOX_DALLAS_URL or "http://localhost:6680/mopidy/rpc"
 
 module.exports = (robot) ->
   robot.respond /(?:(austin|houston|dallas)[- ])?what[']?s playing([- ](.+))?/i, (msg) ->
