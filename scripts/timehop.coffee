@@ -38,7 +38,6 @@ module.exports = (robot) ->
   robot.http("https://api.hipchat.com/v1/rooms/list?auth_token=#{auth_token}")
     .get() (err, res, body) ->
       rooms = JSON.parse(body).rooms
-      console.log "#{rooms.length} rooms loaded into memory for timehop"
 
   robot.respond /timehop( me)?( (.*))?/i, (msg) ->
     txt = msg.match[3]
