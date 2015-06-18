@@ -131,7 +131,7 @@ module.exports = (robot) ->
     msg.http(mopidy_url)
       .post(data) (err, res, body) ->
         if res.statusCode isnt 200
-          msg.send "Houston, we have a problem"
+          msg.send "Whitney Houston, we have a problem"
         else
           result = JSON.parse(body).result
           topTracks = result[0].tracks.slice(0,3)
