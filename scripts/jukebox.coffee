@@ -8,7 +8,7 @@
 #   hubot dallas play next - skip to next track
 #   hubot dallas history - list the last 5 tracks played
 #   hubot dallas shuffle - shuffle the songs in the current queue
-#   hubot dallas search|find|artist <artist> add tracks by artist to the queue
+#   hubot dallas search|find|artist <artist> add tracks by artist to the bottom of the queue
 
 request_payload = JSON.stringify({"jsonrpc": "2.0", "id": 1, "method": "{0}"})
 
@@ -127,28 +127,25 @@ module.exports = (robot) ->
     atPosition = 0
     msg.send "Seeing what I can dig up for " + artist
 
-    msg.http(mopidy_url)
-    .post(data) (err, res, body) ->
-      if res.statusCode isnt 200
-        msg.send "Houston, we have a problem"
-      else
-        result = JSON.parse(body).result
-        topTracks = result[0].tracks.slice(0,3)
-        names = ( obj.name for obj in topTracks).join(", ")
-        uris = (obj.uri for obj in topTracks);
-        msg.send "I found these fine selections for " + artist
-        msg.send names
-    .then () ->
-      atPosition = get_current_tl_trackId(mopidy_url, msg)
-    .then () ->
-      at_position++
-      console.log "atPosition " + atPosition
-      addRequest = JSON.stringify({"jsonrpc": "2.0","id": 1,"method" : "core.tracklist.add","params":{"at_position": {0},"uris": {1}}})
-      addMessage = addRequest.replace("{0}", atPosition).replace("{1}", uris)
 
-      msg.http(mopidy_url)
-      .post(addMessage) (err, res, body) ->
+    msg.http(mopidy_url)
+      .post(data) (err, res, body) ->
         if res.statusCode isnt 200
-          msg.send "That was a little embarassing, couldn't add tracks to the queue"
+          msg.send "Houston, we have a problem"
         else
-          msg.send "those songs are up next in the queue"
+          result = JSON.parse(body).result
+          topTracks = result[0].tracks.slice(0,3)
+          names = ( obj.name for obj in topTracks).join(", ")
+          uris = (obj.uri for obj in topTracks);
+          msg.send "I found these fine selections for " + artist
+          msg.send names
+
+        addRequest = {"jsonrpc": "2.0","id": 1,"method" : "core.tracklist.add","params":{"uris": uris}}
+        addMessage = JSON.stringify(addRequest)
+
+        msg.http(mopidy_url)
+        .post(addMessage) (err, res, body) ->
+          if res.statusCode isnt 200
+            msg.send "That was a little embarassing, couldn't add tracks to the queue"
+          else
+            msg.send "those songs are up next in the queue"
