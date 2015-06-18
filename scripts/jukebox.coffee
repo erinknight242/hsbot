@@ -148,4 +148,4 @@ module.exports = (robot) ->
           if res.statusCode isnt 200
             msg.send "That was a little embarassing, couldn't add tracks to the queue"
           else
-            msg.send "those songs are up next in the queue"
+            msg.send "those songs are up at the bottom of the queue"
