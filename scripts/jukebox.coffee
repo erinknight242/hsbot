@@ -6,6 +6,8 @@
 #   hubot dallas pause music - pause playback
 #   hubot dallas resume music - resume playback
 #   hubot dallas play next - skip to next track
+#   hubot dallas history - list the last 5 tracks played
+#   hubot dallas shuffle - shuffle the songs in the current queue
 
 request_payload = JSON.stringify({"jsonrpc": "2.0", "id": 1, "method": "{0}"})
 
@@ -24,7 +26,7 @@ module.exports = (robot) ->
 
         if tl_track.length == 0
           msg.send "I can't tell what's playing on the Jukebox. (shrug)"
-                  
+          return
         artist_names = (artist.name for artist in tl_track.track.artists)
         msg.send "Now playing #{tl_track.track.name} by #{artist_names.reduce (x, y) -> x + ', ' + y}"
 
@@ -38,32 +40,58 @@ module.exports = (robot) ->
       .post(data) (err, res, body) ->
         if res.statusCode isnt 200
           msg.send "I can't pause the #{office} jukebox. (shrug)"
-          
+
         msg.send "#{office} jukebox paused."
-        
+
 
   robot.respond /(?:(austin|houston|dallas)[- ])?resume music/i, (msg) ->
     office = msg.match[1]
     mopidy_url = get_mopidy_url(office)
     data = request_payload.replace("{0}", "core.playback.resume")
-    
+
     msg.http(mopidy_url)
       .post(data) (err, res, body) ->
         if res.statusCode isnt 200
           msg.send "I can't resume the #{office} jukebox. (shrug)"
-          
+
         msg.send "#{office} jukebox resumed."
-        
+
 
   robot.respond /(?:(austin|houston|dallas)[- ])?play next/i, (msg) ->
     office = msg.match[1]
     mopidy_url = get_mopidy_url(office)
     data = request_payload.replace("{0}", "core.playback.next")
-    
+
     msg.http(mopidy_url)
       .post(data) (err, res, body) ->
         if res.statusCode isnt 200
           msg.send "I can't play next on the #{office} jukebox. (shrug)"
-          
+
         msg.send "Next song playing on #{office} jukebox."
-        
+
+  robot.respond /(?:(austin|houston|dallas)[- ])?shuffle([- ](.+))?/i, (msg) ->
+    office = msg.match[1]
+    mopidy_url = get_mopidy_url(office)
+    data = request_payload.replace("{0}", "core.tracklist.shuffle")
+
+    msg.http(mopidy_url)
+    .post(data) (err, res, body) ->
+      if res.statusCode isnt 200
+        msg.send "I couldn't shake things up"
+      else
+        msg.send "I shook things up"
+
+  robot.respond /(?:(austin|houston|dallas)[- ])?history/i, (msg) ->
+    office = msg.match[1]
+    mopidy_url = get_mopidy_url(office)
+    data = request_payload.replace("{0}", "core.tracklist.get_tracks")
+
+    msg.http(mopidy_url)
+    .post(data) (err, res, body) ->
+      if res.statusCode isnt 200
+        msg.send "I couldn't get the history"
+      else
+        history = JSON.parse(body).result.slice(0,5)
+        names = ( obj.name for obj in history).join(", ")
+        msg.send "Here are the last " + history.length + " songs"
+        msg.send names

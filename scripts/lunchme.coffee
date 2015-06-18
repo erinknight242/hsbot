@@ -9,7 +9,7 @@
 radius = 5
 austinOffice = '10415 Morado Circle, Austin, TX 78759'
 houstonOffice = '10111 Richmond Ave, Houston, TX 77042'
-dallasOffice = '15400 Knoll Trail Dr, Dallas, TX 75248'
+dallasOffice = '5000 Quorum Drive Suite 300, Dallas, TX 75254'
 limit = 5
 category = 'food'
 
