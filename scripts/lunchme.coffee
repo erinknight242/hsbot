@@ -19,7 +19,7 @@ barks = [
   "How about {0}?",
   "Are you in the mood for {0}?",
   "When's the last time you had {0}?",
-  "If I were not an artificial intellegence, I would eat at {0}.",
+  "If I were not an artificial intelligence, I would eat at {0}.",
   "You should get {0}. (awyeah)",
   "Perhaps you would like something from {0}.",
   "Have you ever tried {0}?"
