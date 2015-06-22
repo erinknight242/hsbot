@@ -166,7 +166,7 @@ module.exports = (robot) ->
   robot.respond /(?:(austin|houston|dallas)[ ])?history/i, (msg) ->
     office = msg.match[1] or defaultOffice
     mopidyUrl = getMopidyUrl(office)
-    data = getRequestJson("core.tracklist.get_tracks")
+    data = getRequestJson("core.history.get_history")
 
     msg.http(mopidyUrl)
     .post(data) (err, res, body) ->
@@ -177,7 +177,12 @@ module.exports = (robot) ->
 
       try 
         history = JSON.parse(body).result.slice(0, 5)
-        names = (track.name for track in history).join(", ")
+
+        if history.length == 0
+          msg.send "No track history found."
+          return
+
+        names = (obj[1].name for obj in history).join(", ")
         msg.send "Here are the last " + history.length + " songs:"
         msg.send names
       catch error
