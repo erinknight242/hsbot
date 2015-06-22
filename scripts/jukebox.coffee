@@ -103,15 +103,15 @@ module.exports = (robot) ->
   robot.respond /(?:(austin|houston|dallas)[- ])?history/i, (msg) ->
     office = msg.match[1]
     mopidy_url = get_mopidy_url(office)
-    data = request_payload.replace("{0}", "core.tracklist.get_tracks")
-
+    data = request_payload.replace("{0}", "core.history.get_history")
     msg.http(mopidy_url)
     .post(data) (err, res, body) ->
       if res.statusCode isnt 200
         msg.send "I couldn't get the history"
       else
         history = JSON.parse(body).result.slice(0,5)
-        names = ( obj.name for obj in history).join(", ")
+        console.log history
+        names = (obj[1].name for obj in history).join(", ")
         msg.send "Here are the last " + history.length + " songs"
         msg.send names
 
