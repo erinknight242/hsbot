@@ -43,7 +43,7 @@ module.exports = (robot) ->
       .post(data) (err, res, body) ->
         tl_track = JSON.parse(body).result
 
-        if tl_track.length == 0
+        if tl_track is null or tl_track.length == 0
           msg.send "I can't tell what's playing on the Jukebox. (shrug)"
           return
         artist_names = (artist.name for artist in tl_track.track.artists)
