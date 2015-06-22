@@ -35,6 +35,7 @@ module.exports = (robot) ->
                 topTracks = result[0].tracks.slice(0,3)
                 names = ( obj.name for obj in topTracks).join(", ")
                 trackUris = (obj.uri for obj in topTracks);
+                console.log trackUris
                 msg.send "I found these fine selections for " + artist
                 msg.send names
                 resolve trackUris
@@ -74,10 +75,19 @@ module.exports = (robot) ->
         console.log "All calls completed"
         console.log "artistsTracks ==>"
         console.log trackUris
+
         console.log "current ==>"
         console.log trackId
-        addRequest = {"jsonrpc": "2.0","id": 1,"method" : "core.tracklist.add","params":{"at_postion": trackId + 1, "uris": uris}}
+        spot = trackId+1
+        console.log spot
+
+        addRequest = {"jsonrpc": "2.0","id": 1,"method" : "core.tracklist.add","params":{"at_postion": spot, "uris": trackUris}}
+
+        console.log addRequest
+
         addMessage = JSON.stringify(addRequest)
+
+        console.log addMessage
 
         addCall = new Promise ((resolve, reject) ->
           msg.http(mopidy_url)
