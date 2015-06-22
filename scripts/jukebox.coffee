@@ -17,7 +17,6 @@ get_mopidy_url = (office = "dallas") ->
   process.env.HUBOT_JUKEBOX_DALLAS_URL or "http://localhost:6680/mopidy/rpc"
 
 get_current_tl_trackId = (mopidy_url, msg) ->
-  console.log "get tl track"
   data = request_payload.replace("{0}", "core.playback.get_current_tl_track")
   msg.http(mopidy_url)
   .post(data) (err, res, body) ->
@@ -27,11 +26,14 @@ get_current_tl_trackId = (mopidy_url, msg) ->
       answer = JSON.parse(body)
       console.log answer
       if answer.result is null
-        console.log 'get_current_tl_track returned a null'
+        msg.send "Whitney Houston, we have a problem"
         return 0
       else
-        trackId = parseInt(answer.tlid, 10) is 10
-        console.log 'trackId ' & trackId
+        console.log "answer.result.tlid"
+        console.log answer.result.tlid
+        trackId = parseInt(answer.result.tlid, 10)
+        console.log 'trackId '
+        console.log trackId
         return trackId
 
 module.exports = (robot) ->
