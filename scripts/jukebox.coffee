@@ -177,6 +177,11 @@ module.exports = (robot) ->
 
       try 
         history = JSON.parse(body).result.slice(0, 5)
+
+        if history.length == 0
+          msg.send "No track history found."
+          return
+
         names = (obj[1].name for obj in history).join(", ")
         msg.send "Here are the last " + history.length + " songs:"
         msg.send names
