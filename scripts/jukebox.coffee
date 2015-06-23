@@ -40,13 +40,6 @@ getArtistsNames = (track) ->
 
 module.exports = (robot) ->
 
-  # error handling
-  robot.error (err, res) ->
-    robot.logger.error "Jukebox choked on #{err}"  
-
-    if res?
-      res.reply "Jukebox could not compute"
-
   # error checking
   foundErrors = (err, res) ->
     if err          
@@ -154,7 +147,6 @@ module.exports = (robot) ->
 
     msg.http(mopidyUrl)
     .post(data) (err, res, body) ->
-
       if foundErrors(err, res) 
         msg.send msg.random httpErrorBarks
         return
