@@ -14,7 +14,7 @@ https = require 'https'
 _ = require 'underscore'
 
 rooms = []
-auth_token = process.env.HUBOT_HIPCHAT_TOKEN
+auth_token = 'WBoCSSKBxZpd6nuQ5WLZfYmrYSzFxn1NG3t4AvXa'
 
 getDatePartValue = (parts, pattern) ->
   part = _.find(parts, (p) -> p.match pattern)
@@ -35,7 +35,7 @@ fluxCapacitate = (input) ->
 
 module.exports = (robot) ->
 
-  robot.http("https://api.hipchat.com/v1/rooms/list?auth_token=#{auth_token}")
+  robot.http("https://api.hipchat.com/v2/room?auth_token=#{auth_token}")
     .get() (err, res, body) ->
       rooms = JSON.parse(body).rooms
 
@@ -47,10 +47,10 @@ module.exports = (robot) ->
     room_id = room?.room_id || 67789
     targetDate = Date.today().setTimezoneOffset(+600).add(dateShift)
     targetDateFormatted = targetDate.toString("yyyy-MM-dd")
-    robot.http("https://api.hipchat.com/v1/rooms/history?auth_token=#{auth_token}&room_id=#{room_id}&date=#{targetDateFormatted}")
+    robot.http("https://api.hipchat.com/v2/room/{room_id}/history?auth_token=#{auth_token}&date=#{targetDateFormatted}")
       .get() (err, res, body) ->
 
-        data = JSON.parse(body) 
+        data = JSON.parse(body)
 
         if (!data)
           msg.send "(greatscott) Great Scott, there was a problem!"
