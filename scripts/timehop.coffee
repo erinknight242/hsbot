@@ -14,7 +14,7 @@ https = require 'https'
 _ = require 'underscore'
 
 rooms = []
-auth_token = 'WBoCSSKBxZpd6nuQ5WLZfYmrYSzFxn1NG3t4AvXa'
+auth_token = process.env.HUBOT_HIPCHAT_TOKEN
 
 getDatePartValue = (parts, pattern) ->
   part = _.find(parts, (p) -> p.match pattern)
