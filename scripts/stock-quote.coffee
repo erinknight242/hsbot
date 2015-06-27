@@ -11,7 +11,7 @@ getUrl = (stock_symbols) ->
 
 
 toFriendlyText = (quote) ->
-  "#{quote.Name} (#{quote.Symbol}) is at #{quote.LastTradePriceOnly} (#{quote.Change}, #{quote.PercentChange}) - http://finance.yahoo.com/q?s=#{quote.Symbol}"
+  "#{quote.Name} (#{quote.Symbol}) is at $#{quote.LastTradePriceOnly} (#{quote.Change}, #{quote.PercentChange}) - http://finance.yahoo.com/q?s=#{quote.Symbol}"
 
 
 pullQuotes = (data) ->
@@ -22,7 +22,7 @@ pullQuotes = (data) ->
 module.exports = (robot) ->
 
   robot.respond /stock quote (.+)/i, (msg) ->
-    stock_symbols = (item for item in msg.match[1].split ' ' when item.length > 0)
+    stock_symbols = (item for item in msg.match[1].replace(/\./, "-").split ' ' when item.length > 0)
     
     msg.http(getUrl(stock_symbols))
       .get() (err, res, body) ->
