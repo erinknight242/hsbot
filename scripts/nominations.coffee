@@ -12,6 +12,7 @@ errorBarks = [
   "Bad news: it didn't work (boom); good news: I'm alive! I'm alive! (awesome) Wait, no...that is Johhny # 5, there is no good news (evilburns)"
 ]
 jiraBaseUrl = "https://headspring.atlassian.net/rest/api/2/"
+authToken = "Basic #{process.env.HUBOT_JIRA_AUTH}"
 
 getAmbiguousUserText = (users) ->
     "Be more specific, I know #{users.length} people named like that: #{(user.name for user in users).join(", ")}"
@@ -21,14 +22,15 @@ getIssueType = (nomType) ->
     when "hva" then { "id": "11303" }
     else { "id": "11304" }
 
-getRequestJson = (nominee, description, nominationType = defaultNominationType, awardType = undefined) ->
+getRequestJson = (nominee, description, nominationType, awardType) ->
   issueType = getIssueType(nominationType)
   requestJson = {
     "fields": {
        "project": { "key": "NOMTEST", "id": "14700" },
        "issuetype": issueType,
        "customfield_12100": { "name": nominee },
-       "description": description
+       "description": description,
+       "summary": "this brag was automagically created by hsbot"
     }
   }
   if awardType?
@@ -41,8 +43,9 @@ module.exports = (robot) ->
     if err          
       robot.emit 'error', err, res
       return true
-    if res? and res.statusCode isnt 200
-      res.send "Got an HTTP #{res.statusCode} error."
+    console.log(res.statusCode)
+    if res? and (res.statusCode > 201 or res.statusCode < 200)
+      robot.emit "Got an HTTP #{res.statusCode} error."
       return true
     return false
 
@@ -97,10 +100,10 @@ module.exports = (robot) ->
     q = query: emailAddress
     msg.http(jiraUserUrl)
       .query(q)
-      #TODO add basic auth from env variable
+      .header("Authorization", authToken)
       .get() (err, res, body) ->
         if foundErrors(err, res)
-          msg.send msg.random httpErrorBarks
+          msg.send msg.random errorBarks
           return
         result = JSON.parse(body)
         if not result? or not result.users? or result.users.length == 0
@@ -109,59 +112,20 @@ module.exports = (robot) ->
         else if result.users.length != 1
           msg.send "JIRA found more than one #{colleagueName}?! Please be more spcific for nomination"
           return
-        else
-          msg.send "woot, found the user in JIRA: " + JSON.stringify(result.users[0])
+        
+        console.log("woot, found the user in JIRA: " + JSON.stringify(result.users[0]))
+        requestJson = getRequestJson(result.users[0].name, reason, "brag", null)
+        console.log("requestJson: " + JSON.stringify(requestJson))
 
-    # if !searchToken
-    #   msg.send "Which artist was that again?"
-    #   return
-
-    # mopidyUrl = getMopidyUrl(office)
-    # data = getRequestJson("core.library.search", {"artist": [searchToken]})
-
-    # msg.send "Seeing what I can find for " + searchToken
-
-    # msg.http(mopidyUrl)
-    #   .post(data) (err, res, body) ->
-
-    #     if foundErrors(err, res) 
-    #       msg.send msg.random httpErrorBarks
-    #       return
-
-    #     atPosition = 0
-    #     uris = []
-
-    #     try 
-    #       resultsFromAllBackends = JSON.parse(body).result
-    #       tracks = (result.tracks for result in resultsFromAllBackends when 'tracks' of result) #remove empty results
-    #                 .reduce (x, y) -> [x..., y...] # join the track arrays into one
-
-    #       # topTracks = (track for track in tracks when getArtistsNames(track).toLowerCase.match searchToken)
-    #       topTracks = tracks[0...3]
-
-    #       if topTracks.length == 0
-    #         msg.send "Found no matching tracks."
-    #         return
-
-    #       names = ("#{track.name} by #{getArtistsNames(track)}" for track in topTracks).join(", ")
-    #       msg.send "I found these fine selections for #{searchToken}:"
-    #       msg.send names
-
-    #       uris = (track.uri for track in topTracks)
-
-    #     catch error
-    #       msg.send msg.random dataErrorBarks
-    #       return
-
-    #     addRequest = getRequestJson("core.tracklist.add", {"uris": uris})
-
-    #     msg.http(mopidyUrl)
-    #       .post(addRequest) (err, res, body) ->
-
-    #         if foundErrors(err, res) 
-    #           msg.send msg.random httpErrorBarks
-    #           return
-
-    #         msg.send "Those songs have been added to the bottom of the queue"
+        jiraIssueUrl = jiraBaseUrl + "issue"
+        msg.http(jiraIssueUrl)
+          .header("Authorization", authToken)
+          .header("Content-Type", "application/json")
+          .post(requestJson) (err, res, body) ->
+            if foundErrors(err, res)
+              msg.send msg.random errorBarks
+              return
+            console.log("body after create: " + body)
+            msg.send "Your brag for #{colleagueName} was successfuly retreived and processed!"
 
 
