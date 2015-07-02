@@ -5,6 +5,9 @@
 #   hubot brag on <coworker> [because] <reason>
 #   hubot nominate <coworker> [for] <awardType> [because] <reason>
 
+bragHelpText = "/quote example: hsbot brag [on] [@]coworker [because] reason\nrules:\tcoworker and reason are required\n\t[on] [@] or [because] are optional"
+nominateHelpText = "/quote example: hsbot nominate [@]coworker for awardAcronym [because] reason\nrules:\tcoworker, awardAcronym and reason are required\n\awardAcronym must be one of:\n\t\tDFE (Drive for Excellence)\tPAV (People are Valued)\n\t\tCOM (Honest Communication)\tPLG (Passion for Learning and Growth)\n\t[@] or [because] are optional"
+
 defaultNominationType = "brag"
 errorBarks = [
   "My time circuits must be shorting out, I couldn't do that (sadpanda), please don't let me get struck by lightning (build)",
@@ -99,6 +102,12 @@ module.exports = (robot) ->
       return { "error": "JIRA found more than one #{colleagueName}?! Please be more spcific for nomination" }
     console.log("woot, found the user in JIRA: " + JSON.stringify(result.users[0]))
     return result.users[0]
+
+  robot.respond /brag help$/i, (msg) ->
+    msg.send bragHelpText
+
+  robot.respond /nominate help$/i, (msg) ->
+    msg.send nominateHelpText
 
   robot.hear /brag (on )?(@)?([a-zA-Z0-9]+)? (because |for )?(.+)?/i, (msg) ->
     console.log("robot name: " + robot.name)
