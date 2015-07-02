@@ -22,6 +22,14 @@ getIssueType = (nomType) ->
     when "hva" then { "id": "11303" }
     else { "id": "11304" }
 
+getAwardTypeFromAcronym =  (acronym) ->
+  switch acronym.toLowerCase()
+    when "dfe" then "Drive for Excellence"
+    when "pav" then "People are Valued"
+    when "com" then "Honest Communication"
+    when "plg" then "Passion for Learning and Growth"
+    else null
+
 getRequestJson = (nominator, nominee, description, nominationType, awardType) ->
   issueType = getIssueType(nominationType)
   requestJson = {
@@ -30,12 +38,12 @@ getRequestJson = (nominator, nominee, description, nominationType, awardType) ->
        "issuetype": issueType,
        "customfield_12100": { "name": nominee },
        "description": description,
-       "summary": "this brag was automagically created by hsbot",
+       "summary": "this #{nominationType} was automagically created by hsbot",
        "reporter": {"name": nominator }
     }
   }
   if awardType?
-    requestJson.fields.awardType = awardType 
+    requestJson.fields.customfield_12101 = { "value": getAwardTypeFromAcronym(awardType) }
   JSON.stringify(requestJson)
 
 module.exports = (robot) ->
@@ -92,7 +100,7 @@ module.exports = (robot) ->
     console.log("woot, found the user in JIRA: " + JSON.stringify(result.users[0]))
     return result.users[0]
 
-  robot.hear /brag (on )?(@)?([a-zA-Z0-9]+)? (because )?(.+)?/i, (msg) ->
+  robot.hear /brag (on )?(@)?([a-zA-Z0-9]+)? (because |for )?(.+)?/i, (msg) ->
     console.log("robot name: " + robot.name)
     sender = msg.message.user.name
     console.log("sender: " + sender)
@@ -100,6 +108,83 @@ module.exports = (robot) ->
     console.log("usedAtMention: " + usedAtMention)
     colleagueName = msg.match[3]
     console.log("colleagueName: " + colleagueName)
+    reason = msg.match[5]
+    console.log("reason: " + reason)
+
+    if isNomineeRobot(colleagueName)
+      msg.send "(embarrassed) Honored, truly, but an Artificial Inteligence does not need your bragging"
+      return
+
+    if usedAtMention
+      console.log("used the @ mention, trying to locate userName and emailAddress")
+      nominee = getEmployeeByMention(colleagueName)
+
+    if not nominee?
+      nominee = getEmployeeByName(colleagueName)
+      if nominee.error?
+        msg.send nominee.error
+        return
+    
+    if not nominee.userName?
+      msg.send "Could not locate a valid user name for #{colleagueName}, cannot brag"
+      return
+    if isNomineeSelf(nominee.userName, sender)
+      msg.send "(disapproval) bragging on yourself is not allowed!"
+      return
+    if not nominee.emailAddress?
+      msg.send "Could not locate a valid email address for #{colleagueName}, cannot brag"
+      return
+
+    nominator = getEmployeeByName(sender)
+    if nominator.error?
+      msg.send nominator.error
+      return
+
+    jiraUserUrl = jiraBaseUrl + "user/picker"
+    q = query: nominee.emailAddress
+    msg.http(jiraUserUrl)
+      .query(q)
+      .header("Authorization", authToken)
+      .get() (err, res, body) ->
+        jiraNominee = parseJiraUser(err, res, body)
+        if jiraNominee.error?
+          msg.send msg.random jiraNominee.error
+          return
+
+        q = query: nominator.emailAddress
+        msg.http(jiraUserUrl)
+          .query(q)
+          .header("Authorization", authToken)
+          .get() (err, res, body) ->
+            jiraNominator = parseJiraUser(err, res, body)
+            if jiraNominator.error?
+              msg.send msg.random jiraNominator.error
+              return
+
+            requestJson = getRequestJson(jiraNominator.name, jiraNominee.name, reason, "brag", null)
+            console.log("requestJson: " + JSON.stringify(requestJson))
+            jiraIssueUrl = jiraBaseUrl + "issue"
+            msg.http(jiraIssueUrl)
+              .header("Authorization", authToken)
+              .header("Content-Type", "application/json")
+              .post(requestJson) (err, res, body) ->
+                if foundErrors(err, res)
+                  msg.send msg.random errorBarks
+                  return
+                console.log("body after create: " + body)
+                atSign = `usedAtMention ? '@' : ''`
+                msg.send "Your brag for #{atSign}#{colleagueName} was successfuly retreived and processed!"
+
+  robot.hear /nominate (@)?([a-zA-Z0-9]+)? for (DFE|PAV|COM|PLG) (because )?(.+)?/i, (msg) ->
+    console.log("robot name: " + robot.name)
+    sender = msg.message.user.name
+    console.log("sender: " + sender)
+    usedAtMention = msg.match[1] == '@'
+    console.log("usedAtMention: " + usedAtMention)
+    colleagueName = msg.match[2]
+    console.log("colleagueName: " + colleagueName)
+    awardType = msg.match[3]
+    console.log("awardType: " + awardType)
     reason = msg.match[5]
     console.log("reason: " + reason)
 
@@ -153,7 +238,7 @@ module.exports = (robot) ->
               msg.send msg.random jiraNominator.error
               return
 
-            requestJson = getRequestJson(jiraNominator.name, jiraNominee.name, reason, "brag", null)
+            requestJson = getRequestJson(jiraNominator.name, jiraNominee.name, reason, "hva", awardType)
             console.log("requestJson: " + JSON.stringify(requestJson))
             jiraIssueUrl = jiraBaseUrl + "issue"
             msg.http(jiraIssueUrl)
@@ -165,4 +250,5 @@ module.exports = (robot) ->
                   return
                 console.log("body after create: " + body)
                 atSign = `usedAtMention ? '@' : ''`
-                msg.send "Your brag for #{atSign}#{colleagueName} was successfuly retreived and processed!"
+                hva = getAwardTypeFromAcronym(awardType)
+                msg.send "Your nomination of #{atSign}#{colleagueName} for #{hva} was successfuly retreived and processed!"
