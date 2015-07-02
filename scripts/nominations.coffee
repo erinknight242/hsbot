@@ -35,13 +35,15 @@ getAwardTypeFromAcronym =  (acronym) ->
 
 getRequestJson = (nominator, nominee, description, nominationType, awardType) ->
   issueType = getIssueType(nominationType)
+  summaryType = `nominationType.toLowerCase() == "hva" ? "nominates" : "brags about"`
+  nomDate = Date.today().toString("MMM dd, yyyy")
   requestJson = {
     "fields": {
        "project": { "key": "NOM", "id": "14701" }
        "issuetype": issueType,
        "customfield_12100": { "name": nominee },
        "description": description,
-       "summary": "this #{nominationType} was automagically created by hsbot",
+       "summary": "#{nominator} #{summaryType} #{nominee} on #{nomDate}",
        "reporter": {"name": nominator }
     }
   }
