@@ -34,7 +34,7 @@ getRequestJson = (nominator, nominee, description, nominationType, awardType) ->
   issueType = getIssueType(nominationType)
   requestJson = {
     "fields": {
-       "project": { "key": "NOMTEST", "id": "14700" },
+       "project": { "key": "NOM", "id": "14701" }
        "issuetype": issueType,
        "customfield_12100": { "name": nominee },
        "description": description,
