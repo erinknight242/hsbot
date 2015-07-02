@@ -5,8 +5,8 @@
 #   hubot brag on <coworker> [because] <reason>
 #   hubot nominate <coworker> [for] <awardType> [because] <reason>
 
-bragHelpText = "/quote example: hsbot brag [on] [@]coworker [because] reason\nrules:\tcoworker and reason are required\n\t[on] [@] or [because] are optional"
-nominateHelpText = "/quote example: hsbot nominate [@]coworker for awardAcronym [because] reason\nrules:\tcoworker, awardAcronym and reason are required\n\awardAcronym must be one of:\n\t\tDFE (Drive for Excellence)\tPAV (People are Valued)\n\t\tCOM (Honest Communication)\tPLG (Passion for Learning and Growth)\n\t[@] or [because] are optional"
+bragHelpText = "/quote example: hsbot brag [on|about] @coworker bragText\nrules:\t@coworker and bragText are required\n\t[on or about] is optional"
+nominateHelpText = "/quote example: hsbot nominate @coworker for awardAcronym nominationText\nrules:\tcoworker and nominationText are required, awardAcronym must be one of:\n\tDFE (Drive for Excellence)\n\tPAV (People are Valued)\n\tCOM (Honest Communication)\n\tPLG (Passion for Learning and Growth)"
 
 defaultNominationType = "brag"
 errorBarks = [
@@ -81,7 +81,7 @@ module.exports = (robot) ->
   getEmployeeByName = (fuzzyName) ->
     matchingUsers = robot.brain.usersForFuzzyName(fuzzyName)
     if not matchingUsers?
-      return { "error": "#{fuzzyName}? Never heard of 'em, cannot nominate" }
+      return { "error": "#{fuzzyName}? Never heard of 'em, cannot proceed" }
     
     if matchingUsers.length != 1
       return { "error": getAmbiguousUserText(matchingUsers) }
@@ -97,9 +97,9 @@ module.exports = (robot) ->
       return { "error": errorBarks }
     result = JSON.parse(body)
     if not result? or not result.users? or result.users.length == 0
-      return { "error": "#{colleagueName}? JIRA doesn't have record of 'em, cannot nominate" }
+      return { "error": "#{colleagueName}? JIRA doesn't have record of 'em, cannot proceed" }
     if result.users.length != 1
-      return { "error": "JIRA found more than one #{colleagueName}?! Please be more spcific for nomination" }
+      return { "error": "JIRA found more than one #{colleagueName}?! Please be more specific to proceed" }
     console.log("woot, found the user in JIRA: " + JSON.stringify(result.users[0]))
     return result.users[0]
 
@@ -109,25 +109,24 @@ module.exports = (robot) ->
   robot.respond /nominate help$/i, (msg) ->
     msg.send nominateHelpText
 
-  robot.hear /brag (on )?(@)?([a-zA-Z0-9]+)? (because |for )?(.+)?/i, (msg) ->
+  robot.hear /brag (about |on )?@([a-zA-Z0-9]+) (.+)/i, (msg) ->
     console.log("robot name: " + robot.name)
     sender = msg.message.user.name
     console.log("sender: " + sender)
-    usedAtMention = msg.match[2] == '@'
-    console.log("usedAtMention: " + usedAtMention)
-    colleagueName = msg.match[3]
+    colleagueName = msg.match[2].trim()
     console.log("colleagueName: " + colleagueName)
-    reason = msg.match[5]
+    reason = msg.match[3].trim()
     console.log("reason: " + reason)
 
     if isNomineeRobot(colleagueName)
       msg.send "(embarrassed) Honored, truly, but an Artificial Inteligence does not need your bragging"
       return
 
-    if usedAtMention
-      console.log("used the @ mention, trying to locate userName and emailAddress")
-      nominee = getEmployeeByMention(colleagueName)
+    if not reason?.length
+      msg.send "(disapproval), you should supply a reason for your brag"
+      return
 
+    nominee = getEmployeeByMention(colleagueName)
     if not nominee?
       nominee = getEmployeeByName(colleagueName)
       if nominee.error?
@@ -181,30 +180,28 @@ module.exports = (robot) ->
                   msg.send msg.random errorBarks
                   return
                 console.log("body after create: " + body)
-                atSign = `usedAtMention ? '@' : ''`
-                msg.send "Your brag for #{atSign}#{colleagueName} was successfuly retreived and processed!"
+                msg.send "Your brag about @#{colleagueName} was successfuly retreived and processed!"
 
-  robot.hear /nominate (@)?([a-zA-Z0-9]+)? for (DFE|PAV|COM|PLG) (because )?(.+)?/i, (msg) ->
+  robot.hear /nominate @([a-zA-Z0-9]+) for (DFE|PAV|COM|PLG)(.+)/i, (msg) ->
     console.log("robot name: " + robot.name)
     sender = msg.message.user.name
     console.log("sender: " + sender)
-    usedAtMention = msg.match[1] == '@'
-    console.log("usedAtMention: " + usedAtMention)
-    colleagueName = msg.match[2]
+    colleagueName = msg.match[1].trim()
     console.log("colleagueName: " + colleagueName)
-    awardType = msg.match[3]
+    awardType = msg.match[2].trim()
     console.log("awardType: " + awardType)
-    reason = msg.match[5]
+    reason = msg.match[3].trim()
     console.log("reason: " + reason)
+
+    if not reason?.length
+      msg.send "(disapproval), you should supply a reason for your nomination"
+      return
 
     if isNomineeRobot(colleagueName)
       msg.send "(embarrassed) Honored, truly, but an Artificial Inteligence does not have a desk to put the award on"
       return
 
-    if usedAtMention
-      console.log("used the @ mention, trying to locate userName and emailAddress")
-      nominee = getEmployeeByMention(colleagueName)
-
+    nominee = getEmployeeByMention(colleagueName)
     if not nominee?
       nominee = getEmployeeByName(colleagueName)
       if nominee.error?
@@ -258,6 +255,5 @@ module.exports = (robot) ->
                   msg.send msg.random errorBarks
                   return
                 console.log("body after create: " + body)
-                atSign = `usedAtMention ? '@' : ''`
                 hva = getAwardTypeFromAcronym(awardType)
-                msg.send "Your nomination of #{atSign}#{colleagueName} for #{hva} was successfuly retreived and processed!"
+                msg.send "Your nomination of @#{colleagueName} for #{hva} was successfuly retreived and processed!"
