@@ -4,6 +4,7 @@
 # Commands:
 #   hubot brag on <coworker> [because] <reason>
 #   hubot nominate <coworker> [for] <awardType> [because] <reason>
+date = require 'datejs'
 
 bragHelpText = "/quote example: hsbot brag [on|about] @coworker bragText\nrules:\t@coworker and bragText are required\n\t[on or about] is optional"
 nominateHelpText = "/quote example: hsbot nominate @coworker for awardAcronym nominationText\nrules:\tcoworker and nominationText are required, awardAcronym must be one of:\n\tDFE (Drive for Excellence)\n\tPAV (People are Valued)\n\tCOM (Honest Communication)\n\tPLG (Passion for Learning and Growth)"
@@ -15,7 +16,9 @@ errorBarks = [
   "Bad news: it didn't work (boom); good news: I'm alive! I'm alive! (awesome) Wait, no...that is Johhny # 5, there is no good news (evilburns)"
 ]
 jiraBaseUrl = "https://headspring.atlassian.net/rest/api/2/"
-authToken = "Basic #{process.env.HUBOT_JIRA_AUTH}"
+hipChatBaseUrl = "https://headspring.hipchat.com/v2/"
+jiraAuthToken = "Basic #{process.env.HUBOT_JIRA_AUTH}"
+hipChatAuthToken = process.env.HUBOT_HIPCHAT_AUTHTOKEN
 
 getAmbiguousUserText = (users) ->
     "Be more specific, I know #{users.length} people named like that: #{(user.name for user in users).join(", ")}"
@@ -59,14 +62,28 @@ getQueryJson = (nominationType, count) ->
   }
   JSON.stringify(queryJson)
 
+getNotificationJson = (bragTo, bragText, bragFrom, bragDate) ->
+  #bragDateString = bragDate.toString("MMM dd, yyyy")
+  # notificationJson = {
+  #   "message": "<span>Kudos to <span style=\"font-weight: 700\">#{bragTo}</span></span><p>#{bragText}</p><span style=\"text-transform:uppercase;\">From #{bragFrom} | #{bragDateString}</span>",
+  #   "message_format": "html",
+  #   "color": "random"
+  # }
+  notificationJson = {
+    "message": "<span>Kudos to <span style=\"font-weight: 700\">#{bragTo}</span></span><p>#{bragText}</p><span style=\"text-transform:uppercase;\">From #{bragFrom}</span>",
+    "message_format": "html",
+    "color": "random"
+  }
+  JSON.stringify(notificationJson)
+
 module.exports = (robot) ->
   # error checking
   foundErrors = (err, res) ->
     if err          
       robot.emit 'error', err, res
       return true
-    console.log(res.statusCode)
-    if res? and (res.statusCode > 201 or res.statusCode < 200)
+    #console.log(res.statusCode)
+    if res? and (res.statusCode > 204 or res.statusCode < 200)
       robot.emit "Got an HTTP #{res.statusCode} error."
       console.log("Got an HTTP #{res.statusCode} error.")
       return true
@@ -81,10 +98,10 @@ module.exports = (robot) ->
   getEmployeeByMention = (mentionName) ->
     for userId, user of robot.brain.users()
       if user.mention_name? and user.mention_name.toLowerCase()==mentionName.toLowerCase()
-        console.log("found mentioned user: " + JSON.stringify(user))
+        #console.log("found mentioned user: " + JSON.stringify(user))
         userName = user.name.toLowerCase()
         emailAddress = user.email_address.toLowerCase()
-        console.log("userName: #{userName}, email: #{emailAddress}")
+        #console.log("userName: #{userName}, email: #{emailAddress}")
         return { "userName": userName, "emailAddress": emailAddress }
     return
 
@@ -96,10 +113,10 @@ module.exports = (robot) ->
     if matchingUsers.length != 1
       return { "error": getAmbiguousUserText(matchingUsers) }
     
-    console.log("found fuzzy user: " + JSON.stringify(matchingUsers[0]))
+    #console.log("found fuzzy user: " + JSON.stringify(matchingUsers[0]))
     userName = matchingUsers[0].name.toLowerCase()
     emailAddress = matchingUsers[0].email_address.toLowerCase()
-    console.log("userName: #{userName}, email: #{emailAddress}")
+    #console.log("userName: #{userName}, email: #{emailAddress}")
     return { "userName": userName, "emailAddress": emailAddress }
 
   parseJiraUser = (err, res, body) ->
@@ -110,7 +127,7 @@ module.exports = (robot) ->
       return { "error": "#{colleagueName}? JIRA doesn't have record of 'em, cannot proceed" }
     if result.users.length != 1
       return { "error": "JIRA found more than one #{colleagueName}?! Please be more specific to proceed" }
-    console.log("woot, found the user in JIRA: " + JSON.stringify(result.users[0]))
+    #console.log("woot, found the user in JIRA: " + JSON.stringify(result.users[0]))
     return result.users[0]
 
   robot.respond /brag help$/i, (msg) ->
@@ -120,13 +137,13 @@ module.exports = (robot) ->
     msg.send nominateHelpText
 
   robot.hear /brag (about |on )?@([a-zA-Z0-9]+) (.+)/i, (msg) ->
-    console.log("robot name: " + robot.name)
+    #console.log("robot name: " + robot.name)
     sender = msg.message.user.name
-    console.log("sender: " + sender)
+    #console.log("sender: " + sender)
     colleagueName = msg.match[2].trim()
-    console.log("colleagueName: " + colleagueName)
+    #console.log("colleagueName: " + colleagueName)
     reason = msg.match[3].trim()
-    console.log("reason: " + reason)
+    #console.log("reason: " + reason)
 
     if isNomineeRobot(colleagueName)
       msg.send "(embarrassed) Honored, truly, but an Artificial Inteligence does not need your bragging"
@@ -162,7 +179,7 @@ module.exports = (robot) ->
     q = query: nominee.emailAddress
     msg.http(jiraUserUrl)
       .query(q)
-      .header("Authorization", authToken)
+      .header("Authorization", jiraAuthToken)
       .get() (err, res, body) ->
         jiraNominee = parseJiraUser(err, res, body)
         if jiraNominee.error?
@@ -180,7 +197,7 @@ module.exports = (robot) ->
               return
 
             requestJson = getRequestJson(jiraNominator.name, jiraNominee.name, reason, "brag", null)
-            console.log("requestJson: " + JSON.stringify(requestJson))
+            #console.log("requestJson: " + JSON.stringify(requestJson))
             jiraIssueUrl = jiraBaseUrl + "issue"
             msg.http(jiraIssueUrl)
               .header("Authorization", jiraAuthToken)
@@ -189,19 +206,19 @@ module.exports = (robot) ->
                 if foundErrors(err, res)
                   msg.send msg.random errorBarks
                   return
-                console.log("body after create: " + body)
+                #console.log("body after create: " + body)
                 msg.send "Your brag about @#{colleagueName} was successfuly retreived and processed!"
 
   robot.hear /nominate @([a-zA-Z0-9]+) for (DFE|PAV|COM|PLG)(.+)/i, (msg) ->
-    console.log("robot name: " + robot.name)
+    #console.log("robot name: " + robot.name)
     sender = msg.message.user.name
-    console.log("sender: " + sender)
+    #console.log("sender: " + sender)
     colleagueName = msg.match[1].trim()
-    console.log("colleagueName: " + colleagueName)
+    #console.log("colleagueName: " + colleagueName)
     awardType = msg.match[2].trim()
-    console.log("awardType: " + awardType)
+    #console.log("awardType: " + awardType)
     reason = msg.match[3].trim()
-    console.log("reason: " + reason)
+    #console.log("reason: " + reason)
 
     if not reason?.length
       msg.send "(disapproval), you should supply a reason for your nomination"
@@ -255,7 +272,7 @@ module.exports = (robot) ->
               return
 
             requestJson = getRequestJson(jiraNominator.name, jiraNominee.name, reason, "hva", awardType)
-            console.log("requestJson: " + JSON.stringify(requestJson))
+            #console.log("requestJson: " + JSON.stringify(requestJson))
             jiraIssueUrl = jiraBaseUrl + "issue"
             msg.http(jiraIssueUrl)
               .header("Authorization", jiraAuthToken)
@@ -264,6 +281,61 @@ module.exports = (robot) ->
                 if foundErrors(err, res)
                   msg.send msg.random errorBarks
                   return
-                console.log("body after create: " + body)
+                #console.log("body after create: " + body)
                 hva = getAwardTypeFromAcronym(awardType)
                 msg.send "Your nomination of @#{colleagueName} for #{hva} was successfuly retreived and processed!"
+  
+  robot.respond /brag bomb( (\d+))?$/i, (msg) ->
+    count = msg.match[2] || 5
+    queryJson = getQueryJson("brag", count)
+    #console.log("queryJson: " + JSON.stringify(queryJson))
+    jiraSearchUrl = jiraBaseUrl + "search"
+    msg.http(jiraSearchUrl)
+      .header("Authorization", jiraAuthToken)
+      .header("Content-Type", "application/json")
+      .post(queryJson) (err, res, body) ->
+        if foundErrors(err, res)
+          msg.send msg.random errorBarks
+          return
+        
+        #console.log("body after search: " + body)
+        jiraResult = JSON.parse(body)
+        if not jiraResult? or not jiraResult.issues? or jiraResult.issues.length == 0
+          msg.send "ERROR! could not find any recent brags to bomb you with"
+          return
+
+        hipChatRoomUrl = hipChatBaseUrl + "room"
+        q = auth_token: hipChatAuthToken 
+        msg.http(hipChatRoomUrl)
+          .query(q)
+          .get() (err, res, body) ->
+            if foundErrors(err, res)
+              msg.send msg.random errorBarks
+              return
+            roomName = msg.message.room
+            roomsResult = JSON.parse(body)
+            if not roomsResult? or not roomsResult.items? or roomsResult.items.length == 0
+              msg.send "ERROR! could not locate room to notify named: #{roomName}"
+              return
+            
+            matchingRooms = (r for r in roomsResult.items when r.name.toLowerCase() == roomName)
+            if not matchingRooms? or matchingRooms.length == 0
+              msg.send "ERROR! could not locate room to notify named: #{roomName}"
+              return
+            if matchingRooms.length > 1
+              msg.send "ERROR! found mulitple matching rooms for: #{roomName} - #{(room.name for room in matchingRooms).join(", ")}"
+              return
+            roomId = matchingRooms[0].id
+            #console.log(roomId)
+            
+            hipChatNotificationUrl = hipChatBaseUrl + "room/#{roomId}/notification"
+            for issue in jiraResult.issues
+              notifyBody = getNotificationJson(issue.fields.customfield_12100.displayName, issue.fields.description, issue.fields.reporter.displayName, issue.fields.created)
+              #console.log(notifyBody)
+              msg.http(hipChatNotificationUrl)
+                .query(q)
+                .header("Content-Type", "application/json")
+                .post(notifyBody) (err, res, body) ->
+                  if foundErrors(err, res)
+                    msg.send msg.random errorBarks
+                    return
