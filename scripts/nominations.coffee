@@ -70,7 +70,7 @@ getNotificationJson = (bragTo, bragText, bragFrom, bragDate) ->
   #   "color": "random"
   # }
   notificationJson = {
-    "message": "<span>Kudos to <span style=\"font-weight: 700\">#{bragTo}</span></span><p>#{bragText}</p><span style=\"text-transform:uppercase;\">From #{bragFrom}</span>",
+    "message": "<span>Kudos to <span style=\"font-weight: 700\">#{bragTo}</span></span><p>#{bragText}</p><span style=\"text-transform:uppercase;\">From <em>#{bragFrom}</em></span>",
     "message_format": "html",
     "color": "random"
   }
@@ -99,10 +99,11 @@ module.exports = (robot) ->
     for userId, user of robot.brain.users()
       if user.mention_name? and user.mention_name.toLowerCase()==mentionName.toLowerCase()
         #console.log("found mentioned user: " + JSON.stringify(user))
-        userName = user.name.toLowerCase()
-        emailAddress = user.email_address.toLowerCase()
-        #console.log("userName: #{userName}, email: #{emailAddress}")
-        return { "userName": userName, "emailAddress": emailAddress }
+        if user.name? and user.emailAddress?
+          userName = user.name.toLowerCase()
+          emailAddress = user.email_address.toLowerCase()
+          #console.log("userName: #{userName}, email: #{emailAddress}")
+          return { "userName": userName, "emailAddress": emailAddress }
     return
 
   getEmployeeByName = (fuzzyName) ->
@@ -113,10 +114,11 @@ module.exports = (robot) ->
     if matchingUsers.length != 1
       return { "error": getAmbiguousUserText(matchingUsers) }
     
-    #console.log("found fuzzy user: " + JSON.stringify(matchingUsers[0]))
-    userName = matchingUsers[0].name.toLowerCase()
-    emailAddress = matchingUsers[0].email_address.toLowerCase()
-    #console.log("userName: #{userName}, email: #{emailAddress}")
+    console.log("found fuzzy user: " + JSON.stringify(matchingUsers[0]))
+    if matchingUsers[0].name? and matchingUsers[0].emailAddress?
+      userName = matchingUsers[0].name.toLowerCase()
+      emailAddress = matchingUsers[0].email_address.toLowerCase()
+      #console.log("userName: #{userName}, email: #{emailAddress}")
     return { "userName": userName, "emailAddress": emailAddress }
 
   parseJiraUser = (err, res, body) ->
