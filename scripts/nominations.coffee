@@ -51,6 +51,14 @@ getRequestJson = (nominator, nominee, description, nominationType, awardType) ->
     requestJson.fields.customfield_12101 = { "value": getAwardTypeFromAcronym(awardType) }
   JSON.stringify(requestJson)
 
+getQueryJson = (nominationType, count) ->
+  issueTypeId = getIssueType(nominationType).id
+  queryJson = {
+    "jql": "project = 14701 AND issuetype = #{issueTypeId} ORDER BY CreatedDate DESC",
+    "maxResults": count
+  }
+  JSON.stringify(queryJson)
+
 module.exports = (robot) ->
   # error checking
   foundErrors = (err, res) ->
@@ -164,7 +172,7 @@ module.exports = (robot) ->
         q = query: nominator.emailAddress
         msg.http(jiraUserUrl)
           .query(q)
-          .header("Authorization", authToken)
+          .header("Authorization", jiraAuthToken)
           .get() (err, res, body) ->
             jiraNominator = parseJiraUser(err, res, body)
             if jiraNominator.error?
@@ -175,7 +183,7 @@ module.exports = (robot) ->
             console.log("requestJson: " + JSON.stringify(requestJson))
             jiraIssueUrl = jiraBaseUrl + "issue"
             msg.http(jiraIssueUrl)
-              .header("Authorization", authToken)
+              .header("Authorization", jiraAuthToken)
               .header("Content-Type", "application/json")
               .post(requestJson) (err, res, body) ->
                 if foundErrors(err, res)
@@ -229,7 +237,7 @@ module.exports = (robot) ->
     q = query: nominee.emailAddress
     msg.http(jiraUserUrl)
       .query(q)
-      .header("Authorization", authToken)
+      .header("Authorization", jiraAuthToken)
       .get() (err, res, body) ->
         jiraNominee = parseJiraUser(err, res, body)
         if jiraNominee.error?
@@ -239,7 +247,7 @@ module.exports = (robot) ->
         q = query: nominator.emailAddress
         msg.http(jiraUserUrl)
           .query(q)
-          .header("Authorization", authToken)
+          .header("Authorization", jiraAuthToken)
           .get() (err, res, body) ->
             jiraNominator = parseJiraUser(err, res, body)
             if jiraNominator.error?
@@ -250,7 +258,7 @@ module.exports = (robot) ->
             console.log("requestJson: " + JSON.stringify(requestJson))
             jiraIssueUrl = jiraBaseUrl + "issue"
             msg.http(jiraIssueUrl)
-              .header("Authorization", authToken)
+              .header("Authorization", jiraAuthToken)
               .header("Content-Type", "application/json")
               .post(requestJson) (err, res, body) ->
                 if foundErrors(err, res)
