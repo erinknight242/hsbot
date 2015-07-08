@@ -89,9 +89,7 @@ module.exports = (robot) ->
           return
 
         try 
-          msg.send "Testing 1"
           tlTrack = JSON.parse(body).result
-          msg.send "Testing 2"
           msg.send "#{tlTrack.track.name} by #{getArtistsNames(tlTrack.track)} is playing right now"
         catch error
           msg.send msg.random dataErrorBarks
