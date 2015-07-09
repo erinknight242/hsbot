@@ -100,7 +100,7 @@ module.exports = (robot) ->
     for userId, user of robot.brain.users()
       if user.mention_name? and user.mention_name.toLowerCase()==mentionName.toLowerCase()
         #console.log("found mentioned user: " + JSON.stringify(user))
-        if user.name? and user.emailAddress?
+        if user.name? and user.email_address?
           userName = user.name.toLowerCase()
           emailAddress = user.email_address.toLowerCase()
           #console.log("userName: #{userName}, email: #{emailAddress}")
@@ -116,7 +116,7 @@ module.exports = (robot) ->
       return { "error": getAmbiguousUserText(matchingUsers) }
     
     console.log("found fuzzy user: " + JSON.stringify(matchingUsers[0]))
-    if matchingUsers[0].name? and matchingUsers[0].emailAddress?
+    if matchingUsers[0].name? and matchingUsers[0].email_address?
       userName = matchingUsers[0].name.toLowerCase()
       emailAddress = matchingUsers[0].email_address.toLowerCase()
       #console.log("userName: #{userName}, email: #{emailAddress}")
