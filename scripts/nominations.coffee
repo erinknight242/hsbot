@@ -6,7 +6,7 @@
 #   hubot nominate <coworker> [for] <awardType> <reason>
 
 bragHelpText = "/quote example: hsbot brag [on|about] @coworker bragText\nrules:\t@coworker and bragText are required\n\t[on or about] is optional\nbomb:\thsbot brag bomb [#]\n\t[#] is optional and must be between 1 and 10"
-nominateHelpText = "/quote example: hsbot nominate @coworker for awardAcronym nominationText\nrules:\tcoworker and nominationText are required, awardAcronym must be one of:\n\tDFE (Drive for Excellence)\n\tPAV (People are Valued)\n\tCOM (Honest Communication)\n\tPLG (Passion for Learning and Growth)\nbomb:\thsbot hva bomb [#]\n\t[#] is optional and must be between 1 and 10"
+nominateHelpText = "/quote example: hsbot hva [to|for] @coworker for awardAcronym nominationText\nrules:\tcoworker and nominationText are required, awardAcronym must be one of:\n\tDFE (Drive for Excellence)\n\tPAV (People are Valued)\n\tCOM (Honest Communication)\n\tPLG (Passion for Learning and Growth)\nbomb:\thsbot hva bomb [#]\n\t[#] is optional and must be between 1 and 10"
 
 defaultNominationType = "brag"
 errorBarks = [
@@ -164,7 +164,7 @@ module.exports = (robot) ->
   robot.respond /brag help$/i, (msg) ->
     msg.send bragHelpText
 
-  robot.respond /nominate help$/i, (msg) ->
+  robot.respond /hva help$/i, (msg) ->
     msg.send nominateHelpText
 
   robot.respond /brag (about |on )?@([a-zA-Z0-9]+) (.+)/i, (msg) ->
@@ -264,15 +264,15 @@ module.exports = (robot) ->
                             msg.send msg.random errorBarks
                             return
 
-  robot.respond /nominate @([a-zA-Z0-9]+) for (DFE|PAV|COM|PLG)(.+)/i, (msg) ->
+  robot.respond /hva (to |for )@([a-zA-Z0-9]+) for (DFE|PAV|COM|PLG)(.+)/i, (msg) ->
     #console.log("robot name: " + robot.name)
     sender = msg.message.user.name
     #console.log("sender: " + sender)
-    colleagueName = msg.match[1].trim()
+    colleagueName = msg.match[2].trim()
     #console.log("colleagueName: " + colleagueName)
-    awardType = msg.match[2].trim()
+    awardType = msg.match[3].trim()
     #console.log("awardType: " + awardType)
-    reason = msg.match[3].trim()
+    reason = msg.match[4].trim()
     #console.log("reason: " + reason)
 
     if not reason?.length
