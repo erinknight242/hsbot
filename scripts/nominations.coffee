@@ -238,7 +238,7 @@ module.exports = (robot) ->
                   msg.send msg.random errorBarks
                   return
                 #console.log("body after create: " + body)
-                if not msg.message.room.toLowerCase().match("\/^brag.*\/i") #don't send confirm message in brags and awards room
+                if not (msg.message.room? and msg.message.room.toLowerCase().match("\/^brag.*\/i")) #don't send confirm message in brags and awards room
                   msg.send "Your brag about @#{colleagueName} was successfuly retreived and processed!"
                 queryJson = getQueryJson("brag", 1)
                 jiraSearchUrl = jiraBaseUrl + "search"
@@ -338,7 +338,7 @@ module.exports = (robot) ->
                   return
                 #console.log("body after create: " + body)
                 hva = getAwardTypeFromAcronym(awardType)
-                if not msg.message.room.toLowerCase().match("\/^brag.*\/i") #don't send confirm message in brags and awards room
+                if not (msg.message.room? and msg.message.room.toLowerCase().match("\/^brag.*\/i")) #don't send confirm message in brags and awards room
                   msg.send "Your nomination of @#{colleagueName} for #{hva} was successfuly retreived and processed!"
                 queryJson = getQueryJson("hva", 1)
                 jiraSearchUrl = jiraBaseUrl + "search"
@@ -382,27 +382,32 @@ module.exports = (robot) ->
           msg.send issues.error
           return
 
-        hipChatRoomUrl = hipChatBaseUrl + "room"
-        q = auth_token: hipChatAuthToken 
-        msg.http(hipChatRoomUrl)
-          .query(q)
-          .get() (err, res, body) ->
-            roomId = parseRoomId(err, res, body, msg.message.room)
-            if (roomId.error?)
-              msg.send roomId.error
-              return
-            
-            hipChatNotificationUrl = hipChatBaseUrl + "room/#{roomId}/notification"
-            for issue in issues
-              notifyBody = getBragNotificationJson(issue.fields.customfield_12100.displayName, issue.fields.description, issue.fields.reporter.displayName)
-              #console.log(notifyBody)
-              msg.http(hipChatNotificationUrl)
-                .query(q)
-                .header("Content-Type", "application/json")
-                .post(notifyBody) (err, res, body) ->
-                  if foundErrors(err, res)
-                    msg.send msg.random errorBarks
-                    return
+        if msg.message.room?
+          hipChatRoomUrl = hipChatBaseUrl + "room"
+          q = auth_token: hipChatAuthToken 
+          msg.http(hipChatRoomUrl)
+            .query(q)
+            .get() (err, res, body) ->
+              roomId = parseRoomId(err, res, body, msg.message.room)
+              if (roomId.error?)
+                msg.send roomId.error
+                return
+              
+              hipChatNotificationUrl = hipChatBaseUrl + "room/#{roomId}/notification"
+              for issue in issues
+                notifyBody = getBragNotificationJson(issue.fields.customfield_12100.displayName, issue.fields.description, issue.fields.reporter.displayName)
+                #console.log(notifyBody)
+                msg.http(hipChatNotificationUrl)
+                  .query(q)
+                  .header("Content-Type", "application/json")
+                  .post(notifyBody) (err, res, body) ->
+                    if foundErrors(err, res)
+                      msg.send msg.random errorBarks
+                      return
+        else
+          for issue in issues
+            notifyBody = getBragNotificationJson(issue.fields.customfield_12100.displayName, issue.fields.description, issue.fields.reporter.displayName)
+            msg.send notifyBody
   
   robot.respond /hva bomb( (\d+))?$/i, (msg) ->
     count = msg.match[2] || 5
@@ -422,24 +427,29 @@ module.exports = (robot) ->
           msg.send issues.error
           return
 
-        hipChatRoomUrl = hipChatBaseUrl + "room"
-        q = auth_token: hipChatAuthToken 
-        msg.http(hipChatRoomUrl)
-          .query(q)
-          .get() (err, res, body) ->
-            roomId = parseRoomId(err, res, body, msg.message.room)
-            if (roomId.error?)
-              msg.send roomId.error
-              return
-            
-            hipChatNotificationUrl = hipChatBaseUrl + "room/#{roomId}/notification"
-            for issue in issues
-              notifyBody = getHvaNotificationJson(issue.fields.customfield_12100.displayName, issue.fields.customfield_12101.value, issue.fields.description, issue.fields.reporter.displayName)
-              #console.log(notifyBody)
-              msg.http(hipChatNotificationUrl)
-                .query(q)
-                .header("Content-Type", "application/json")
-                .post(notifyBody) (err, res, body) ->
-                  if foundErrors(err, res)
-                    msg.send msg.random errorBarks
-                    return
+        if msg.message.room?
+          hipChatRoomUrl = hipChatBaseUrl + "room"
+          q = auth_token: hipChatAuthToken 
+          msg.http(hipChatRoomUrl)
+            .query(q)
+            .get() (err, res, body) ->
+              roomId = parseRoomId(err, res, body, msg.message.room)
+              if (roomId.error?)
+                msg.send roomId.error
+                return
+              
+              hipChatNotificationUrl = hipChatBaseUrl + "room/#{roomId}/notification"
+              for issue in issues
+                notifyBody = getHvaNotificationJson(issue.fields.customfield_12100.displayName, issue.fields.customfield_12101.value, issue.fields.description, issue.fields.reporter.displayName)
+                #console.log(notifyBody)
+                msg.http(hipChatNotificationUrl)
+                  .query(q)
+                  .header("Content-Type", "application/json")
+                  .post(notifyBody) (err, res, body) ->
+                    if foundErrors(err, res)
+                      msg.send msg.random errorBarks
+                      return
+        else
+          for issue in issues
+            notifyBody = getHvaNotificationJson(issue.fields.customfield_12100.displayName, issue.fields.customfield_12101.value, issue.fields.description, issue.fields.reporter.displayName)
+            msg.send notifyBody
