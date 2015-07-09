@@ -147,10 +147,11 @@ module.exports = (robot) ->
   parseRoomId = (err, res, body, roomName) ->
     if foundErrors(err, res)
       return { "error": errorBarks[Math.floor(Math.random() * errorBarks.length)] }
+    #console.log("room results:\n#{body}")
     roomsResult = JSON.parse(body)
     if not roomsResult? or not roomsResult.items? or roomsResult.items.length == 0
       return { "error": "ERROR! could not locate room to notify named: #{roomName}" }
-    matchingRooms = (r for r in roomsResult.items when r.name.toLowerCase() == roomName)
+    matchingRooms = (r for r in roomsResult.items when r.name.toLowerCase().replace(/\ /g,"_") == roomName)
     if not matchingRooms? or matchingRooms.length == 0
       return { "error": "ERROR! could not locate room to notify named: #{roomName}" }
     if matchingRooms.length > 1
