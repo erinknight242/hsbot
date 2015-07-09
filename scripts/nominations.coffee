@@ -2,11 +2,10 @@
 #   Let hubot help you nominate coworkers.
 #
 # Commands:
-#   hubot brag on <coworker> [because] <reason>
-#   hubot nominate <coworker> [for] <awardType> [because] <reason>
-date = require 'datejs'
+#   hubot brag on <coworker> <reason>
+#   hubot nominate <coworker> [for] <awardType> <reason>
 
-bragHelpText = "/quote example: hsbot brag [on|about] @coworker bragText\nrules:\t@coworker and bragText are required\n\t[on or about] is optional"
+bragHelpText = "/quote example: hsbot brag [on|about] @coworker bragText\nrules:\t@coworker and bragText are required\n\t[on or about] is optional\nbomb:\thsbot brag bomb [#]\n\t[#] is optional and must be between 1 and 10"
 nominateHelpText = "/quote example: hsbot nominate @coworker for awardAcronym nominationText\nrules:\tcoworker and nominationText are required, awardAcronym must be one of:\n\tDFE (Drive for Excellence)\n\tPAV (People are Valued)\n\tCOM (Honest Communication)\n\tPLG (Passion for Learning and Growth)"
 
 defaultNominationType = "brag"
@@ -44,10 +43,10 @@ getRequestJson = (nominator, nominee, description, nominationType, awardType) ->
     "fields": {
        "project": { "key": "NOM", "id": "14701" }
        "issuetype": issueType,
-       "customfield_12100": { "name": nominee },
+       "customfield_12100": { "name": nominee.name },
        "description": description,
-       "summary": "#{nominator} #{summaryType} #{nominee} on #{nomDate}",
-       "reporter": {"name": nominator }
+       "summary": "#{nominator.displayName} #{summaryType} #{nominee.displayName} on #{nomDate}",
+       "reporter": {"name": nominator.name }
     }
   }
   if awardType?
@@ -62,17 +61,18 @@ getQueryJson = (nominationType, count) ->
   }
   JSON.stringify(queryJson)
 
-getNotificationJson = (bragTo, bragText, bragFrom, bragDate) ->
-  #bragDateString = bragDate.toString("MMM dd, yyyy")
-  # notificationJson = {
-  #   "message": "<span>Kudos to <span style=\"font-weight: 700\">#{bragTo}</span></span><p>#{bragText}</p><span style=\"text-transform:uppercase;\">From #{bragFrom} | #{bragDateString}</span>",
-  #   "message_format": "html",
-  #   "color": "random"
-  # }
+getBragNotificationJson = (bragTo, bragText, bragFrom) ->
   notificationJson = {
-    "message": "<span>Kudos to <span style=\"font-weight: 700\">#{bragTo}</span></span><p>#{bragText}</p><span style=\"text-transform:uppercase;\">From #{bragFrom}</span>",
+    "message": "<span>Kudos to <span style=\"font-weight: 700\">#{bragTo}</span></span><p>#{bragText}</p><span style=\"text-transform:uppercase;\">bragged by: <em>#{bragFrom}</em></span>",
     "message_format": "html",
-    "color": "random"
+    "color": "purple"
+  }
+  JSON.stringify(notificationJson)
+getHvaNotificationJson = (nominee, awardType, nominationText, nominator) ->
+  notificationJson = {
+    "message": "<span style=\"font-weight: 700\">#{nominee}</span><span> exhibits </span><span style=\"font-weight: 700\"><em>#{awardType}</em></span><p>#{nominationText}</p><span>nominated by: <em>#{nominator}</em></span>",
+    "message_format": "html",
+    "color": "green"
   }
   JSON.stringify(notificationJson)
 
@@ -99,10 +99,11 @@ module.exports = (robot) ->
     for userId, user of robot.brain.users()
       if user.mention_name? and user.mention_name.toLowerCase()==mentionName.toLowerCase()
         #console.log("found mentioned user: " + JSON.stringify(user))
-        userName = user.name.toLowerCase()
-        emailAddress = user.email_address.toLowerCase()
-        #console.log("userName: #{userName}, email: #{emailAddress}")
-        return { "userName": userName, "emailAddress": emailAddress }
+        if user.name? and user.emailAddress?
+          userName = user.name.toLowerCase()
+          emailAddress = user.email_address.toLowerCase()
+          #console.log("userName: #{userName}, email: #{emailAddress}")
+          return { "userName": userName, "emailAddress": emailAddress }
     return
 
   getEmployeeByName = (fuzzyName) ->
@@ -113,10 +114,11 @@ module.exports = (robot) ->
     if matchingUsers.length != 1
       return { "error": getAmbiguousUserText(matchingUsers) }
     
-    #console.log("found fuzzy user: " + JSON.stringify(matchingUsers[0]))
-    userName = matchingUsers[0].name.toLowerCase()
-    emailAddress = matchingUsers[0].email_address.toLowerCase()
-    #console.log("userName: #{userName}, email: #{emailAddress}")
+    console.log("found fuzzy user: " + JSON.stringify(matchingUsers[0]))
+    if matchingUsers[0].name? and matchingUsers[0].emailAddress?
+      userName = matchingUsers[0].name.toLowerCase()
+      emailAddress = matchingUsers[0].email_address.toLowerCase()
+      #console.log("userName: #{userName}, email: #{emailAddress}")
     return { "userName": userName, "emailAddress": emailAddress }
 
   parseJiraUser = (err, res, body) ->
@@ -127,8 +129,34 @@ module.exports = (robot) ->
       return { "error": "#{colleagueName}? JIRA doesn't have record of 'em, cannot proceed" }
     if result.users.length != 1
       return { "error": "JIRA found more than one #{colleagueName}?! Please be more specific to proceed" }
+    if not result.users[0]? or not result.users[0].name? or not result.users[0].displayName?
+      return { "error": "JIRA does not have the proper user information for #{colleagueName}! Please make sure the user is correctly configured in JIRA to continue" }
     #console.log("woot, found the user in JIRA: " + JSON.stringify(result.users[0]))
     return result.users[0]
+
+  parseJiraIssues = (err, res, body) ->
+    if foundErrors(err, res)
+      return { "error": errorBarks }
+    #console.log("body after search: " + body)
+    jiraResult = JSON.parse(body)
+    if not jiraResult? or not jiraResult.issues? or jiraResult.issues.length == 0
+      return { "error": "ERROR! could not find any jira issues to bomb you with" }
+    return jiraResult.issues
+
+  parseRoomId = (err, res, body, roomName) ->
+    if foundErrors(err, res)
+      return { "error": errorBarks }
+    roomsResult = JSON.parse(body)
+    if not roomsResult? or not roomsResult.items? or roomsResult.items.length == 0
+      return { "error": "ERROR! could not locate room to notify named: #{roomName}" }
+    matchingRooms = (r for r in roomsResult.items when r.name.toLowerCase() == roomName)
+    if not matchingRooms? or matchingRooms.length == 0
+      return { "error": "ERROR! could not locate room to notify named: #{roomName}" }
+    if matchingRooms.length > 1
+      return { "error": "ERROR! found mulitple matching rooms for: #{roomName} - #{(room.name for room in matchingRooms).join(", ")}" }
+    roomId = matchingRooms[0].id
+    #console.log(roomId)
+    return roomId
 
   robot.respond /brag help$/i, (msg) ->
     msg.send bragHelpText
@@ -196,7 +224,7 @@ module.exports = (robot) ->
               msg.send msg.random jiraNominator.error
               return
 
-            requestJson = getRequestJson(jiraNominator.name, jiraNominee.name, reason, "brag", null)
+            requestJson = getRequestJson(jiraNominator, jiraNominee, reason, "brag", null)
             #console.log("requestJson: " + JSON.stringify(requestJson))
             jiraIssueUrl = jiraBaseUrl + "issue"
             msg.http(jiraIssueUrl)
@@ -271,7 +299,7 @@ module.exports = (robot) ->
               msg.send msg.random jiraNominator.error
               return
 
-            requestJson = getRequestJson(jiraNominator.name, jiraNominee.name, reason, "hva", awardType)
+            requestJson = getRequestJson(jiraNominator, jiraNominee, reason, "hva", awardType)
             #console.log("requestJson: " + JSON.stringify(requestJson))
             jiraIssueUrl = jiraBaseUrl + "issue"
             msg.http(jiraIssueUrl)
@@ -287,6 +315,10 @@ module.exports = (robot) ->
   
   robot.respond /brag bomb( (\d+))?$/i, (msg) ->
     count = msg.match[2] || 5
+    if (count > 10) #max
+      count = 10
+    if (count < 1) #min
+      count = 1
     queryJson = getQueryJson("brag", count)
     #console.log("queryJson: " + JSON.stringify(queryJson))
     jiraSearchUrl = jiraBaseUrl + "search"
@@ -294,14 +326,9 @@ module.exports = (robot) ->
       .header("Authorization", jiraAuthToken)
       .header("Content-Type", "application/json")
       .post(queryJson) (err, res, body) ->
-        if foundErrors(err, res)
-          msg.send msg.random errorBarks
-          return
-        
-        #console.log("body after search: " + body)
-        jiraResult = JSON.parse(body)
-        if not jiraResult? or not jiraResult.issues? or jiraResult.issues.length == 0
-          msg.send "ERROR! could not find any recent brags to bomb you with"
+        issues = parseJiraIssues(err, res, body)
+        if (issues.error?)
+          msg.send msg.random issues.error
           return
 
         hipChatRoomUrl = hipChatBaseUrl + "room"
@@ -309,28 +336,54 @@ module.exports = (robot) ->
         msg.http(hipChatRoomUrl)
           .query(q)
           .get() (err, res, body) ->
-            if foundErrors(err, res)
-              msg.send msg.random errorBarks
+            roomId = parseRoomId(err, res, body)
+            if (roomId.error?)
+              msg.send msg.random roomId.error
               return
-            roomName = msg.message.room
-            roomsResult = JSON.parse(body)
-            if not roomsResult? or not roomsResult.items? or roomsResult.items.length == 0
-              msg.send "ERROR! could not locate room to notify named: #{roomName}"
-              return
-            
-            matchingRooms = (r for r in roomsResult.items when r.name.toLowerCase() == roomName)
-            if not matchingRooms? or matchingRooms.length == 0
-              msg.send "ERROR! could not locate room to notify named: #{roomName}"
-              return
-            if matchingRooms.length > 1
-              msg.send "ERROR! found mulitple matching rooms for: #{roomName} - #{(room.name for room in matchingRooms).join(", ")}"
-              return
-            roomId = matchingRooms[0].id
-            #console.log(roomId)
             
             hipChatNotificationUrl = hipChatBaseUrl + "room/#{roomId}/notification"
-            for issue in jiraResult.issues
-              notifyBody = getNotificationJson(issue.fields.customfield_12100.displayName, issue.fields.description, issue.fields.reporter.displayName, issue.fields.created)
+            for issue in issues
+              notifyBody = getBragNotificationJson(issue.fields.customfield_12100.displayName, issue.fields.description, issue.fields.reporter.displayName)
+              #console.log(notifyBody)
+              msg.http(hipChatNotificationUrl)
+                .query(q)
+                .header("Content-Type", "application/json")
+                .post(notifyBody) (err, res, body) ->
+                  if foundErrors(err, res)
+                    msg.send msg.random errorBarks
+                    return
+  
+  robot.respond /hva bomb( (\d+))?$/i, (msg) ->
+    count = msg.match[2] || 5
+    if (count > 10) #max
+      count = 10
+    if (count < 1) #min
+      count = 1
+    queryJson = getQueryJson("hva", count)
+    #console.log("queryJson: " + JSON.stringify(queryJson))
+    jiraSearchUrl = jiraBaseUrl + "search"
+    msg.http(jiraSearchUrl)
+      .header("Authorization", jiraAuthToken)
+      .header("Content-Type", "application/json")
+      .post(queryJson) (err, res, body) ->
+        issues = parseJiraIssues(err, res, body)
+        if (issues.error?)
+          msg.send msg.random issues.error
+          return
+
+        hipChatRoomUrl = hipChatBaseUrl + "room"
+        q = auth_token: hipChatAuthToken 
+        msg.http(hipChatRoomUrl)
+          .query(q)
+          .get() (err, res, body) ->
+            roomId = parseRoomId(err, res, body, msg.message.room)
+            if (roomId.error?)
+              msg.send msg.random roomId.error
+              return
+            
+            hipChatNotificationUrl = hipChatBaseUrl + "room/#{roomId}/notification"
+            for issue in issues
+              notifyBody = getHvaNotificationJson(issue.fields.customfield_12100.displayName, issue.fields.customfield_12101.value, issue.fields.description, issue.fields.reporter.displayName)
               #console.log(notifyBody)
               msg.http(hipChatNotificationUrl)
                 .query(q)
