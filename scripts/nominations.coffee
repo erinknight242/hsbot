@@ -6,7 +6,7 @@
 #   hubot nominate <coworker> [for] <awardType> <reason>
 
 bragHelpText = "/quote example: hsbot brag [on|about] @coworker bragText\nrules:\t@coworker and bragText are required\n\t[on or about] is optional\nbomb:\thsbot brag bomb [#]\n\t[#] is optional and must be between 1 and 10"
-nominateHelpText = "/quote example: hsbot nominate @coworker for awardAcronym nominationText\nrules:\tcoworker and nominationText are required, awardAcronym must be one of:\n\tDFE (Drive for Excellence)\n\tPAV (People are Valued)\n\tCOM (Honest Communication)\n\tPLG (Passion for Learning and Growth)\nbomb:\thsbot hva bomb [#]\n\t[#] is optional and must be between 1 and 10"
+nominateHelpText = "/quote example: hsbot hva [to|for] @coworker for awardAcronym nominationText\nrules:\tcoworker and nominationText are required, awardAcronym must be one of:\n\tDFE (Drive for Excellence)\n\tPAV (People are Valued)\n\tCOM (Honest Communication)\n\tPLG (Passion for Learning and Growth)\nbomb:\thsbot hva bomb [#]\n\t[#] is optional and must be between 1 and 10"
 
 defaultNominationType = "brag"
 errorBarks = [
@@ -164,10 +164,10 @@ module.exports = (robot) ->
   robot.respond /brag help$/i, (msg) ->
     msg.send bragHelpText
 
-  robot.respond /nominate help$/i, (msg) ->
+  robot.respond /hva help$/i, (msg) ->
     msg.send nominateHelpText
 
-  robot.hear /brag (about |on )?@([a-zA-Z0-9]+) (.+)/i, (msg) ->
+  robot.respond /brag (about |on )?@([a-zA-Z0-9]+) (.+)/i, (msg) ->
     #console.log("robot name: " + robot.name)
     sender = msg.message.user.name
     #console.log("sender: " + sender)
@@ -238,7 +238,7 @@ module.exports = (robot) ->
                   msg.send msg.random errorBarks
                   return
                 #console.log("body after create: " + body)
-                if not msg.message.room.toLowerCase().match("\/^brag\/i") #don't send confirm message in brags and awards room
+                if not (msg.message.room? and msg.message.room.toLowerCase().match("\/^brag.*\/i")) #don't send confirm message in brags and awards room
                   msg.send "Your brag about @#{colleagueName} was successfuly retreived and processed!"
                 queryJson = getQueryJson("brag", 1)
                 jiraSearchUrl = jiraBaseUrl + "search"
@@ -264,15 +264,15 @@ module.exports = (robot) ->
                             msg.send msg.random errorBarks
                             return
 
-  robot.hear /nominate @([a-zA-Z0-9]+) for (DFE|PAV|COM|PLG)(.+)/i, (msg) ->
+  robot.respond /hva (to |for )@([a-zA-Z0-9]+) for (DFE|PAV|COM|PLG)(.+)/i, (msg) ->
     #console.log("robot name: " + robot.name)
     sender = msg.message.user.name
     #console.log("sender: " + sender)
-    colleagueName = msg.match[1].trim()
+    colleagueName = msg.match[2].trim()
     #console.log("colleagueName: " + colleagueName)
-    awardType = msg.match[2].trim()
+    awardType = msg.match[3].trim()
     #console.log("awardType: " + awardType)
-    reason = msg.match[3].trim()
+    reason = msg.match[4].trim()
     #console.log("reason: " + reason)
 
     if not reason?.length
@@ -338,7 +338,7 @@ module.exports = (robot) ->
                   return
                 #console.log("body after create: " + body)
                 hva = getAwardTypeFromAcronym(awardType)
-                if not msg.message.room.toLowerCase().match("\/^brag\/i") #don't send confirm message in brags and awards room
+                if not (msg.message.room? and msg.message.room.toLowerCase().match("\/^brag.*\/i")) #don't send confirm message in brags and awards room
                   msg.send "Your nomination of @#{colleagueName} for #{hva} was successfuly retreived and processed!"
                 queryJson = getQueryJson("hva", 1)
                 jiraSearchUrl = jiraBaseUrl + "search"
@@ -382,27 +382,32 @@ module.exports = (robot) ->
           msg.send issues.error
           return
 
-        hipChatRoomUrl = hipChatBaseUrl + "room"
-        q = auth_token: hipChatAuthToken 
-        msg.http(hipChatRoomUrl)
-          .query(q)
-          .get() (err, res, body) ->
-            roomId = parseRoomId(err, res, body, msg.message.room)
-            if (roomId.error?)
-              msg.send roomId.error
-              return
-            
-            hipChatNotificationUrl = hipChatBaseUrl + "room/#{roomId}/notification"
-            for issue in issues
-              notifyBody = getBragNotificationJson(issue.fields.customfield_12100.displayName, issue.fields.description, issue.fields.reporter.displayName)
-              #console.log(notifyBody)
-              msg.http(hipChatNotificationUrl)
-                .query(q)
-                .header("Content-Type", "application/json")
-                .post(notifyBody) (err, res, body) ->
-                  if foundErrors(err, res)
-                    msg.send msg.random errorBarks
-                    return
+        if msg.message.room?
+          hipChatRoomUrl = hipChatBaseUrl + "room"
+          q = auth_token: hipChatAuthToken 
+          msg.http(hipChatRoomUrl)
+            .query(q)
+            .get() (err, res, body) ->
+              roomId = parseRoomId(err, res, body, msg.message.room)
+              if (roomId.error?)
+                msg.send roomId.error
+                return
+              
+              hipChatNotificationUrl = hipChatBaseUrl + "room/#{roomId}/notification"
+              for issue in issues
+                notifyBody = getBragNotificationJson(issue.fields.customfield_12100.displayName, issue.fields.description, issue.fields.reporter.displayName)
+                #console.log(notifyBody)
+                msg.http(hipChatNotificationUrl)
+                  .query(q)
+                  .header("Content-Type", "application/json")
+                  .post(notifyBody) (err, res, body) ->
+                    if foundErrors(err, res)
+                      msg.send msg.random errorBarks
+                      return
+        else
+          for issue in issues
+            notifyBody = getBragNotificationJson(issue.fields.customfield_12100.displayName, issue.fields.description, issue.fields.reporter.displayName)
+            msg.send notifyBody
   
   robot.respond /hva bomb( (\d+))?$/i, (msg) ->
     count = msg.match[2] || 5
@@ -422,24 +427,29 @@ module.exports = (robot) ->
           msg.send issues.error
           return
 
-        hipChatRoomUrl = hipChatBaseUrl + "room"
-        q = auth_token: hipChatAuthToken 
-        msg.http(hipChatRoomUrl)
-          .query(q)
-          .get() (err, res, body) ->
-            roomId = parseRoomId(err, res, body, msg.message.room)
-            if (roomId.error?)
-              msg.send roomId.error
-              return
-            
-            hipChatNotificationUrl = hipChatBaseUrl + "room/#{roomId}/notification"
-            for issue in issues
-              notifyBody = getHvaNotificationJson(issue.fields.customfield_12100.displayName, issue.fields.customfield_12101.value, issue.fields.description, issue.fields.reporter.displayName)
-              #console.log(notifyBody)
-              msg.http(hipChatNotificationUrl)
-                .query(q)
-                .header("Content-Type", "application/json")
-                .post(notifyBody) (err, res, body) ->
-                  if foundErrors(err, res)
-                    msg.send msg.random errorBarks
-                    return
+        if msg.message.room?
+          hipChatRoomUrl = hipChatBaseUrl + "room"
+          q = auth_token: hipChatAuthToken 
+          msg.http(hipChatRoomUrl)
+            .query(q)
+            .get() (err, res, body) ->
+              roomId = parseRoomId(err, res, body, msg.message.room)
+              if (roomId.error?)
+                msg.send roomId.error
+                return
+              
+              hipChatNotificationUrl = hipChatBaseUrl + "room/#{roomId}/notification"
+              for issue in issues
+                notifyBody = getHvaNotificationJson(issue.fields.customfield_12100.displayName, issue.fields.customfield_12101.value, issue.fields.description, issue.fields.reporter.displayName)
+                #console.log(notifyBody)
+                msg.http(hipChatNotificationUrl)
+                  .query(q)
+                  .header("Content-Type", "application/json")
+                  .post(notifyBody) (err, res, body) ->
+                    if foundErrors(err, res)
+                      msg.send msg.random errorBarks
+                      return
+        else
+          for issue in issues
+            notifyBody = getHvaNotificationJson(issue.fields.customfield_12100.displayName, issue.fields.customfield_12101.value, issue.fields.description, issue.fields.reporter.displayName)
+            msg.send notifyBody
