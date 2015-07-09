@@ -167,7 +167,7 @@ module.exports = (robot) ->
   robot.respond /nominate help$/i, (msg) ->
     msg.send nominateHelpText
 
-  robot.hear /brag (about |on )?@([a-zA-Z0-9]+) (.+)/i, (msg) ->
+  robot.respond /brag (about |on )?@([a-zA-Z0-9]+) (.+)/i, (msg) ->
     #console.log("robot name: " + robot.name)
     sender = msg.message.user.name
     #console.log("sender: " + sender)
@@ -264,7 +264,7 @@ module.exports = (robot) ->
                             msg.send msg.random errorBarks
                             return
 
-  robot.hear /nominate @([a-zA-Z0-9]+) for (DFE|PAV|COM|PLG)(.+)/i, (msg) ->
+  robot.respond /nominate @([a-zA-Z0-9]+) for (DFE|PAV|COM|PLG)(.+)/i, (msg) ->
     #console.log("robot name: " + robot.name)
     sender = msg.message.user.name
     #console.log("sender: " + sender)
