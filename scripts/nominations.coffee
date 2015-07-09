@@ -62,12 +62,13 @@ getQueryJson = (nominationType, count) ->
   JSON.stringify(queryJson)
 
 getBragNotificationJson = (bragTo, bragText, bragFrom) ->
-  notificationJson = {
+  bragJson = {
     "message": "<span>Kudos to <span style=\"font-weight: 700\">#{bragTo}</span></span><p>#{bragText}</p><span style=\"text-transform:uppercase;\">bragged by: <em>#{bragFrom}</em></span>",
     "message_format": "html",
     "color": "purple"
   }
-  JSON.stringify(notificationJson)
+  JSON.stringify(bragJson)
+
 getHvaNotificationJson = (nominee, awardType, nominationText, nominator) ->
   notificationJson = {
     "message": "<span style=\"font-weight: 700\">#{nominee}</span><span> exhibits </span><span style=\"font-weight: 700\"><em>#{awardType}</em></span><p>#{nominationText}</p><span>nominated by: <em>#{nominator}</em></span>",
@@ -336,7 +337,7 @@ module.exports = (robot) ->
         msg.http(hipChatRoomUrl)
           .query(q)
           .get() (err, res, body) ->
-            roomId = parseRoomId(err, res, body)
+            roomId = parseRoomId(err, res, body, msg.message.room)
             if (roomId.error?)
               msg.send msg.random roomId.error
               return
