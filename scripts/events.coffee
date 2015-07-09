@@ -15,5 +15,9 @@ module.exports = (robot) ->
     msg.send "fake event '#{msg.match[1]}' triggered"
     robot.emit msg.match[1], {user: msg.message.user}
 
+  robot.respond /DIE$/i, (msg) ->
+    msg.send "Goodbye, cruel world."
+    process.exit 0
+
   robot.on 'debug', (event) ->
     robot.send event.user, util.inspect event
