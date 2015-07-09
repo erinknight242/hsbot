@@ -43,10 +43,10 @@ getRequestJson = (nominator, nominee, description, nominationType, awardType) ->
     "fields": {
        "project": { "key": "NOM", "id": "14701" }
        "issuetype": issueType,
-       "customfield_12100": { "name": nominee },
+       "customfield_12100": { "name": nominee.name },
        "description": description,
-       "summary": "#{nominator} #{summaryType} #{nominee} on #{nomDate}",
-       "reporter": {"name": nominator }
+       "summary": "#{nominator.displayName} #{summaryType} #{nominee.displayName} on #{nomDate}",
+       "reporter": {"name": nominator.name }
     }
   }
   if awardType?
@@ -122,6 +122,8 @@ module.exports = (robot) ->
       return { "error": "#{colleagueName}? JIRA doesn't have record of 'em, cannot proceed" }
     if result.users.length != 1
       return { "error": "JIRA found more than one #{colleagueName}?! Please be more specific to proceed" }
+    if not result.users[0]? or not result.users[0].name? or not result.users[0].displayName?
+      return { "error": "JIRA does not have the proper user information for #{colleagueName}! Please make sure the user is correctly configured in JIRA to continue" }
     #console.log("woot, found the user in JIRA: " + JSON.stringify(result.users[0]))
     return result.users[0]
 
@@ -191,7 +193,7 @@ module.exports = (robot) ->
               msg.send msg.random jiraNominator.error
               return
 
-            requestJson = getRequestJson(jiraNominator.name, jiraNominee.name, reason, "brag", null)
+            requestJson = getRequestJson(jiraNominator, jiraNominee, reason, "brag", null)
             #console.log("requestJson: " + JSON.stringify(requestJson))
             jiraIssueUrl = jiraBaseUrl + "issue"
             msg.http(jiraIssueUrl)
@@ -266,7 +268,7 @@ module.exports = (robot) ->
               msg.send msg.random jiraNominator.error
               return
 
-            requestJson = getRequestJson(jiraNominator.name, jiraNominee.name, reason, "hva", awardType)
+            requestJson = getRequestJson(jiraNominator, jiraNominee, reason, "hva", awardType)
             #console.log("requestJson: " + JSON.stringify(requestJson))
             jiraIssueUrl = jiraBaseUrl + "issue"
             msg.http(jiraIssueUrl)
