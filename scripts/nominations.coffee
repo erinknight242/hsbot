@@ -124,7 +124,7 @@ module.exports = (robot) ->
 
   parseJiraUser = (err, res, body) ->
     if foundErrors(err, res)
-      return { "error": errorBarks }
+      return { "error": errorBark[Math.floor(Math.random() * errorBarks.length)] }
     result = JSON.parse(body)
     if not result? or not result.users? or result.users.length == 0
       return { "error": "#{colleagueName}? JIRA doesn't have record of 'em, cannot proceed" }
@@ -137,7 +137,7 @@ module.exports = (robot) ->
 
   parseJiraIssues = (err, res, body) ->
     if foundErrors(err, res)
-      return { "error": errorBarks }
+      return { "error": errorBarks[Math.floor(Math.random() * errorBarks.length)] }
     #console.log("body after search: " + body)
     jiraResult = JSON.parse(body)
     if not jiraResult? or not jiraResult.issues? or jiraResult.issues.length == 0
@@ -146,7 +146,7 @@ module.exports = (robot) ->
 
   parseRoomId = (err, res, body, roomName) ->
     if foundErrors(err, res)
-      return { "error": errorBarks }
+      return { "error": errorBarks[Math.floor(Math.random() * errorBarks.length)] }
     roomsResult = JSON.parse(body)
     if not roomsResult? or not roomsResult.items? or roomsResult.items.length == 0
       return { "error": "ERROR! could not locate room to notify named: #{roomName}" }
@@ -212,7 +212,7 @@ module.exports = (robot) ->
       .get() (err, res, body) ->
         jiraNominee = parseJiraUser(err, res, body)
         if jiraNominee.error?
-          msg.send msg.random jiraNominee.error
+          msg.send jiraNominee.error
           return
 
         q = query: nominator.emailAddress
@@ -222,7 +222,7 @@ module.exports = (robot) ->
           .get() (err, res, body) ->
             jiraNominator = parseJiraUser(err, res, body)
             if jiraNominator.error?
-              msg.send msg.random jiraNominator.error
+              msg.send jiraNominator.error
               return
 
             requestJson = getRequestJson(jiraNominator, jiraNominee, reason, "brag", null)
@@ -287,7 +287,7 @@ module.exports = (robot) ->
       .get() (err, res, body) ->
         jiraNominee = parseJiraUser(err, res, body)
         if jiraNominee.error?
-          msg.send msg.random jiraNominee.error
+          msg.send jiraNominee.error
           return
 
         q = query: nominator.emailAddress
@@ -297,7 +297,7 @@ module.exports = (robot) ->
           .get() (err, res, body) ->
             jiraNominator = parseJiraUser(err, res, body)
             if jiraNominator.error?
-              msg.send msg.random jiraNominator.error
+              msg.send jiraNominator.error
               return
 
             requestJson = getRequestJson(jiraNominator, jiraNominee, reason, "hva", awardType)
@@ -329,7 +329,7 @@ module.exports = (robot) ->
       .post(queryJson) (err, res, body) ->
         issues = parseJiraIssues(err, res, body)
         if (issues.error?)
-          msg.send msg.random issues.error
+          msg.send issues.error
           return
 
         hipChatRoomUrl = hipChatBaseUrl + "room"
@@ -339,7 +339,7 @@ module.exports = (robot) ->
           .get() (err, res, body) ->
             roomId = parseRoomId(err, res, body, msg.message.room)
             if (roomId.error?)
-              msg.send msg.random roomId.error
+              msg.send roomId.error
               return
             
             hipChatNotificationUrl = hipChatBaseUrl + "room/#{roomId}/notification"
@@ -369,7 +369,7 @@ module.exports = (robot) ->
       .post(queryJson) (err, res, body) ->
         issues = parseJiraIssues(err, res, body)
         if (issues.error?)
-          msg.send msg.random issues.error
+          msg.send issues.error
           return
 
         hipChatRoomUrl = hipChatBaseUrl + "room"
@@ -379,7 +379,7 @@ module.exports = (robot) ->
           .get() (err, res, body) ->
             roomId = parseRoomId(err, res, body, msg.message.room)
             if (roomId.error?)
-              msg.send msg.random roomId.error
+              msg.send roomId.error
               return
             
             hipChatNotificationUrl = hipChatBaseUrl + "room/#{roomId}/notification"
