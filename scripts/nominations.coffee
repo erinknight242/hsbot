@@ -238,7 +238,7 @@ module.exports = (robot) ->
                   msg.send msg.random errorBarks
                   return
                 #console.log("body after create: " + body)
-                if not msg.message.room.toLowerCase().match("\/^brag\/i") #don't send confirm message in brags and awards room
+                if not msg.message.room.toLowerCase().match("\/^brag.*\/i") #don't send confirm message in brags and awards room
                   msg.send "Your brag about @#{colleagueName} was successfuly retreived and processed!"
                 queryJson = getQueryJson("brag", 1)
                 jiraSearchUrl = jiraBaseUrl + "search"
@@ -338,7 +338,7 @@ module.exports = (robot) ->
                   return
                 #console.log("body after create: " + body)
                 hva = getAwardTypeFromAcronym(awardType)
-                if not msg.message.room.toLowerCase().match("\/^brag\/i") #don't send confirm message in brags and awards room
+                if not msg.message.room.toLowerCase().match("\/^brag.*\/i") #don't send confirm message in brags and awards room
                   msg.send "Your nomination of @#{colleagueName} for #{hva} was successfuly retreived and processed!"
                 queryJson = getQueryJson("hva", 1)
                 jiraSearchUrl = jiraBaseUrl + "search"
