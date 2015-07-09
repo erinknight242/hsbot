@@ -6,7 +6,7 @@
 #   hubot nominate <coworker> [for] <awardType> <reason>
 
 bragHelpText = "/quote example: hsbot brag [on|about] @coworker bragText\nrules:\t@coworker and bragText are required\n\t[on or about] is optional\nbomb:\thsbot brag bomb [#]\n\t[#] is optional and must be between 1 and 10"
-nominateHelpText = "/quote example: hsbot nominate @coworker for awardAcronym nominationText\nrules:\tcoworker and nominationText are required, awardAcronym must be one of:\n\tDFE (Drive for Excellence)\n\tPAV (People are Valued)\n\tCOM (Honest Communication)\n\tPLG (Passion for Learning and Growth)"
+nominateHelpText = "/quote example: hsbot nominate @coworker for awardAcronym nominationText\nrules:\tcoworker and nominationText are required, awardAcronym must be one of:\n\tDFE (Drive for Excellence)\n\tPAV (People are Valued)\n\tCOM (Honest Communication)\n\tPLG (Passion for Learning and Growth)\nbomb:\thsbot hva bomb [#]\n\t[#] is optional and must be between 1 and 10"
 
 defaultNominationType = "brag"
 errorBarks = [
