@@ -14,6 +14,7 @@ errorBarks = [
   "What you requested should have worked, BUT it didn't (shrug)",
   "Bad news: it didn't work (boom); good news: I'm alive! I'm alive! (awesome) Wait, no...that is Johhny # 5, there is no good news (evilburns)"
 ]
+jiraBragRoomId = 1720638
 jiraBaseUrl = "https://headspring.atlassian.net/rest/api/2/"
 hipChatBaseUrl = "https://headspring.hipchat.com/v2/"
 jiraAuthToken = "Basic #{process.env.HUBOT_JIRA_AUTH}"
@@ -105,7 +106,7 @@ module.exports = (robot) ->
           emailAddress = user.email_address.toLowerCase()
           #console.log("userName: #{userName}, email: #{emailAddress}")
           return { "userName": userName, "emailAddress": emailAddress }
-    return
+    return null
 
   getEmployeeByName = (fuzzyName) ->
     matchingUsers = robot.brain.usersForFuzzyName(fuzzyName)
@@ -115,7 +116,7 @@ module.exports = (robot) ->
     if matchingUsers.length != 1
       return { "error": getAmbiguousUserText(matchingUsers) }
     
-    console.log("found fuzzy user: " + JSON.stringify(matchingUsers[0]))
+    #console.log("found fuzzy user: " + JSON.stringify(matchingUsers[0]))
     if matchingUsers[0].name? and matchingUsers[0].email_address?
       userName = matchingUsers[0].name.toLowerCase()
       emailAddress = matchingUsers[0].email_address.toLowerCase()
@@ -124,7 +125,7 @@ module.exports = (robot) ->
 
   parseJiraUser = (err, res, body) ->
     if foundErrors(err, res)
-      return { "error": errorBark[Math.floor(Math.random() * errorBarks.length)] }
+      return { "error": errorBarks[Math.floor(Math.random() * errorBarks.length)] }
     result = JSON.parse(body)
     if not result? or not result.users? or result.users.length == 0
       return { "error": "#{colleagueName}? JIRA doesn't have record of 'em, cannot proceed" }
@@ -237,7 +238,31 @@ module.exports = (robot) ->
                   msg.send msg.random errorBarks
                   return
                 #console.log("body after create: " + body)
-                msg.send "Your brag about @#{colleagueName} was successfuly retreived and processed!"
+                if not msg.message.room.toLowerCase().match("\/^brag\/i") #don't send confirm message in brags and awards room
+                  msg.send "Your brag about @#{colleagueName} was successfuly retreived and processed!"
+                queryJson = getQueryJson("brag", 1)
+                jiraSearchUrl = jiraBaseUrl + "search"
+                msg.http(jiraSearchUrl)
+                  .header("Authorization", jiraAuthToken)
+                  .header("Content-Type", "application/json")
+                  .post(queryJson) (err, res, body) ->
+                    issues = parseJiraIssues(err, res, body)
+                    if (issues.error?)
+                      msg.send issues.error
+                      return
+
+                    hipChatNotificationUrl = hipChatBaseUrl + "room/#{jiraBragRoomId}/notification"
+                    q2 = auth_token: hipChatAuthToken
+                    for issue in issues
+                      notifyBody = getBragNotificationJson(issue.fields.customfield_12100.displayName, issue.fields.description, issue.fields.reporter.displayName)
+                      #console.log(notifyBody)
+                      msg.http(hipChatNotificationUrl)
+                        .query(q2)
+                        .header("Content-Type", "application/json")
+                        .post(notifyBody) (err, res, body) ->
+                          if foundErrors(err, res)
+                            msg.send msg.random errorBarks
+                            return
 
   robot.hear /nominate @([a-zA-Z0-9]+) for (DFE|PAV|COM|PLG)(.+)/i, (msg) ->
     #console.log("robot name: " + robot.name)
@@ -313,7 +338,31 @@ module.exports = (robot) ->
                   return
                 #console.log("body after create: " + body)
                 hva = getAwardTypeFromAcronym(awardType)
-                msg.send "Your nomination of @#{colleagueName} for #{hva} was successfuly retreived and processed!"
+                if not msg.message.room.toLowerCase().match("\/^brag\/i") #don't send confirm message in brags and awards room
+                  msg.send "Your nomination of @#{colleagueName} for #{hva} was successfuly retreived and processed!"
+                queryJson = getQueryJson("hva", 1)
+                jiraSearchUrl = jiraBaseUrl + "search"
+                msg.http(jiraSearchUrl)
+                  .header("Authorization", jiraAuthToken)
+                  .header("Content-Type", "application/json")
+                  .post(queryJson) (err, res, body) ->
+                    issues = parseJiraIssues(err, res, body)
+                    if (issues.error?)
+                      msg.send issues.error
+                      return
+
+                    hipChatNotificationUrl = hipChatBaseUrl + "room/#{jiraBragRoomId}/notification"
+                    q2 = auth_token: hipChatAuthToken
+                    for issue in issues
+                      notifyBody = getHvaNotificationJson(issue.fields.customfield_12100.displayName, issue.fields.customfield_12101.value, issue.fields.description, issue.fields.reporter.displayName)
+                      #console.log(notifyBody)
+                      msg.http(hipChatNotificationUrl)
+                        .query(q2)
+                        .header("Content-Type", "application/json")
+                        .post(notifyBody) (err, res, body) ->
+                          if foundErrors(err, res)
+                            msg.send msg.random errorBarks
+                            return
   
   robot.respond /brag bomb( (\d+))?$/i, (msg) ->
     count = msg.match[2] || 5
