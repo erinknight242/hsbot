@@ -2,11 +2,10 @@
 #   Let hubot help you nominate coworkers.
 #
 # Commands:
-#   hubot brag on <coworker> [because] <reason>
-#   hubot nominate <coworker> [for] <awardType> [because] <reason>
-date = require 'datejs'
+#   hubot brag on <coworker> <reason>
+#   hubot nominate <coworker> [for] <awardType> <reason>
 
-bragHelpText = "/quote example: hsbot brag [on|about] @coworker bragText\nrules:\t@coworker and bragText are required\n\t[on or about] is optional"
+bragHelpText = "/quote example: hsbot brag [on|about] @coworker bragText\nrules:\t@coworker and bragText are required\n\t[on or about] is optional\nbomb:\thsbot brag bomb [#]\n\t[#] is optional and must be between 1 and 10"
 nominateHelpText = "/quote example: hsbot nominate @coworker for awardAcronym nominationText\nrules:\tcoworker and nominationText are required, awardAcronym must be one of:\n\tDFE (Drive for Excellence)\n\tPAV (People are Valued)\n\tCOM (Honest Communication)\n\tPLG (Passion for Learning and Growth)"
 
 defaultNominationType = "brag"
@@ -63,12 +62,6 @@ getQueryJson = (nominationType, count) ->
   JSON.stringify(queryJson)
 
 getNotificationJson = (bragTo, bragText, bragFrom, bragDate) ->
-  #bragDateString = bragDate.toString("MMM dd, yyyy")
-  # notificationJson = {
-  #   "message": "<span>Kudos to <span style=\"font-weight: 700\">#{bragTo}</span></span><p>#{bragText}</p><span style=\"text-transform:uppercase;\">From #{bragFrom} | #{bragDateString}</span>",
-  #   "message_format": "html",
-  #   "color": "random"
-  # }
   notificationJson = {
     "message": "<span>Kudos to <span style=\"font-weight: 700\">#{bragTo}</span></span><p>#{bragText}</p><span style=\"text-transform:uppercase;\">From <em>#{bragFrom}</em></span>",
     "message_format": "html",
@@ -289,6 +282,10 @@ module.exports = (robot) ->
   
   robot.respond /brag bomb( (\d+))?$/i, (msg) ->
     count = msg.match[2] || 5
+    if (count > 10) #max
+      count = 10
+    if (count < 1) #min
+      count = 1
     queryJson = getQueryJson("brag", count)
     #console.log("queryJson: " + JSON.stringify(queryJson))
     jiraSearchUrl = jiraBaseUrl + "search"
