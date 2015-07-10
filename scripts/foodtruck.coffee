@@ -12,8 +12,8 @@ module.exports = (robot) ->
               [{name: "Mission Hot Dogs", site: "https://twitter.com/MissionHotDogs"}, {name: "Savery Grilled Cheese", site: "http://www.saverygrilledcheese.com"}],
               [{name: "Cafe Ybor", site: "http://www.cafeybor.com"}, {name: "Short Bus Subs", site: "http://www.shortbussubs.com/event-calendar.html"}],
               [null, {name: "Ground Up", site: "http://www.grounduptruck.com/"}],
-              [{name: "Rosarito Foodtruck", site: "https://twitter.com/rosaritoatx"}, {name: "The Ginger Armadillo", site: "http://thegingerarmadillo.com/locate"}],
-              [{name: "Load A Bowl", site: "http://www.loadabowlaustin.com/"}, {name: "WunderPig", site: "http://www.wunderpig.com/"}],
+              [{name: "Svante Stuffed Burgers", site: "http://svantesranchdirect.com/svantes-stuffed-burger-truck/"}, {name: "The Ginger Armadillo", site: "http://thegingerarmadillo.com/locate"}],
+              [null, {name: "WunderPig", site: "http://www.wunderpig.com/"}],
               null]
     truck = trucks[new Date().getDay()]
     if truck
