@@ -146,6 +146,7 @@ module.exports = (robot) ->
     return jiraResult.issues
 
   parseRoomId = (err, res, body, roomName) ->
+    #console.log("room: #{roomName}")
     if foundErrors(err, res)
       return { "error": errorBarks[Math.floor(Math.random() * errorBarks.length)] }
     #console.log("room results:\n#{body}")
@@ -382,13 +383,18 @@ module.exports = (robot) ->
           msg.send issues.error
           return
 
+        #console.log("msg.message.user: #{JSON.stringify(msg.message.user)}")
         if msg.message.room?
           hipChatRoomUrl = hipChatBaseUrl + "room"
           q = auth_token: hipChatAuthToken 
           msg.http(hipChatRoomUrl)
             .query(q)
             .get() (err, res, body) ->
-              roomId = parseRoomId(err, res, body, msg.message.room)
+              # hack for dev chat
+              if (msg.message.room == "developer_help")
+                roomId = 67789
+              else
+                roomId = parseRoomId(err, res, body, msg.message.room)
               if (roomId.error?)
                 msg.send roomId.error
                 return
@@ -433,7 +439,11 @@ module.exports = (robot) ->
           msg.http(hipChatRoomUrl)
             .query(q)
             .get() (err, res, body) ->
-              roomId = parseRoomId(err, res, body, msg.message.room)
+              # hack for dev chat
+              if (msg.message.room == "developer_help")
+                roomId = 67789
+              else
+                roomId = parseRoomId(err, res, body, msg.message.room)
               if (roomId.error?)
                 msg.send roomId.error
                 return
