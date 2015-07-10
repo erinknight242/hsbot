@@ -12,7 +12,7 @@
 
 module.exports = (robot) ->
 
-  ignoredPhrases = ['', 'who', 'what', 'where', 'when', 'why', 'image', 'animate', 'echo', 'translate', 'youtube']
+  ignoredPhrases = ['', 'who', 'what', 'where', 'when', 'why', 'image', 'animate', 'echo', 'translate', 'youtube', 'brag']
   includesIgnoredPhrase = (x) -> x in ignoredPhrases
   getAmbiguousUserText = (users) ->
     "Be more specific, I know #{users.length} people named like that: #{(user.name for user in users).join(", ")}"
