@@ -65,6 +65,10 @@ getQueryJson = (nominationType, count) ->
   JSON.stringify(queryJson)
 
 getBragNotificationJson = (bragTo, bragText, bragFrom) ->
+  bragText = bragText.replace /(^|\s)((https?:\/\/)?[\w-]+(\.[\w-]+)+\.?(:\d+)?(\/\S*)?)/gi, ->
+    uri = arguments[2]
+    uri = "http://#{uri}" if not arguments[3]?
+    " <a href=\"#{uri}\" target=\"_blank\">#{uri}</a>"
   bragJson = {
     "message": "<span>Kudos to <span style=\"font-weight: 700\">#{bragTo}</span></span><p>#{bragText}</p><span style=\"text-transform:uppercase;\">bragged by: <em>#{bragFrom}</em></span>",
     "message_format": "html",
