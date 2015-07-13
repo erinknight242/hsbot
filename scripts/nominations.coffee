@@ -16,9 +16,11 @@ errorBarks = [
 ]
 jiraBragRoomId = 1720638
 jiraBaseUrl = "https://headspring.atlassian.net/rest/api/2/"
-hipChatBaseUrl = "https://headspring.hipchat.com/v2/"
+hipChatApiV1BaseUrl = "https://headspring.hipchat.com/v1/"
+hipChatApiV2BaseUrl = "https://headspring.hipchat.com/v2/"
 jiraAuthToken = "Basic #{process.env.HUBOT_JIRA_AUTH}"
-hipChatAuthToken = process.env.HUBOT_HIPCHAT_AUTHTOKEN
+hipChatApiV1AuthToken = process.env.HUBOT_HIPCHAT_V1_AUTHTOKEN
+hipChatApiV2AuthToken = process.env.HUBOT_HIPCHAT_AUTHTOKEN
 
 getAmbiguousUserText = (users) ->
     "Be more specific, I know #{users.length} people named like that: #{(user.name for user in users).join(", ")}"
@@ -145,20 +147,20 @@ module.exports = (robot) ->
       return { "error": "ERROR! could not find any jira issues to bomb you with" }
     return jiraResult.issues
 
-  parseRoomId = (err, res, body, roomName) ->
-    #console.log("room: #{roomName}")
+  parseRoomId = (err, res, body, roomJid) ->
+    #console.log("room Jid: #{roomJid}")
     if foundErrors(err, res)
       return { "error": errorBarks[Math.floor(Math.random() * errorBarks.length)] }
     #console.log("room results:\n#{body}")
     roomsResult = JSON.parse(body)
-    if not roomsResult? or not roomsResult.items? or roomsResult.items.length == 0
-      return { "error": "ERROR! could not locate room to notify named: #{roomName}" }
-    matchingRooms = (r for r in roomsResult.items when r.name.toLowerCase().replace(/\ /g,"_") == roomName)
+    if not roomsResult? or not roomsResult.rooms? or roomsResult.rooms.length == 0
+      return { "error": "ERROR! could not locate room to notify with jid: #{roomJid}" }
+    matchingRooms = (r for r in roomsResult.rooms when r.xmpp_jid == roomJid)
     if not matchingRooms? or matchingRooms.length == 0
-      return { "error": "ERROR! could not locate room to notify named: #{roomName}" }
+      return { "error": "ERROR! could not locate room to notify with jid: #{roomJid}" }
     if matchingRooms.length > 1
-      return { "error": "ERROR! found mulitple matching rooms for: #{roomName} - #{(room.name for room in matchingRooms).join(", ")}" }
-    roomId = matchingRooms[0].id
+      return { "error": "ERROR! found mulitple matching rooms for jid: #{roomJid} - #{(room.name for room in matchingRooms).join(", ")}" }
+    roomId = matchingRooms[0].room_id
     #console.log(roomId)
     return roomId
 
@@ -239,7 +241,7 @@ module.exports = (robot) ->
                   msg.send msg.random errorBarks
                   return
                 #console.log("body after create: " + body)
-                if not (msg.message.room? and msg.message.room.toLowerCase().match("\/^brag.*\/i")) #don't send confirm message in brags and awards room
+                if not (msg.message.room? and msg.message.room.toLowerCase().match("\/^brags\\w*\/i")) #don't send confirm message in brags and awards room
                   msg.send "Your brag about @#{colleagueName} was successfuly retreived and processed!"
                 queryJson = getQueryJson("brag", 1)
                 jiraSearchUrl = jiraBaseUrl + "search"
@@ -252,8 +254,8 @@ module.exports = (robot) ->
                       msg.send issues.error
                       return
 
-                    hipChatNotificationUrl = hipChatBaseUrl + "room/#{jiraBragRoomId}/notification"
-                    q2 = auth_token: hipChatAuthToken
+                    hipChatNotificationUrl = hipChatApiV2BaseUrl + "room/#{jiraBragRoomId}/notification"
+                    q2 = auth_token: hipChatApiV2AuthToken
                     for issue in issues
                       notifyBody = getBragNotificationJson(issue.fields.customfield_12100.displayName, issue.fields.description, issue.fields.reporter.displayName)
                       #console.log(notifyBody)
@@ -339,7 +341,7 @@ module.exports = (robot) ->
                   return
                 #console.log("body after create: " + body)
                 hva = getAwardTypeFromAcronym(awardType)
-                if not (msg.message.room? and msg.message.room.toLowerCase().match("\/^brag.*\/i")) #don't send confirm message in brags and awards room
+                if not (msg.message.room? and msg.message.room.toLowerCase().match("\/^brags\\w*\/i")) #don't send confirm message in brags and awards room
                   msg.send "Your nomination of @#{colleagueName} for #{hva} was successfuly retreived and processed!"
                 queryJson = getQueryJson("hva", 1)
                 jiraSearchUrl = jiraBaseUrl + "search"
@@ -352,8 +354,8 @@ module.exports = (robot) ->
                       msg.send issues.error
                       return
 
-                    hipChatNotificationUrl = hipChatBaseUrl + "room/#{jiraBragRoomId}/notification"
-                    q2 = auth_token: hipChatAuthToken
+                    hipChatNotificationUrl = hipChatApiV2BaseUrl + "room/#{jiraBragRoomId}/notification"
+                    q2 = auth_token: hipChatApiV2AuthToken
                     for issue in issues
                       notifyBody = getHvaNotificationJson(issue.fields.customfield_12100.displayName, issue.fields.customfield_12101.value, issue.fields.description, issue.fields.reporter.displayName)
                       #console.log(notifyBody)
@@ -384,27 +386,24 @@ module.exports = (robot) ->
           return
 
         #console.log("msg.message.user: #{JSON.stringify(msg.message.user)}")
-        if msg.message.room?
-          hipChatRoomUrl = hipChatBaseUrl + "room"
-          q = auth_token: hipChatAuthToken 
+        if msg.message.user? and msg.message.user.reply_to?
+          hipChatRoomUrl = hipChatApiV1BaseUrl + "rooms/list"
+          roomQ = { format: 'json', auth_token: hipChatApiV1AuthToken }
           msg.http(hipChatRoomUrl)
-            .query(q)
+            .query(roomQ)
             .get() (err, res, body) ->
-              # hack for dev chat
-              if (msg.message.room == "developer_help")
-                roomId = 67789
-              else
-                roomId = parseRoomId(err, res, body, msg.message.room)
+              roomId = parseRoomId(err, res, body, msg.message.user.reply_to)
               if (roomId.error?)
                 msg.send roomId.error
                 return
               
-              hipChatNotificationUrl = hipChatBaseUrl + "room/#{roomId}/notification"
+              hipChatNotificationUrl = hipChatApiV2BaseUrl + "room/#{roomId}/notification"
+              notifyQ = auth_token: hipChatApiV2AuthToken
               for issue in issues
                 notifyBody = getBragNotificationJson(issue.fields.customfield_12100.displayName, issue.fields.description, issue.fields.reporter.displayName)
                 #console.log(notifyBody)
                 msg.http(hipChatNotificationUrl)
-                  .query(q)
+                  .query(notifyQ)
                   .header("Content-Type", "application/json")
                   .post(notifyBody) (err, res, body) ->
                     if foundErrors(err, res)
@@ -433,27 +432,24 @@ module.exports = (robot) ->
           msg.send issues.error
           return
 
-        if msg.message.room?
-          hipChatRoomUrl = hipChatBaseUrl + "room"
-          q = auth_token: hipChatAuthToken 
+        if msg.message.user? and msg.message.user.reply_to?
+          hipChatRoomUrl = hipChatApiV1BaseUrl + "rooms/list"
+          roomQ = { format: 'json', auth_token: hipChatApiV1AuthToken }
           msg.http(hipChatRoomUrl)
-            .query(q)
+            .query(roomQ)
             .get() (err, res, body) ->
-              # hack for dev chat
-              if (msg.message.room == "developer_help")
-                roomId = 67789
-              else
-                roomId = parseRoomId(err, res, body, msg.message.room)
+              roomId = parseRoomId(err, res, body, msg.message.room)
               if (roomId.error?)
                 msg.send roomId.error
                 return
               
-              hipChatNotificationUrl = hipChatBaseUrl + "room/#{roomId}/notification"
+              hipChatNotificationUrl = hipChatApiV2BaseUrl + "room/#{roomId}/notification"
+              notifyQ = auth_token: hipChatApiV2AuthToken
               for issue in issues
                 notifyBody = getHvaNotificationJson(issue.fields.customfield_12100.displayName, issue.fields.customfield_12101.value, issue.fields.description, issue.fields.reporter.displayName)
                 #console.log(notifyBody)
                 msg.http(hipChatNotificationUrl)
-                  .query(q)
+                  .query(notifyQ)
                   .header("Content-Type", "application/json")
                   .post(notifyBody) (err, res, body) ->
                     if foundErrors(err, res)
