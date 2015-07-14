@@ -442,7 +442,7 @@ module.exports = (robot) ->
           msg.http(hipChatRoomUrl)
             .query(roomQ)
             .get() (err, res, body) ->
-              roomId = parseRoomId(err, res, body, msg.message.room)
+              roomId = parseRoomId(err, res, body, msg.message.user.reply_to)
               if (roomId.error?)
                 msg.send roomId.error
                 return
