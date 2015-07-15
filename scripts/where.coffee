@@ -17,9 +17,9 @@ conferenceRooms = {
   promethium: "http://i.imgur.com/zxwVDru.png",
   jimmy: "https://s3.amazonaws.com/grabbagoftimg/jimmy.png",
   neocoltrane: "http://i.imgur.com/H8FUzPS.png",
-  davis: "http://i.imgur.com/v1AhrJQ.png",
+  davis: "http://i.imgur.com/pE20nhD.png",
   brubeck: "http://i.imgur.com/dmJ2BDv.png",
-  parker: "http://i.imgur.com/pE20nhD.png"
+  parker: "http://i.imgur.com/v1AhrJQ.png"
 }
 
 barks = [
