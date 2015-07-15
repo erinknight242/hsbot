@@ -19,12 +19,12 @@ quips = [
 ]
 
 module.exports = (robot) ->
-	robot.hear /(.+)?(beer)(.+)?/i, (msg) ->
+	robot.hear /(^|\s)beer(\s|$|[\W])/ig, (msg) ->
 		val = msg.random odds
 		if val > 40
 			msg.send msg.random quips
 
-	robot.hear /(.+)?(coffee)(.+)?/i, (msg) ->
+	robot.hear /(^|\s)coffee(\s|$|[\W])/ig, (msg) ->
 		val = msg.random odds
 		if val > 80
 			msg.send "Coffee? How about a beer? (beer)"
