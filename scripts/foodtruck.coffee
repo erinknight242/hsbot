@@ -13,7 +13,7 @@ module.exports = (robot) ->
               [{name: "Cafe Ybor", site: "http://www.cafeybor.com"}, {name: "Short Bus Subs", site: "http://www.shortbussubs.com/event-calendar.html"}],
               [null, {name: "Ground Up", site: "http://www.grounduptruck.com/"}],
               [{name: "Svante Stuffed Burgers", site: "http://svantesranchdirect.com/svantes-stuffed-burger-truck/"}, {name: "The Ginger Armadillo", site: "http://thegingerarmadillo.com/locate"}],
-              [null, {name: "WunderPig", site: "http://www.wunderpig.com/"}],
+              [{name: "Gibronis Texitalican Cafe", site: "http://www.gibronis.com/calendar/"}, {name: "WunderPig", site: "http://www.wunderpig.com/"}],
               null]
     truck = trucks[new Date().getDay()]
     if truck
