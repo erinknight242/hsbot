@@ -5,7 +5,7 @@ module.exports = (robot) ->
     onDetroitDuty = robot.brain.get('onDetroitDuty')
     if onDetroitDuty
       room = msg.envelope.room
-      if room
+      if room and room != 'detroit'
         user = msg.envelope.user.name
         robot.messageRoom process.env.HUBOT_ROOM_DETROIT, "Pssst!! #{user} is talking about Detroit in #{room}."
 
