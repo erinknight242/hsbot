@@ -2,11 +2,11 @@
 #   Listens for interesting Detroit happenings.
 module.exports = (robot) ->
   robot.hear /(^|\s)detroit(\s|$|[\W])/ig, (msg) ->
-    onDetroitDuty = robot.brain.get('onDetroitDuty') || false
+    onDetroitDuty = robot.brain.get('onDetroitDuty')
     if onDetroitDuty
-      user = msg.envelope.user.name
       room = msg.envelope.room
       if room
+        user = msg.envelope.user.name
         robot.messageRoom process.env.HUBOT_ROOM_DETROIT, "Pssst!! #{user} is talking about Detroit in #{room}."
 
   robot.respond /spy for detroit/ig, (msg) ->
