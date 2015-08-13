@@ -7,7 +7,9 @@ module.exports = (robot) ->
       room = msg.envelope.room
       if room and room != 'detroit'
         user = msg.envelope.user.name
-        robot.messageRoom process.env.HUBOT_ROOM_DETROIT, "Pssst!! #{user} is talking about Detroit in #{room}."
+        userMessage = msg.message.text
+        robot.messageRoom process.env.HUBOT_ROOM_DETROIT, "Pssst!! #{user} is talking about Detroit in #{room}. They said:"
+        robot.messageRoom process.env.HUBOT_ROOM_DETROIT, "/quote  #{userMessage}"
 
   robot.respond /spy for detroit/ig, (msg) ->
     if msg.envelope.user.reply_to == process.env.HUBOT_ROOM_DETROIT
