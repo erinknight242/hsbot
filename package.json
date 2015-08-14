@@ -17,6 +17,7 @@
     "on-finished": "^2.1.0",
     "qs": "^2.2.4",
     "body-parser": "^1.9.1",
+    "cheerio": "^0.19.0",
     "hubot": "^2.13.2",
     "hubot-diagnostics": "0.0.1",
     "hubot-google-images": "^0.1.5",
