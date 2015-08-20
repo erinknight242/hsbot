@@ -75,3 +75,20 @@ module.exports = (robot) ->
     for cha in flipee by -1 then do (cha) =>
       flipped = flipped + flipChar(cha)
     msg.send "(╯°□°）╯︵" + flipped
+
+  robot.respond /megaflip(.+)?/i, (msg) ->
+    flipee = msg.match[1]
+    flipped = ""
+    for cha in flipee by -1 then do (cha) ->
+      flipped += flipChar(cha)
+    msg.send """(╯°□°）╯︵
+┳┳┳┳┳┳　　|
+┓┏┓┏┓┃　#{flipped}
+┛┗┛┗┛┃
+┓┏┓┏┓┃
+┛┗┛┗┛┃
+┓┏┓┏┓┃
+┛┗┛┗┛┃
+┓┏┓┏┓┃
+┻┻┻┻┻┻
+"""
