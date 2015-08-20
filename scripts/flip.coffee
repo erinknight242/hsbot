@@ -68,19 +68,19 @@ flipChar = (cha) =>
     when '\u061B' then return ';'
     else return cha
 
+getFlippedWord = (flipee) ->
+  flipped = ""
+  for cha in flipee by -1 then do (cha) =>
+    flipped = flipped + flipChar(cha)
+  flipped
+
 module.exports = (robot) ->
   robot.respond /flip(.+)?/i, (msg) ->
-    flipee = msg.match[1];
-    flipped = ""
-    for cha in flipee by -1 then do (cha) =>
-      flipped = flipped + flipChar(cha)
+    flipped = getFlippedWord msg.match[1]
     msg.send "(╯°□°）╯︵" + flipped
 
   robot.respond /megaflip(.+)?/i, (msg) ->
-    flipee = msg.match[1]
-    flipped = ""
-    for cha in flipee by -1 then do (cha) ->
-      flipped += flipChar(cha)
+    flipped = getFlippedWord msg.match[1]
     msg.send """(╯°□°）╯︵
 ┳┳┳┳┳┳　　|
 ┓┏┓┏┓┃　#{flipped}
