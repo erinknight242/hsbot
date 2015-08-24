@@ -15,5 +15,5 @@ quips = [
 module.exports = (robot) ->
 	robot.hear /^([A-Z\s]{8,})+$/g, (msg) ->
 		val = msg.random odds
-		if val > 100
+		if val > 25
 			msg.send msg.random quips
