@@ -19,7 +19,8 @@ conferenceRooms = {
   neocoltrane: "http://i.imgur.com/H8FUzPS.png",
   davis: "http://i.imgur.com/pE20nhD.png",
   brubeck: "http://i.imgur.com/dmJ2BDv.png",
-  parker: "http://i.imgur.com/v1AhrJQ.png"
+  parker: "http://i.imgur.com/v1AhrJQ.png",
+  coffee: "(jura)"
 }
 
 barks = [
