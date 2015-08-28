@@ -129,7 +129,7 @@ module.exports = (robot) ->
       #console.log("userName: #{userName}, email: #{emailAddress}")
     return { "userName": userName, "emailAddress": emailAddress }
 
-  parseJiraUser = (err, res, body) ->
+  parseJiraUser = (err, res, body, colleagueName) ->
     if foundErrors(err, res)
       return { "error": errorBarks[Math.floor(Math.random() * errorBarks.length)] }
     result = JSON.parse(body)
@@ -219,7 +219,7 @@ module.exports = (robot) ->
       .query(q)
       .header("Authorization", jiraAuthToken)
       .get() (err, res, body) ->
-        jiraNominee = parseJiraUser(err, res, body)
+        jiraNominee = parseJiraUser(err, res, body, colleagueName)
         if jiraNominee.error?
           msg.send jiraNominee.error
           return
