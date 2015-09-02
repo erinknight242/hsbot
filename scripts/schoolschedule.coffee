@@ -21,3 +21,10 @@ module.exports = (robot) ->
   volleyball = schedule.scheduleJob({hour:22, minute: 15, dayOfWeek: 4}, ->
     robot.messageRoom process.env.HUBOT_ROOM_AUSTIN, "@here Volleyball in 15 minutes! Go get your PE credits for the Headspring Back To School Theme"
   )
+
+  hackClub = schedule.scheduleJob({hour:21, minute: 45, dayOfWeek: 4}, ->
+    today = new Date().getDate()
+    #only the first Thursday of the month
+    if today < 8
+      robot.messageRoom process.env.HUBOT_ROOM_AUSTIN, "@here Hack Club in 15 minutes! Go get your Extracurricular credits for the Headspring Back To School Theme"
+  )
