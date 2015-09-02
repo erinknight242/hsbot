@@ -1,4 +1,5 @@
 [
+  "hubot-azure-scripts/brain/storage-blob-brain",
   "hubot-diagnostics",
   "hubot-help",
   "hubot-google-images",
@@ -6,6 +7,8 @@
   "hubot-pugme",
   "hubot-maps",
   "hubot-rules",
-  "hubot-shipit",
-  "hubot-azure-scripts/brain/storage-blob-brain"
+  "hubot-scripts/src/scripts/github-status",
+  "hubot-scripts/src/scripts/isup",
+  "hubot-scripts/src/scripts/stock",
+  "hubot-shipit"
 ]
