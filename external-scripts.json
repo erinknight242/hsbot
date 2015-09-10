@@ -9,6 +9,5 @@
   "hubot-rules",
   "hubot-scripts/src/scripts/github-status",
   "hubot-scripts/src/scripts/isup",
-  "hubot-scripts/src/scripts/stock",
   "hubot-shipit"
 ]
