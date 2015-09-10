@@ -39,6 +39,6 @@ module.exports = (robot) ->
     robot.http('http://finance.google.com/finance/info?client=ig&q=.DJI')
       .get() (err, res, body) ->
         result = JSON.parse(body.replace(/\/\/ /, ''))
-        robot.messageRoom process.env.HUBOT_ROOM_STOCKS, "http://chart.finance.yahoo.com/z?s=.DJI&t=1d&q=l&l=on&z=l&a=v&p=s&lang=en-US&region=US#.png"
+        robot.messageRoom process.env.HUBOT_ROOM_STOCKS, "http://chart.finance.yahoo.com/z?s=^DJI&t=1d&q=l&l=on&z=l&a=v&p=s&lang=en-US&region=US#.png"
         robot.messageRoom process.env.HUBOT_ROOM_STOCKS, "Market closed! " + result[0].l_cur + " (#{result[0].c})"
   )
