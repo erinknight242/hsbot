@@ -23,7 +23,7 @@ schedule = require('node-schedule')
 rule = new schedule.RecurrenceRule()
 rule.dayOfWeek = [new schedule.Range(1,5)]
 rule.hour = 20
-rule.minute = 15
+rule.minute = 16
 
 module.exports = (robot) ->
   robot.respond /stock (?:info|price|quote)?\s?(?:for|me)?\s?@?([A-Za-z0-9.-_]+)\s?(\d+\w+)?/i, (msg) ->
