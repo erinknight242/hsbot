@@ -12,7 +12,7 @@ defaultNominationType = "brag"
 errorBarks = [
   "My time circuits must be shorting out, I couldn't do that (sadpanda), please don't let me get struck by lightning (build)",
   "What you requested should have worked, BUT it didn't (shrug)",
-  "Bad news: it didn't work (boom); good news: I'm alive! I'm alive! (awesome) Wait, no...that is Johhny # 5, there is no good news (evilburns)"
+  "Bad news: it didn't work (boom); good news: I'm alive! I'm alive! (awesome) Wait, no...that is Johnny # 5, there is no good news (evilburns)"
 ]
 jiraBragRoomId = 1720638
 jiraBaseUrl = "https://headspring.atlassian.net/rest/api/2/"
@@ -246,7 +246,7 @@ module.exports = (robot) ->
                   return
                 #console.log("body after create: " + body)
                 if not (msg.message.room? and msg.message.room.toLowerCase().match("\/^brags\\w*\/i")) #don't send confirm message in brags and awards room
-                  msg.send "Your brag about @#{colleagueName} was successfuly retreived and processed!"
+                  msg.send "Your brag about @#{colleagueName} was successfully retrieved and processed!"
                 queryJson = getQueryJson("brag", 1)
                 jiraSearchUrl = jiraBaseUrl + "search"
                 msg.http(jiraSearchUrl)
@@ -346,7 +346,7 @@ module.exports = (robot) ->
                 #console.log("body after create: " + body)
                 hva = getAwardTypeFromAcronym(awardType)
                 if not (msg.message.room? and msg.message.room.toLowerCase().match("\/^brags\\w*\/i")) #don't send confirm message in brags and awards room
-                  msg.send "Your nomination of @#{colleagueName} for #{hva} was successfuly retreived and processed!"
+                  msg.send "Your nomination of @#{colleagueName} for #{hva} was successfully retrieved and processed!"
                 queryJson = getQueryJson("hva", 1)
                 jiraSearchUrl = jiraBaseUrl + "search"
                 msg.http(jiraSearchUrl)
