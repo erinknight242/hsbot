@@ -87,7 +87,7 @@ getHvaNotificationJson = (nominee, awardType, nominationText, nominator) ->
 module.exports = (robot) ->
   # error checking
   foundErrors = (err, res) ->
-    if err          
+    if err
       robot.emit 'error', err, res
       return true
     #console.log(res.statusCode)
@@ -118,10 +118,10 @@ module.exports = (robot) ->
     matchingUsers = robot.brain.usersForFuzzyName(fuzzyName)
     if not matchingUsers?
       return { "error": "#{fuzzyName}? Never heard of 'em, cannot proceed" }
-    
+
     if matchingUsers.length != 1
       return { "error": getAmbiguousUserText(matchingUsers) }
-    
+
     #console.log("found fuzzy user: " + JSON.stringify(matchingUsers[0]))
     if matchingUsers[0].name? and matchingUsers[0].email_address?
       userName = matchingUsers[0].name.toLowerCase()
@@ -172,6 +172,17 @@ module.exports = (robot) ->
     cleanString = nameString.replace /( and |[, &])/g, ""
     names = cleanString.split '@'
     names.shift()
+
+    index = 1 #remove any duplicate names so the same person can't receive multiple brags from one statement
+    while index < names.length
+      num = 0
+      while num < index
+        if names[num].toLowerCase() is names[index].toLowerCase()
+          names.splice index, 1
+          index--
+          break
+        num++
+      index++
     return names
 
   processNomination = (msg, resolve, sender, colleagueName, reason) ->
@@ -250,36 +261,12 @@ module.exports = (robot) ->
                   nominationResult.errorText = msg.random errorBarks
                   resolve nominationResult
                   return
-                #console.log("body after create: " + body)
-                queryJson = getQueryJson("brag", 1)
-                jiraSearchUrl = jiraBaseUrl + "search"
-                msg.http(jiraSearchUrl)
-                  .header("Authorization", jiraAuthToken)
-                  .header("Content-Type", "application/json")
-                  .post(queryJson) (err, res, body) ->
-                    issues = parseJiraIssues(err, res, body)
-                    if (issues.error?)
-                      nominationResult.errorText = issues.error
-                      resolve nominationResult
-                      return
-
-                    hipChatNotificationUrl = hipChatApiV2BaseUrl + "room/#{jiraBragRoomId}/notification"
-                    q2 = auth_token: hipChatApiV2AuthToken
-                    for issue in issues
-                      notifyBody = getBragNotificationJson(issue.fields.customfield_12100.displayName, issue.fields.description, issue.fields.reporter.displayName)
-                      #console.log(notifyBody)
-                      msg.http(hipChatNotificationUrl)
-                        .query(q2)
-                        .header("Content-Type", "application/json")
-                        .post(notifyBody) (err, res, body) ->
-                          if foundErrors(err, res)
-                            nominationResult.errorText = msg.random errorBarks
-                            resolve nominationResult
-                            return
-                          nominationResult.success = true
-                          nominationResult.errorText = ''
-                          resolve nominationResult
-                          return
+                msg.send res.id
+                nominationResult.id = res.id
+                nominationResult.success = true
+                nominationResult.errorText = ''
+                resolve nominationResult
+                return
 
   robot.respond /brag help$/i, (msg) ->
     msg.send bragHelpText
@@ -297,6 +284,7 @@ module.exports = (robot) ->
     #console.log("reason: " + reason)
     nameArray = parseColleagueNames colleagueNames
     bragResults = []
+
     for colleagueName in nameArray
       do ->
         bragResults.push new Promise((resolve) ->
@@ -307,20 +295,56 @@ module.exports = (robot) ->
         #console.log results
         successNames = ""
         errorReasons = ""
+        successCount = 0;
         for brag in results
           do ->
             if brag.success
               if successNames isnt ""
                 successNames += ", @"
               successNames += brag.colleagueName
+              ++successCount;
             else
               if errorReasons isnt ""
                 errorReasons += "\n"
               errorReasons += "Brag about #{brag.colleagueName} failed: #{brag.errorText}"
-        if successNames isnt "" and not (msg.message.room? and msg.message.room.toLowerCase().match("\/^brags\\w*\/i")) #don't send confirm message in brags and awards room
+        if successNames isnt ""
           msg.send "Your brag about @#{successNames} was successfully retrieved and processed!"
         if errorReasons isnt ""
           msg.send errorReasons
+
+        queryJson = getQueryJson("brag", successCount)
+        jiraSearchUrl = jiraBaseUrl + "search"
+        msg.http(jiraSearchUrl)
+          .header("Authorization", jiraAuthToken)
+          .header("Content-Type", "application/json")
+          .post(queryJson) (err, res, body) ->
+            issues = parseJiraIssues(err, res, body)
+            if (issues.error?)
+              msg.send issues.error
+              return
+
+            hipChatNotificationUrl = hipChatApiV2BaseUrl + "room/#{jiraBragRoomId}/notification"
+            q2 = auth_token: hipChatApiV2AuthToken
+            nomineeNames = ""
+            jiraDescription = ""
+            jiraReporter = ""
+            for issue in issues
+              name = issue.fields.customfield_12100.displayName
+              if nomineeNames is ""
+                nomineeNames = name
+                jiraDescription = issue.fields.description
+                jiraReporter = issue.fields.reporter.displayName
+              else
+                nomineeNames += ", " + name
+            notifyBody = getBragNotificationJson(nomineeNames, jiraDescription, jiraReporter)
+            #console.log(notifyBody)
+            msg.http(hipChatNotificationUrl)
+              .query(q2)
+              .header("Content-Type", "application/json")
+              .post(notifyBody) (err, res, body) ->
+                if foundErrors(err, res)
+                  msg.send msg.random errorBarks
+                  return
 
   robot.respond /hva (to |for )@([a-zA-Z0-9]+) for (DFE|PAV|COM|PLG)(.+)/i, (msg) ->
     #console.log("robot name: " + robot.name)
@@ -347,7 +371,7 @@ module.exports = (robot) ->
       if nominee.error?
         msg.send nominee.error
         return
-    
+
     if not nominee.userName?
       msg.send "Could not locate a valid user name for #{colleagueName}, cannot nominate"
       return
@@ -421,7 +445,7 @@ module.exports = (robot) ->
                           if foundErrors(err, res)
                             msg.send msg.random errorBarks
                             return
-  
+
   robot.respond /brag bomb( (\d+))?$/i, (msg) ->
     count = msg.match[2] || 5
     if (count > 10) #max
@@ -451,7 +475,7 @@ module.exports = (robot) ->
               if (roomId.error?)
                 msg.send roomId.error
                 return
-              
+
               hipChatNotificationUrl = hipChatApiV2BaseUrl + "room/#{roomId}/notification"
               notifyQ = auth_token: hipChatApiV2AuthToken
               for issue in issues
@@ -468,7 +492,7 @@ module.exports = (robot) ->
           for issue in issues
             notifyBody = getBragNotificationJson(issue.fields.customfield_12100.displayName, issue.fields.description, issue.fields.reporter.displayName)
             msg.send notifyBody
-  
+
   robot.respond /hva bomb( (\d+))?$/i, (msg) ->
     count = msg.match[2] || 5
     if (count > 10) #max
@@ -497,7 +521,7 @@ module.exports = (robot) ->
               if (roomId.error?)
                 msg.send roomId.error
                 return
-              
+
               hipChatNotificationUrl = hipChatApiV2BaseUrl + "room/#{roomId}/notification"
               notifyQ = auth_token: hipChatApiV2AuthToken
               for issue in issues
