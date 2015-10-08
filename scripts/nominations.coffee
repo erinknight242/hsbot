@@ -261,8 +261,8 @@ module.exports = (robot) ->
                   nominationResult.errorText = msg.random errorBarks
                   resolve nominationResult
                   return
-                msg.send res.id
-                nominationResult.id = res.id
+                jiraResult = JSON.parse(body)
+                nominationResult.id = jiraResult.id
                 nominationResult.success = true
                 nominationResult.errorText = ''
                 resolve nominationResult
@@ -328,23 +328,33 @@ module.exports = (robot) ->
             nomineeNames = ""
             jiraDescription = ""
             jiraReporter = ""
+            showConfirmation = true
             for issue in issues
+              issueMatches = false
               name = issue.fields.customfield_12100.displayName
+              for brag in results
+                if brag.id? and brag.id is issue.id
+                  issueMatches = true
               if nomineeNames is ""
                 nomineeNames = name
                 jiraDescription = issue.fields.description
                 jiraReporter = issue.fields.reporter.displayName
               else
                 nomineeNames += ", " + name
-            notifyBody = getBragNotificationJson(nomineeNames, jiraDescription, jiraReporter)
-            #console.log(notifyBody)
-            msg.http(hipChatNotificationUrl)
-              .query(q2)
-              .header("Content-Type", "application/json")
-              .post(notifyBody) (err, res, body) ->
-                if foundErrors(err, res)
-                  msg.send msg.random errorBarks
-                  return
+                if not issueMatches
+                  showConfirmation = false
+            if showConfirmation
+              notifyBody = getBragNotificationJson(nomineeNames, jiraDescription, jiraReporter)
+              #console.log(notifyBody)
+              msg.http(hipChatNotificationUrl)
+                .query(q2)
+                .header("Content-Type", "application/json")
+                .post(notifyBody) (err, res, body) ->
+                  if foundErrors(err, res)
+                    msg.send msg.random errorBarks
+                    return
+            else
+              msg.send "Unable to match brag(s) with Jira results. Check the Jira HVA project to confirm success."
 
   robot.respond /hva (to |for )@([a-zA-Z0-9]+) for (DFE|PAV|COM|PLG)(.+)/i, (msg) ->
     #console.log("robot name: " + robot.name)
