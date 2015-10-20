@@ -311,6 +311,8 @@ module.exports = (robot) ->
           msg.send "Your brag about @#{successNames} was successfully retrieved and processed!"
         if errorReasons isnt ""
           msg.send errorReasons
+        if successCount == 0
+          return
 
         queryJson = getQueryJson("brag", successCount)
         jiraSearchUrl = jiraBaseUrl + "search"
