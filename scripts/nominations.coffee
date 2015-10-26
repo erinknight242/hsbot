@@ -189,7 +189,7 @@ module.exports = (robot) ->
     #console.log "Processing nomination for " + colleagueName
     nominationResult = { colleagueName: colleagueName, success: false, errorText: 'Unknown error; did not reach valid exit point' }
     if isNomineeRobot(colleagueName)
-      nominationResult.errorText = "(embarrassed) Honored, truly, but an Artificial Inteligence does not need your bragging"
+      nominationResult.errorText = "(embarrassed) Honored, truly, but an Artificial Intelligence does not need your bragging"
       resolve nominationResult
       return
 
