@@ -7,9 +7,12 @@
 # Author:
 #   hulahomer
 
-schedule = require('node-schedule')
+schedule = require 'node-schedule'
+moment = require 'moment-timezone'
 
-DSToffset = new Date().getTimezoneOffset() / 60
+today = moment.tz new Date(), "America/Chicago"
+
+DSToffset = today.utcOffset() / -60
 
 module.exports = (robot) ->
   meditation = schedule.scheduleJob( {hour: 16 + DSToffset, minute: 45, dayOfWeek: 1}, ->
