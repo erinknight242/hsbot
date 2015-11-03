@@ -10,10 +10,10 @@ yelp = require "yelp"
 
 # Generate new keys at https://www.yelp.com/developers/manage_api_keys
 yelp = yelp.createClient
-  consumer_key: "uh4_dL5KECQPgl5OlS9AVg"
-  consumer_secret: "8j4_bGTECSQR9GZpsGclvPSXx9g"
-  token: "GctBPelj4QDAssk78bQEFlpZ66WkmOaw"
-  token_secret: "7fh8KUFwwENROTXkkc5felR9UBM"
+  consumer_key: process.env.HUBOT_YELP_CONSUMER_KEY
+  consumer_secret: process.env.HUBOT_YELP_CONSUMER_SECRET
+  token: process.env.HUBOT_YELP_TOKEN
+  token_secret: process.env.HUBOT_YELP_TOKEN_SECRET
 
 austinOffice = '10415 Morado Circle, Austin, TX 78759'
 houstonOffice = '10111 Richmond Ave, Houston, TX 77042'
