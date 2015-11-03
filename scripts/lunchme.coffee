@@ -40,20 +40,18 @@ module.exports = (robot) ->
     msg.send "/quote examples: \n\thsbot lunch me\n\thsbot houston lunch me\n\thsbot dallas lunch me tacos\n\nusage:\n\toptional city name (dallas, austin, houston, monterrey). Defaults to Austin.\n\toptional additional search terms can be added at the end"
 
   robot.respond /(?:(austin|houston|dallas|monterrey)[- ])?lunch me([- ](.+))?/i, (msg) ->
+    terms.cc = 'US'
     terms.term = msg.match[3] or 'lunch';
     switch msg.match[1]
       when 'dallas'
         terms.location = dallasOffice
-        terms.cc = 'US'
       when 'houston'
         terms.location = houstonOffice
-        terms.cc = 'US'
       when 'monterrey'
         terms.location = monterreyOffice
         terms.cc = 'MX'
       else
         terms.location = austinOffice
-        terms.cc = 'US'
 
     # See http://www.yelp.com/developers/documentation/v2/search_api
     yelp.search terms, (err, body) ->
