@@ -36,7 +36,8 @@
     "soupselect": "0.2.0",
     "type-is": "^1.5.2",
     "underscore": "1.6.0",
-    "underscore.string": "2.3.3"
+    "underscore.string": "2.3.3",
+    "yelp": "^0.2.0"
   },
   "engines": {
     "node": "0.10.x"
