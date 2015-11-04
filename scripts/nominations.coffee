@@ -264,25 +264,31 @@ module.exports = (robot) ->
                     nominationResult.errorText = "Nominator " + jiraNominator.error
                     resolve nominationResult
                     return
-            nominationResult.nominator = jiraNominator;
+                  else
+                    nominationResult.nominator = jiraNominator;
+                    submitBrag()
+            else
+              nominationResult.nominator = jiraNominator;
+              submitBrag()
 
-            requestJson = getRequestJson(jiraNominator, jiraNominee, reason, "brag", null)
-            #console.log("requestJson: " + JSON.stringify(requestJson))
-            jiraIssueUrl = jiraBaseUrl + "issue"
-            msg.http(jiraIssueUrl)
-              .header("Authorization", jiraAuthToken)
-              .header("Content-Type", "application/json")
-              .post(requestJson) (err, res, body) ->
-                if foundErrors(err, res)
-                  nominationResult.errorText = msg.random errorBarks
+            submitBrag = ->
+              requestJson = getRequestJson(jiraNominator, jiraNominee, reason, "brag", null)
+              #console.log("requestJson: " + JSON.stringify(requestJson))
+              jiraIssueUrl = jiraBaseUrl + "issue"
+              msg.http(jiraIssueUrl)
+                .header("Authorization", jiraAuthToken)
+                .header("Content-Type", "application/json")
+                .post(requestJson) (err, res, body) ->
+                  if foundErrors(err, res)
+                    nominationResult.errorText = msg.random errorBarks
+                    resolve nominationResult
+                    return
+                  jiraResult = JSON.parse(body)
+                  nominationResult.id = jiraResult.id
+                  nominationResult.success = true
+                  nominationResult.errorText = ''
                   resolve nominationResult
                   return
-                jiraResult = JSON.parse(body)
-                nominationResult.id = jiraResult.id
-                nominationResult.success = true
-                nominationResult.errorText = ''
-                resolve nominationResult
-                return
 
   robot.respond /brag help$/i, (msg) ->
     msg.send bragHelpText
