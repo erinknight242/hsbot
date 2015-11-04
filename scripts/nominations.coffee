@@ -259,8 +259,8 @@ module.exports = (robot) ->
                 .query(q)
                 .header("Authorization", jiraAuthToken)
                 .get() (err, res, body) ->
-                  jiraNominee = parseJiraUser(err, res, body)
-                  if jiraNominee.error?
+                  jiraNominator = parseJiraUser(err, res, body)
+                  if jiraNominator.error?
                     nominationResult.errorText = "Nominator " + jiraNominator.error
                     resolve nominationResult
                     return
