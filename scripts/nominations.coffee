@@ -233,9 +233,17 @@ module.exports = (robot) ->
       .get() (err, res, body) ->
         jiraNominee = parseJiraUser(err, res, body, colleagueName)
         if jiraNominee.error?
-          nominationResult.errorText = "Nominee " + jiraNominee.error
-          resolve nominationResult
-          return
+          #email lookup between HipChat/JIRA failed; try searching by name instead
+          q = query: nominee.userName
+          msg.http(jiraUserUrl)
+            .query(q)
+            .header("Authorization", jiraAuthToken)
+            .get() (err, res, body) ->
+              jiraNominee = parseJiraUser(err, res, body, colleagueName)
+              if jiraNominee.error?
+                nominationResult.errorText = "Nominee " + jiraNominee.error
+                resolve nominationResult
+                return
         nominationResult.nominee = jiraNominee
 
         q = query: nominator.emailAddress
