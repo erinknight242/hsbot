@@ -440,6 +440,45 @@ module.exports = (robot) ->
                 msg.send jiraNominee.error
                 return
 
+        submitHVA = (jiraNominator) ->
+          requestJson = getRequestJson(jiraNominator, jiraNominee, reason, "hva", awardType)
+          #console.log("requestJson: " + JSON.stringify(requestJson))
+          jiraIssueUrl = jiraBaseUrl + "issue"
+          msg.http(jiraIssueUrl)
+            .header("Authorization", jiraAuthToken)
+            .header("Content-Type", "application/json")
+            .post(requestJson) (err, res, body) ->
+              if foundErrors(err, res)
+                msg.send msg.random errorBarks
+                return
+              #console.log("body after create: " + body)
+              hva = getAwardTypeFromAcronym(awardType)
+              if not (msg.message.room? and msg.message.room.toLowerCase().match("\/^brags\\w*\/i")) #don't send confirm message in brags and awards room
+                msg.send "Your nomination of @#{colleagueName} for #{hva} was successfully retrieved and processed!"
+              queryJson = getQueryJson("hva", 1)
+              jiraSearchUrl = jiraBaseUrl + "search"
+              msg.http(jiraSearchUrl)
+                .header("Authorization", jiraAuthToken)
+                .header("Content-Type", "application/json")
+                .post(queryJson) (err, res, body) ->
+                  issues = parseJiraIssues(err, res, body)
+                  if (issues.error?)
+                    msg.send issues.error
+                    return
+
+                  hipChatNotificationUrl = hipChatApiV2BaseUrl + "room/#{jiraBragRoomId}/notification"
+                  q2 = auth_token: hipChatApiV2AuthToken
+                  for issue in issues
+                    notifyBody = getHvaNotificationJson(issue.fields.customfield_12100.displayName, issue.fields.customfield_12101.value, issue.fields.description, issue.fields.reporter.displayName)
+                    #console.log(notifyBody)
+                    msg.http(hipChatNotificationUrl)
+                      .query(q2)
+                      .header("Content-Type", "application/json")
+                      .post(notifyBody) (err, res, body) ->
+                        if foundErrors(err, res)
+                          msg.send msg.random errorBarks
+                          return
+
         q = query: nominator.emailAddress
         msg.http(jiraUserUrl)
           .query(q)
@@ -458,48 +497,9 @@ module.exports = (robot) ->
                     msg.send jiraNominator.error
                     return
                   else
-                    submitHVA()
+                    submitHVA(jiraNominator)
             else
-              submitHVA()
-
-            submitHVA = ->
-              requestJson = getRequestJson(jiraNominator, jiraNominee, reason, "hva", awardType)
-              #console.log("requestJson: " + JSON.stringify(requestJson))
-              jiraIssueUrl = jiraBaseUrl + "issue"
-              msg.http(jiraIssueUrl)
-                .header("Authorization", jiraAuthToken)
-                .header("Content-Type", "application/json")
-                .post(requestJson) (err, res, body) ->
-                  if foundErrors(err, res)
-                    msg.send msg.random errorBarks
-                    return
-                  #console.log("body after create: " + body)
-                  hva = getAwardTypeFromAcronym(awardType)
-                  if not (msg.message.room? and msg.message.room.toLowerCase().match("\/^brags\\w*\/i")) #don't send confirm message in brags and awards room
-                    msg.send "Your nomination of @#{colleagueName} for #{hva} was successfully retrieved and processed!"
-                  queryJson = getQueryJson("hva", 1)
-                  jiraSearchUrl = jiraBaseUrl + "search"
-                  msg.http(jiraSearchUrl)
-                    .header("Authorization", jiraAuthToken)
-                    .header("Content-Type", "application/json")
-                    .post(queryJson) (err, res, body) ->
-                      issues = parseJiraIssues(err, res, body)
-                      if (issues.error?)
-                        msg.send issues.error
-                        return
-
-                      hipChatNotificationUrl = hipChatApiV2BaseUrl + "room/#{jiraBragRoomId}/notification"
-                      q2 = auth_token: hipChatApiV2AuthToken
-                      for issue in issues
-                        notifyBody = getHvaNotificationJson(issue.fields.customfield_12100.displayName, issue.fields.customfield_12101.value, issue.fields.description, issue.fields.reporter.displayName)
-                        #console.log(notifyBody)
-                        msg.http(hipChatNotificationUrl)
-                          .query(q2)
-                          .header("Content-Type", "application/json")
-                          .post(notifyBody) (err, res, body) ->
-                            if foundErrors(err, res)
-                              msg.send msg.random errorBarks
-                              return
+              submitHVA(jiraNominator)
 
   robot.respond /brag bomb( (\d+))?$/i, (msg) ->
     count = msg.match[2] || 5
