@@ -246,6 +246,26 @@ module.exports = (robot) ->
                 return
         nominationResult.nominee = jiraNominee
 
+        submitBrag = (jiraNominator) ->
+          requestJson = getRequestJson(jiraNominator, jiraNominee, reason, "brag", null)
+          #console.log("requestJson: " + JSON.stringify(requestJson))
+          jiraIssueUrl = jiraBaseUrl + "issue"
+          console.log requestJson
+          msg.http(jiraIssueUrl)
+            .header("Authorization", jiraAuthToken)
+            .header("Content-Type", "application/json")
+            .post(requestJson) (err, res, body) ->
+              if foundErrors(err, res)
+                nominationResult.errorText = msg.random errorBarks
+                resolve nominationResult
+                return
+              jiraResult = JSON.parse(body)
+              nominationResult.id = jiraResult.id
+              nominationResult.success = true
+              nominationResult.errorText = ''
+              resolve nominationResult
+              return
+
         q = query: nominator.emailAddress
         msg.http(jiraUserUrl)
           .query(q)
@@ -266,29 +286,10 @@ module.exports = (robot) ->
                     return
                   else
                     nominationResult.nominator = jiraNominator;
-                    submitBrag()
+                    submitBrag(jiraNominator)
             else
               nominationResult.nominator = jiraNominator;
-              submitBrag()
-
-            submitBrag = ->
-              requestJson = getRequestJson(jiraNominator, jiraNominee, reason, "brag", null)
-              #console.log("requestJson: " + JSON.stringify(requestJson))
-              jiraIssueUrl = jiraBaseUrl + "issue"
-              msg.http(jiraIssueUrl)
-                .header("Authorization", jiraAuthToken)
-                .header("Content-Type", "application/json")
-                .post(requestJson) (err, res, body) ->
-                  if foundErrors(err, res)
-                    nominationResult.errorText = msg.random errorBarks
-                    resolve nominationResult
-                    return
-                  jiraResult = JSON.parse(body)
-                  nominationResult.id = jiraResult.id
-                  nominationResult.success = true
-                  nominationResult.errorText = ''
-                  resolve nominationResult
-                  return
+              submitBrag(jiraNominator)
 
   robot.respond /brag help$/i, (msg) ->
     msg.send bragHelpText
