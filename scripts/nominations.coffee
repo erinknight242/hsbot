@@ -250,7 +250,6 @@ module.exports = (robot) ->
           requestJson = getRequestJson(jiraNominator, jiraNominee, reason, "brag", null)
           #console.log("requestJson: " + JSON.stringify(requestJson))
           jiraIssueUrl = jiraBaseUrl + "issue"
-          console.log requestJson
           msg.http(jiraIssueUrl)
             .header("Authorization", jiraAuthToken)
             .header("Content-Type", "application/json")
