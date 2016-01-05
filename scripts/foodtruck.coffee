@@ -9,11 +9,11 @@ date = require 'datejs'
 module.exports = (robot) ->
   robot.respond /(food truck|foodtruck)$/i, (msg) ->
     trucks = [null,
-              [{name: "Mission Hot Dogs", site: "https://twitter.com/MissionHotDogs"}, {name: "Savery Grilled Cheese", site: "http://www.saverygrilledcheese.com"}],
-              [{name: "Cafe Ybor", site: "http://www.cafeybor.com"}, null],
-              [null, {name: "Ground Up", site: "http://www.grounduptruck.com/"}],
-              [{name: "Svante Stuffed Burgers", site: "http://svantesranchdirect.com/svantes-stuffed-burger-truck/"}, {name: "The Ginger Armadillo", site: "http://thegingerarmadillo.com/locate"}],
-              [{name: "Gibronis Texitalican Cafe", site: "http://www.gibronis.com/calendar/"}, {name: "WunderPig", site: "http://www.wunderpig.com/"}],
+              [{name: "Savery Grilled Cheese", site: "http://www.saverygrilledcheese.com"}, {name: "Mission Hot Dogs", site: "https://twitter.com/MissionHotDogs"}],
+              [null, {name: "Cafe Ybor", site: "http://www.cafeybor.com"}],
+              [{name: "Ground Up", site: "http://www.grounduptruck.com/"}, null],
+              [{name: "The Ginger Armadillo", site: "http://thegingerarmadillo.com/locate"}, {name: "Svante Stuffed Burgers", site: "http://svantesranchdirect.com/svantes-stuffed-burger-truck/"}],
+              [{name: "WunderPig", site: "http://www.wunderpig.com/"}, null],
               null]
     truck = trucks[new Date().getDay()]
     if truck
