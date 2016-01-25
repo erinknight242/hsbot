@@ -1,5 +1,5 @@
 # Description:
-#   Let hubot tell you where to go for lunch.
+#   Spread the joy of Glenn dancing to everyone.
 #
 # Commands:
 #   hubot make glenn dance
