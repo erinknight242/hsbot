@@ -12,4 +12,4 @@ answers = [
 
 module.exports = (robot) ->
   robot.respond /houston me/i, (msg) ->
-    msg.random answers
+    msg.send msg.random answers
