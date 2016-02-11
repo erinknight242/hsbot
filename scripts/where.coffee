@@ -46,6 +46,7 @@ barks = [
 module.exports = (robot) ->
   robot.respond /where ?[i']s ([^\?]*)[\?]*/i, (msg) ->
     term = msg.match[1].toLowerCase().trim()
+    term = term.split("-").pop()
     location = conferenceRooms[term]
     if location?
       msg.send location
