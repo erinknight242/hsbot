@@ -11,7 +11,7 @@ module.exports = (robot) ->
     trucks = [null,
               [{name: "Savery Grilled Cheese", site: "http://www.saverygrilledcheese.com"}, {name: "Mission Hot Dogs", site: "https://twitter.com/MissionHotDogs"}],
               [{name: "Ground Up", site: "http://www.grounduptruck.com/"}, {name: "Cafe Ybor", site: "http://www.cafeybor.com"}],
-              [null, null],
+              null,
               [{name: "The Ginger Armadillo", site: "http://thegingerarmadillo.com/locate"}, {name: "Svante Stuffed Burgers", site: "http://svantesranchdirect.com/svantes-stuffed-burger-truck/"}],
               [{name: "WunderPig", site: "http://www.wunderpig.com/"}, null],
               null]
