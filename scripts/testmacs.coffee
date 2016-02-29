@@ -23,5 +23,5 @@ rooms = ["18483_austin@conf.hipchat.com",
 module.exports = (robot) ->
 	robot.hear /testroom/i, (msg) ->
 		val = msg.random odds
-		room = msg.room
+		room = msg.message.room
 		msg.send room
