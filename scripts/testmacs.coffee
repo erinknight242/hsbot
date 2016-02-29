@@ -25,5 +25,4 @@ module.exports = (robot) ->
 		val = msg.random odds
 		room = msg.room
 		if room in rooms
-		  if val > 50
-			  msg.send "it worked"
+		  msg.send "it worked"
