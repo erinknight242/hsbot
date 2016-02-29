@@ -2,12 +2,12 @@
 #   For all your BTTF needs
 
 rooms = [
-		HUBOT_ROOM_HEADSPRING,
-		HUBOT_ROOM_DEVELOPERS,
-		HUBOT_ROOM_AUSTIN,
-		HUBOT_ROOM_HOUSTON,
-		HUBOT_ROOM_DALLAS,
-		HUBOT_ROOM_MONTERREY
+		process.env.HUBOT_ROOM_HEADSPRING,
+		process.env.HUBOT_ROOM_DEVELOPERS,
+		process.env.HUBOT_ROOM_AUSTIN,
+		process.env.HUBOT_ROOM_HOUSTON,
+		process.env.HUBOT_ROOM_DALLAS,
+		process.env.HUBOT_ROOM_MONTERREY
 	]
 
 odds  = [1...100]
