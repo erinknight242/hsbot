@@ -1,6 +1,15 @@
 # Description:
 #   Listens for words and sometimes replies with beer related insight.
 
+rooms = [
+		HUBOT_ROOMS_HEADSPRING,
+		HUBOT_ROOMS_DEVELOPERS,
+		HUBOT_ROOMS_AUSTIN,
+		HUBOT_ROOMS_HOUSTON,
+		HUBOT_ROOMS_DALLAS,
+		HUBOT_ROOMS_MONTERREY
+	]
+
 odds  = [1...100]
 
 quips = [
@@ -20,11 +29,15 @@ quips = [
 
 module.exports = (robot) ->
 	robot.hear /(^|\s)beer(\s|$|[\W])/ig, (msg) ->
-		val = msg.random odds
-		if val > 40
-			msg.send msg.random quips
+		room = msg.envelope.user.reply_to
+		if room in rooms
+			val = msg.random odds
+			if val > 40
+				msg.send msg.random quips
 
 	robot.hear /(^|\s)coffee(\s|$|[\W])/ig, (msg) ->
-		val = msg.random odds
-		if val > 80
-			msg.send "Coffee? How about a beer? (beer)"
+		room = msg.envelope.user.reply_to
+		if room in rooms
+			val = msg.random odds
+			if val > 80
+				msg.send "Coffee? How about a beer? (beer)"
