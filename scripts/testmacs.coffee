@@ -27,4 +27,4 @@ module.exports = (robot) ->
 	robot.hear /testroom/i, (msg) ->
 		val = msg.random odds
 		room = msg.message.room
-		msg.send Object(msg)
+		console.log Object(msg)
