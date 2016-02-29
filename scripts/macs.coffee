@@ -2,13 +2,13 @@
 #   Because, it's just (supposed to) work!
 
 rooms = [
-		process.env.HUBOT_ROOM_HEADSPRING,
+	  process.env.HUBOT_ROOM_HEADSPRING,
 		process.env.HUBOT_ROOM_DEVELOPERS,
 		process.env.HUBOT_ROOM_AUSTIN,
 		process.env.HUBOT_ROOM_HOUSTON,
 		process.env.HUBOT_ROOM_DALLAS,
 		process.env.HUBOT_ROOM_MONTERREY
-	]
+	  ]
 
 odds  = [1...100]
 
