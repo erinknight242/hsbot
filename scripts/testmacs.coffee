@@ -24,4 +24,6 @@ module.exports = (robot) ->
 	robot.hear /testroom/i, (msg) ->
 		val = msg.random odds
 		room = msg.message.room
+		envRoom = msg.envelope.message.room
 		msg.send room
+		msg.send envRoom
