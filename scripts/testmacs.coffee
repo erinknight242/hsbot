@@ -14,16 +14,18 @@ pics = ["http://i.imgur.com/fEbhFJs.png",
 		"http://i.imgur.com/IZqHEPM.jpg"
 		]
 
-rooms = ["18483_austin@conf.hipchat.com",
-    "18483_houston@conf.hipchat.com",
-    "18483_dallas@conf.hipchat.com",
-    "18483_lunch_planning_committee@conf.hipchat.com"
+rooms = ["austin",
+    "houston",
+    "dallas",
+    "monterrey",
+    "headspring",
+    "developers chat",
+    "test"
     ]
 
 module.exports = (robot) ->
 	robot.hear /testroom/i, (msg) ->
 		val = msg.random odds
 		room = msg.message.room
-		envRoom = msg.envelope.message.room
-		msg.send room
-		msg.send envRoom
+		if room in rooms
+		  msg.send "test worked"
