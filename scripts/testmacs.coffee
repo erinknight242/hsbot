@@ -25,4 +25,4 @@ module.exports = (robot) ->
 		val = msg.random odds
 		room = msg.room
 		if val > 50
-			msg.send "#{pics[val%5]}" for room in rooms
+			msg.send "it worked" for room in rooms
