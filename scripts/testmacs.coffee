@@ -24,5 +24,4 @@ module.exports = (robot) ->
 	robot.hear /testroom/i, (msg) ->
 		val = msg.random odds
 		room = msg.room
-		if room in rooms
-		  msg.send "it worked"
+		msg.send room
