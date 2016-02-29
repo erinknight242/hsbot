@@ -8,7 +8,7 @@ rooms = [
 		process.env.HUBOT_ROOM_HOUSTON,
 		process.env.HUBOT_ROOM_DALLAS,
 		process.env.HUBOT_ROOM_MONTERREY
-	  ]
+    ]
 
 odds  = [1...100]
 
