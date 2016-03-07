@@ -23,7 +23,10 @@ module.exports = (robot) ->
           list = JSON.parse(body)
 
           if(list.length > 0)
-            selectedImage = list[0]
+            index = 0
+            if(list[index])
+              index = 3
+            selectedImage = list[index]
             episode = selectedImage.Episode
             timestamp = selectedImage.Timestamp
             url = "http://frinkiac.com/img/#{episode}/#{timestamp}.jpg"
