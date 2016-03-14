@@ -22,7 +22,7 @@ schedule = require('node-schedule')
 # Set the scheduled job to only run during weekdays, at market close
 rule = new schedule.RecurrenceRule()
 rule.dayOfWeek = [new schedule.Range(1,5)]
-rule.hour = 21
+rule.hour = 20
 rule.minute = 16
 
 module.exports = (robot) ->
