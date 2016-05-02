@@ -12,7 +12,7 @@ module.exports = (robot) ->
               [{name: "Savery Grilled Cheese", site: "http://www.saverygrilledcheese.com"}, {name: "Mission Hot Dogs", site: "https://twitter.com/MissionHotDogs"}],
               [{name: "Ground Up", site: "http://www.grounduptruck.com/"}, {name: "Cafe Ybor", site: "http://www.cafeybor.com"}],
               null,
-              [{name: "The Ginger Armadillo", site: "http://thegingerarmadillo.com/locate"}, {name: "Svante Stuffed Burgers", site: "http://svantesranchdirect.com/svantes-stuffed-burger-truck/"}],
+              [{name: "The Ginger Armadillo", site: "http://thegingerarmadillo.com/locate"}, {name: "Heart of Texas BBQ", site: "http://www.heartoftexasbarbecue.com"}],
               [{name: "WunderPig", site: "http://www.wunderpig.com/"}, null],
               null]
     truck = trucks[new Date().getDay()]
