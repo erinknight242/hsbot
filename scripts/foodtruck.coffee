@@ -113,7 +113,12 @@ module.exports = (robot) ->
               null]
     today = new Date()
     day = today.getDay()
+    hour = today.getHours()
     weekday = today.toString("dddd")
+    if(hour > 20)
+      day = day + 1
+      today.setDate(today.getDate() + 1)
+      weekday = today.toString("dddd")
     truck = trucks[day]
     if truck
       if truck.length == 2
