@@ -59,7 +59,18 @@ module.exports = (robot) ->
                     }
                 }
               ],
-              null,
+              [
+                null,
+                {
+                  breakfast: null
+                  lunch:
+                    {
+                      name: "Rockaway Beach",
+                      site: "http://www.rockawaybeachatx.com",
+                      time: "11:30am - 1:15pm"
+                    }
+                }
+              ],
               [
                 {
                   breakfast:
@@ -76,12 +87,7 @@ module.exports = (robot) ->
                     }
                 },
                 {
-                  breakfast:
-                    {
-                      name: "Top Taco",
-                      site: "http://www.tacofoodgroup.com/",
-                      time: "8:00am - 10:15am"
-                    }
+                  breakfast: null
                   lunch:
                     {
                       name: "Heart of Texas BBQ",
