@@ -14,8 +14,8 @@ module.exports = (robot) ->
                   breakfast: null,
                   lunch:
                     {
-                      name: "Melted Grilled Cheese",
-                      site: "http://www.meltedtruck.com",
+                      name: "Austin Taste Us",
+                      site: "https://twitter.com/_AustinTasteUs",
                       time: "11:30am - 1:30pm"
                     }
                 },
