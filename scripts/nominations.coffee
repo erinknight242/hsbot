@@ -6,7 +6,7 @@
 #   hubot nominate <coworker> [for] <awardType> <reason>
 
 bragHelpText = "/quote example: hsbot brag [on|about] @coworker bragText\nrules:\tbragText and at least one @coworker are required\n\tmultiple @coworker's can be bragged simultaneously when separated by spaces, and, &, or commas (Oxford or otherwise)\n\t[on or about] is optional\nbomb:\thsbot brag bomb [#]\n\t[#] is optional and must be between 1 and 10"
-nominateHelpText = "/quote example: hsbot hva [to|for] @coworker for awardAcronym nominationText\nrules:\tcoworker and nominationText are required, awardAcronym must be one of:\n\tDFE (Drive for Excellence)\n\tPAV (People are Valued)\n\tCOM (Honest Communication)\n\tPLG (Passion for Learning and Growth)\nbomb:\thsbot hva bomb [#]\n\t[#] is optional and must be between 1 and 10"
+nominateHelpText = "/quote example: hsbot hva [to|for] @coworker for awardAcronym nominationText\nrules:\tcoworker and nominationText are required, awardAcronym must be one of:\n\tDFE (Drive for Excellence)\n\tPAV (People are Valued)\n\tCOM (Honest Communication)\n\tPLG (Passion for Learning and Growth)\n\tOWN (Own Your Experience)\nbomb:\thsbot hva bomb [#]\n\t[#] is optional and must be between 1 and 10"
 
 defaultNominationType = "brag"
 errorBarks = [
@@ -36,6 +36,7 @@ getAwardTypeFromAcronym =  (acronym) ->
     when "pav" then "People are Valued"
     when "com" then "Honest Communication"
     when "plg" then "Passion for Learning and Growth"
+    when "own" then "Own Your Experience"
     else null
 
 getRequestJson = (nominator, nominee, description, nominationType, awardType) ->
@@ -380,7 +381,7 @@ module.exports = (robot) ->
             else
               msg.send "Unable to match brag(s) with Jira results. Check the Jira HVA project to confirm success."
 
-  robot.respond /hva (to |for )@([a-zA-Z0-9]+) for (DFE|PAV|COM|PLG)(.+)/i, (msg) ->
+  robot.respond /hva (to |for )@([a-zA-Z0-9]+) for (DFE|PAV|COM|PLG|OWN)(.+)/i, (msg) ->
     #console.log("robot name: " + robot.name)
     sender = msg.message.user.name
     #console.log("sender: " + sender)
