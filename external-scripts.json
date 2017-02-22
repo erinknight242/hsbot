@@ -4,7 +4,6 @@
   "hubot-help",
   "hubot-google-images",
   "hubot-google-translate",
-  "hubot-pugme",
   "hubot-maps",
   "hubot-rules",
   "hubot-scripts/src/scripts/github-status",
