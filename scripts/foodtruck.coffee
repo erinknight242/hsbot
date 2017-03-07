@@ -30,20 +30,7 @@ module.exports = (robot) ->
                 }
               ],
               [
-                {
-                  breakfast:
-                    {
-                      name: "Ground Up",
-                      site: "http://www.grounduptruck.com/",
-                      time: "8:00am - 1:30pm"
-                    }
-                  lunch:
-                    {
-                      name: "Ground Up",
-                      site: "http://www.grounduptruck.com/",
-                      time: "8:00am - 1:30pm"
-                    }
-                },
+                null,
                 {
                   breakfast:
                     {
@@ -61,15 +48,7 @@ module.exports = (robot) ->
               ],
               [
                 null,
-                {
-                  breakfast: null
-                  lunch:
-                    {
-                      name: "Rockaway Beach",
-                      site: "http://www.rockawaybeachatx.com",
-                      time: "11:30am - 1:15pm"
-                    }
-                }
+                null
               ],
               [
                 {
@@ -87,7 +66,12 @@ module.exports = (robot) ->
                     }
                 },
                 {
-                  breakfast: null
+                  breakfast:
+                    {
+                      name: "Top Taco",
+                      site: "http://www.tacofoodgroup.com/",
+                      time: "8:00am - 10:15am"
+                    }
                   lunch:
                     {
                       name: "Heart of Texas BBQ",
