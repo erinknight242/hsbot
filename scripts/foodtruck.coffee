@@ -116,8 +116,9 @@ module.exports = (robot) ->
       if truck.breakfast
         message = "The breakfast food truck for " + weekday + " is #{truck.breakfast.name}, and they will be here from #{truck.breakfast.time}, which you can verify here: #{truck.breakfast.site}"
         msg.send message
-      message = "The lunch food truck for " + weekday + " is #{truck.lunch.name}, and they will be here from #{truck.lunch.time}, which you can verify here: #{truck.lunch.site}"
-      msg.send message
+      if truck.lunch
+        message = "The lunch food truck for " + weekday + " is #{truck.lunch.name}, and they will be here from #{truck.lunch.time}, which you can verify here: #{truck.lunch.site}"
+        msg.send message
       msg.send "(chompy)"
     else
       msg.send "Awww beans! There's no food truck today. (sadpanda) Try `hsbot lunch me`! ;)"
