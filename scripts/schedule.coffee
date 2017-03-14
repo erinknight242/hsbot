@@ -5,8 +5,9 @@
 #   node-schedule
 
 schedule = require('node-schedule')
+moment = require('moment-timezone')
 
-timeOffset = 6
+timeOffset = moment.tz.zone('America/Chicago').offset(moment())/60
 
 module.exports = (robot) ->
   basketball = schedule.scheduleJob({hour: 17 + timeOffset, minute: 15, dayOfWeek: 4}, ->
