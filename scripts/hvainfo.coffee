@@ -8,11 +8,7 @@
 moment = require('moment-timezone')
 
 jiraBaseUrl = "https://headspring.atlassian.net/rest/api/2/"
-hipChatApiV1BaseUrl = "https://headspring.hipchat.com/v1/"
-hipChatApiV2BaseUrl = "https://headspring.hipchat.com/v2/"
 jiraAuthToken = "Basic #{process.env.HUBOT_JIRA_AUTH}"
-hipChatApiV1AuthToken = process.env.HUBOT_HIPCHAT_V1_AUTHTOKEN
-hipChatApiV2AuthToken = process.env.HUBOT_HIPCHAT_AUTHTOKEN
 
 getSearchRequestJson = (nominee) ->
   requestJson = {
