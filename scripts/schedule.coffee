@@ -10,13 +10,14 @@ moment = require('moment-timezone')
 timeOffset = moment.tz.zone('America/Chicago').offset(moment())/60
 
 module.exports = (robot) ->
-  basketball = schedule.scheduleJob({hour: 17 + timeOffset, minute: 15, dayOfWeek: 4}, ->
-    robot.messageRoom "18483_austin@conf.hipchat.com", "@here Basketball in 15 minutes on the parking garage roof! Go earn a blue star!"
+  basketball = schedule.scheduleJob({hour: 16 + timeOffset, minute: 45, dayOfWeek: 4}, ->
+    robot.messageRoom "18483_austin@conf.hipchat.com", "@here Basketball in 15 minutes on the parking garage roof!"
   )
 
-  #2nd Tuesday of the month at 1:45
-  discGolf = schedule.scheduleJob({ hour: 13 + timeOffset, minute: 45, dayOfWeek: 2, date: new schedule.Range(8, 14)}, ->
-    robot.messageRoom "18483_austin@conf.hipchat.com", "@here Disc Golf in 15 minutes! Join in to earn a blue star!"
+  #Runs every Tuesday; only sends message every other Tuesday (because cron and outlook don't agree on recurrence rules)
+  discGolf = schedule.scheduleJob({ hour: 13 + timeOffset, minute: 45, dayOfWeek: 2}, ->
+    if (moment().format("w") % 2 == 0) #even weeks of the year
+      robot.messageRoom "18483_austin@conf.hipchat.com", "@here Disc Golf in 15 minutes!"
   )
 
   #4th Tuesday of the month at 11:45
