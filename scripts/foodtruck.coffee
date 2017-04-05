@@ -110,7 +110,10 @@ module.exports = (robot) ->
         truck = truck[Date.today().getWeek() % 2]
       if not truck
         truck = trucks[new Date().getDay()][(Date.today().getWeek() + 1) % 2]
-        message = "No food truck today, but next week it will be #{truck.lunch.name}"
+        if (truck && truck.lunch)
+          message = "No food truck today, but next week it will be #{truck.lunch.name}"
+        else
+          message = "No food truck today (sadpanda)"
         msg.send message
         return
       if truck.breakfast
