@@ -12,6 +12,7 @@
     "coffee-script": "^1.12.5",
     "datejs": "0.0.2",
     "errorhandler": "^1.2.2",
+    "es6-promise": "4.1.0",
     "finalhandler": "0.3.2",
     "htmlparser": "1.7.7",
     "http-errors": "^1.2.7",
