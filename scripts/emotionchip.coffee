@@ -45,6 +45,15 @@ happyQuips = [
 	{message: "Cheers!", aboutMe: true}
 ]
 
+rooms = [
+	process.env.HUBOT_ROOM_HEADSPRING,
+	process.env.HUBOT_ROOM_DEVELOPERS,
+	process.env.HUBOT_ROOM_AUSTIN,
+	process.env.HUBOT_ROOM_HOUSTON,
+	process.env.HUBOT_ROOM_DALLAS,
+	process.env.HUBOT_ROOM_MONTERREY
+]
+
 getResponseQuip = (responder, quips, aboutMe) ->
 	if (!aboutMe && quipFrequency < responder.random odds)
 		return null
@@ -73,6 +82,10 @@ module.exports = (robot) ->
 		(msg) ->
 			return false unless msg.text
 			return false unless process.env.HUBOT_AZURE_COGSRV_APIKEY
+
+			room = msg.envelope.user.reply_to
+			if (! room in rooms)
+				return false
 
 			if (msg.text.indexOf(robot.name) == 0 || msg.text.indexOf("/") == 0)
 				false
