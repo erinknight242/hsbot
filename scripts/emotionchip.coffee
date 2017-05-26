@@ -75,13 +75,13 @@ respond = (responder, quip) ->
 
 module.exports = (robot) ->
 
-	unless process.env.HUBOT_AZURE_COGSRV_APIKEY
+	unless apiKey
 		robot.logger.error 'HUBOT_AZURE_COGSRV_APIKEY is not set.'
 
 	robot.listen(
 		(msg) ->
 			return false unless msg.text
-			return false unless process.env.HUBOT_AZURE_COGSRV_APIKEY
+			return false unless apiKey
 
 			room = msg.envelope.user.reply_to
 			if (! room in rooms)
