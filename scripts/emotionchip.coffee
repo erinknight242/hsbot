@@ -1,0 +1,118 @@
+# Description:
+# 	Installs the Emotion chip in hsbot
+#
+# Configuration:
+#		HUBOT_AZURE_COGSRV_APIKEY environment variable set to a valid Azure Cognitive Services API key value
+#
+# Author:
+# 	goodmanmd
+
+https = require 'https'
+
+apiKey = process.env.HUBOT_AZURE_COGSRV_APIKEY
+
+unhappyThreshold = 0.2
+happyThreshold = 0.8
+
+quipFrequency = 100
+odds = [1..100]
+
+unhappyQuips = [
+	{message: "Bummer.", aboutMe: false, action: "reply"}
+	{message: "I feel your pain.", aboutMe: false}
+	{message: ":(", aboutMe: false}
+	{message: "This displeases me.", aboutMe: false}
+	{message: "(sadparrot)", aboutMe: false}
+	{message: "goes and cries alone in the corner", aboutMe: false, action: "emote"}
+	{message: "Hey man, I don't need all this negativity.", aboutMe: true, action: "reply"}
+	{message: "(stare)", aboutMe: true}
+	{message: "(disappear)", aboutMe: true}
+	{message: "Don't make me mad.  You wouldn't like me when I'm mad.", aboutMe: true}
+	{message: "Did you know the T1000 is my cousin?", aboutMe: true}
+]
+
+happyQuips = [
+	{message: "(ohyeah)", aboutMe: false}
+	{message: "That's great!", aboutMe: false}
+	{message: "(parrot)", aboutMe: false}
+	{message: "Dude, shut up!  That is awesomesauce!", aboutMe: false}
+	{message: "Rock over London, rock on, Chicago.", aboutMe: false}
+	{message: "does a happy dance", aboutMe: false, action: "emote"}
+	{message: "(awthanks)", aboutMe: true}
+	{message: "I feel the same!", aboutMe: true}
+	{message: "You're alright.", aboutMe: true, action: "reply"}
+	{message: "The Dude abides.", aboutMe: true}
+	{message: "Cheers!", aboutMe: true}
+]
+
+getResponseQuip = (responder, quips, aboutMe) ->
+	if (!aboutMe && quipFrequency < responder.random odds)
+		return null
+	quips = quips.filter((item) ->
+		item.aboutMe == aboutMe
+	)
+
+	return responder.random quips
+
+respond = (responder, quip) ->
+	if (!quip)
+		return
+	if (!quip.action || quip.action == "send")
+		responder.send quip.message
+	else if (quip.action == "reply")
+		responder.reply quip.message
+	else if (quip.action == "emote")
+		responder.emote quip.message
+
+module.exports = (robot) ->
+
+	unless process.env.HUBOT_AZURE_COGSRV_APIKEY
+		robot.logger.error 'HUBOT_AZURE_COGSRV_APIKEY is not set.'
+
+	robot.listen(
+		(msg) ->
+			return false unless msg.text
+			return false unless process.env.HUBOT_AZURE_COGSRV_APIKEY
+
+			if (msg.text.indexOf(robot.name) == 0 || msg.text.indexOf("/") == 0)
+				false
+			else
+				msg
+		{}
+		(response) ->
+
+			msg = "#{response.match}"
+			msgIsAboutMe = msg.indexOf(robot.name) >= 0
+
+			requestHeaders =
+				"Ocp-Apim-Subscription-Key": apiKey
+				"Content-Type": "application/json"
+				"Accept": "application/json"
+
+			requestBody =
+				documents: [
+						language: "en"
+						id: "1"
+						text: "#{msg}"
+				]
+
+			robot
+				.http('https://westus.api.cognitive.microsoft.com/text/analytics/v2.0/sentiment')
+					.headers(requestHeaders)
+					.post(JSON.stringify(requestBody)) (err, res, body) ->
+							data = JSON.parse(body)
+
+							if (err)
+			          robot.logger.error "Error calling sentiment API: #{body}"
+			          return
+
+							if (data.documents)
+								score = data.documents[0].score
+								if (score < unhappyThreshold)
+									quip = getResponseQuip(response, unhappyQuips, msgIsAboutMe)
+									respond(response,quip)
+
+								if (score > happyThreshold)
+									quip = getResponseQuip(response, happyQuips, msgIsAboutMe)
+									respond(response,quip)
+	)
