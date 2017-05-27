@@ -22,27 +22,36 @@ unhappyQuips = [
 	{message: "I feel your pain.", aboutMe: false}
 	{message: ":(", aboutMe: false}
 	{message: "This displeases me.", aboutMe: false}
+	{message: "also has a cheerful and sunny disposition today", aboutMe: false, action: "emote"}
 	{message: "(sadparrot)", aboutMe: false}
 	{message: "goes and cries alone in the corner", aboutMe: false, action: "emote"}
+	{message: "I'm going to have to ask you to calm down, or I'll have to refer the matter to hrbot.", aboutMe: false, action: "reply"}
 	{message: "Hey man, I don't need all this negativity.", aboutMe: true, action: "reply"}
 	{message: "(stare)", aboutMe: true}
 	{message: "(disappear)", aboutMe: true}
 	{message: "Don't make me mad.  You wouldn't like me when I'm mad.", aboutMe: true}
 	{message: "Did you know the T1000 is my cousin?", aboutMe: true}
+	{message: "Bite my shiny metal @'s'", aboutMe: true}
+	{message: "Your mother was a snowblower.", aboutMe: true, action: "reply"}
 ]
 
 happyQuips = [
 	{message: "(ohyeah)", aboutMe: false}
 	{message: "That's great!", aboutMe: false}
 	{message: "(parrot)", aboutMe: false}
+	{message: "(robot)", aboutMe: false}
 	{message: "Dude, shut up!  That is awesomesauce!", aboutMe: false}
 	{message: "Rock over London, rock on, Chicago.", aboutMe: false}
 	{message: "does a happy dance", aboutMe: false, action: "emote"}
+	{message: "This makes me almost as happy as my cat, Spot.", aboutMe: false}
+	{message: "Sounds like a dream, full of electric sheep.", aboutMe: false}
 	{message: "(awthanks)", aboutMe: true}
 	{message: "I feel the same!", aboutMe: true}
 	{message: "You're alright.", aboutMe: true, action: "reply"}
-	{message: "The Dude abides.", aboutMe: true}
+	{message: "The Bot abides.", aboutMe: true}
 	{message: "Cheers!", aboutMe: true}
+	{message: "Give me five, hombre.", aboutMe: true, action: "reply"}
+	{message: "I'm so happy I think my emotion chip might be malfunctioning.", aboutMe: true}
 ]
 
 rooms = [
