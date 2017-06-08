@@ -30,7 +30,14 @@ module.exports = (robot) ->
                 }
               ],
               [
-                null,
+                {
+                  breakfast: null
+                  lunch: {
+                    name: "Tamale Addiction",
+                    site: "http://tamaleaddiction.com/",
+                    time: "11:30am - 2:00pm"
+                  }
+                },
                 {
                   breakfast:
                     {
@@ -65,35 +72,19 @@ module.exports = (robot) ->
                       time: "11:00am - 2:00pm"
                     }
                 },
-                {
-                  breakfast:
-                    {
-                      name: "Top Taco",
-                      site: "http://www.tacofoodgroup.com/",
-                      time: "8:00am - 10:15am"
-                    }
-                  lunch:
-                    {
-                      name: "Heart of Texas BBQ",
-                      site: "http://www.heartoftexasbarbecue.com",
-                      time: "11:00am - 2:00pm"
-                    }
-                }
+                null
               ],
               [
                 {
                   breakfast: null,
                   lunch:
                     {
-                      name: "WunderPig",
-                      site: "http://www.wunderpig.com/",
-                      time: "11:30am - 2:00pm"
+                      name: "Glory Rolll",
+                      site: "https://www.facebook.com/thegloryroll/",
+                      time: "11:30am - 1:30pm"
                     }
                 },
-                {
-                    breakfast: null,
-                    lunch: null
-                }
+                null
               ],
               null]
     today = new Date()
