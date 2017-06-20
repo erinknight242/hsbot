@@ -15,7 +15,7 @@ module.exports = (robot) ->
   )
 
   #Runs every Tuesday; only sends message every other Tuesday (because cron and outlook don't agree on recurrence rules)
-  discGolf = schedule.scheduleJob({ hour: 13 + timeOffset, minute: 45, dayOfWeek: 2}, ->
+  discGolf = schedule.scheduleJob({ hour: 9 + timeOffset, minute: 45, dayOfWeek: 2}, ->
     if (moment().format("w") % 2 == 0) #even weeks of the year
-      robot.messageRoom "18483_austin@conf.hipchat.com", "@here Disc Golf in 15 minutes!"
+      robot.messageRoom "18483_austin@conf.hipchat.com", "@here Disc Golf in 15 minutes! Toss some discs before it gets too hot!"
   )
