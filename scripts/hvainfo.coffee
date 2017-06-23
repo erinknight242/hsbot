@@ -128,7 +128,7 @@ module.exports = (robot) ->
                       awarded--
                     previousAwards.push({ awardedQuarter: awardedQuarter, awardedYear: awardedYear, awardName: awardName })
                     awardList.push('\t- ' + moment(previousAward.fields.created).format('l') + ' ' + awardName + ' ' + awardedLabel)
-                  msg.send '\nPreviously nominated for ' + jiraResult.total + ' HVA' + plural + ', and received ' + awarded + '.'
+                  msg.send '\nPreviously nominated for ' + jiraResult.total + ' HVA' + plural + ', and received ' + awarded + ' since 2014.'
                   for award in awardList
                     msg.send award
                   msg.send '----------------------------------------------------------'
