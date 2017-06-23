@@ -6,6 +6,7 @@
 #   hsbot hva info || hsbot hva info Q1 2017
 
 moment = require('moment-timezone')
+_ = require 'underscore'
 
 jiraBaseUrl = "https://headspring.atlassian.net/rest/api/2/"
 jiraAuthToken = "Basic #{process.env.HUBOT_JIRA_AUTH}"
@@ -35,6 +36,14 @@ getNominationsJson = (quarter, year) ->
     "jql": "project = HVA AND issuetype = \"Headspring Value Award Nomination\" AND status in (\"Current Nomination\", Awarded, Acknowledged) AND created >= " + getStartDate(quarter, year) + " AND created <= " + getEndDate(quarter, year) + " ORDER BY created DESC"
   }
   JSON.stringify(requestJson)
+
+getQuarter = (date) =>
+  month = date.getMonth()
+  quarter = switch
+    when month <= 2 then 1
+    when month <= 5 then 2
+    when month <= 8 then 3
+    when month <= 11 then 4
 
 module.exports = (robot) ->
   foundErrors = (err, res) ->
@@ -105,9 +114,21 @@ module.exports = (robot) ->
                   msg.send '\n' + name + ' - ' + date + ' - Nominated for ' + value
                   msg.send '\n' + description
                   plural = if jiraResult.total != 1 then 's' else ''
-                  msg.send '\nPreviously nominated for ' + jiraResult.total + ' HVA' + plural + ', and received ' + awarded + '.'
+                  previousAwards = [];
+                  awardList = [];
                   for previousAward in jiraResult.issues
                     # Log each previous nomination details
+                    awardName = previousAward.fields.customfield_12101.value
+                    awardedDate = new Date(previousAward.fields.created)
+                    awardedQuarter = getQuarter(awardedDate)
+                    awardedYear = awardedDate.getFullYear()
                     awardedLabel = if previousAward.fields.status.name == 'Awarded' then '**Awarded**' else ''
-                    msg.send '\t- ' + moment(previousAward.fields.created).format('l') + ' ' + previousAward.fields.customfield_12101.value + ' ' + awardedLabel
+                    if _.findWhere(previousAwards, { awardedQuarter: awardedQuarter, awardedYear: awardedYear, awardName: awardName })
+                      awardedLabel = ''
+                      awarded--
+                    previousAwards.push({ awardedQuarter: awardedQuarter, awardedYear: awardedYear, awardName: awardName })
+                    awardList.push('\t- ' + moment(previousAward.fields.created).format('l') + ' ' + awardName + ' ' + awardedLabel)
+                  msg.send '\nPreviously nominated for ' + jiraResult.total + ' HVA' + plural + ', and received ' + awarded + '.'
+                  for award in awardList
+                    msg.send award
                   msg.send '----------------------------------------------------------'
