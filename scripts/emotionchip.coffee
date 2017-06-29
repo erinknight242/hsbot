@@ -14,7 +14,7 @@ apiKey = process.env.HUBOT_AZURE_COGSRV_APIKEY
 unhappyThreshold = 0.2
 happyThreshold = 0.8
 
-quipFrequency = 100
+quipFrequency = 10
 odds = [1..100]
 
 unhappyQuips = [
