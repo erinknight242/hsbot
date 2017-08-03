@@ -93,7 +93,7 @@ module.exports = (robot) ->
 			return false unless apiKey
 
 			room = msg.envelope.user.reply_to
-			if (! room in rooms)
+			if (!(room in rooms))
 				return false
 
 			if (msg.text.indexOf(robot.name) == 0 || msg.text.indexOf("/") == 0)
