@@ -110,7 +110,7 @@ module.exports = (robot) ->
 	robot.listen(
 		(msg) ->
 			return false unless msg.text
-			return false unless apiKey
+			return false unless msg.envelope
 
 			room = msg.envelope.user.reply_to
 			if (!(room in rooms))
@@ -126,20 +126,10 @@ module.exports = (robot) ->
 			msg = "#{response.match}"
 			msgIsAboutMe = msg.indexOf(robot.name) >= 0
 
-			requestHeaders =
-				"Ocp-Apim-Subscription-Key": apiKey
-				"Content-Type": "application/json"
-				"Accept": "application/json"
-
-			requestBody =
-				documents: [
-						language: "en"
-						id: "1"
-						text: "#{msg}"
-				]
+			requestBody = getRequestBody(msg)
 
 			robot
-				.http('https://westus.api.cognitive.microsoft.com/text/analytics/v2.0/sentiment')
+				.http(apiUrl)
 					.headers(requestHeaders)
 					.post(JSON.stringify(requestBody)) (err, res, body) ->
 							data = JSON.parse(body)
