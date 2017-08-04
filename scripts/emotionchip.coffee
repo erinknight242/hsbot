@@ -1,8 +1,9 @@
 # Description:
-# 	Installs the Emotion chip in hsbot
+#		Installs the Emotion chip in hsbot
 #
 # Configuration:
 #		HUBOT_AZURE_COGSRV_APIKEY environment variable set to a valid Azure Cognitive Services API key value
+#		HUBOT_AZURE_COGSRV_APIURL environment variable contains the url for the Azure Cognitive Services API endpoint
 #
 # Author:
 # 	goodmanmd
@@ -10,6 +11,7 @@
 https = require 'https'
 
 apiKey = process.env.HUBOT_AZURE_COGSRV_APIKEY
+apiUrl = process.env.HUBOT_AZURE_COGSRV_APIURL
 
 unhappyThreshold = 0.2
 happyThreshold = 0.8
@@ -63,14 +65,31 @@ rooms = [
 	process.env.HUBOT_ROOM_MONTERREY
 ]
 
-getResponseQuip = (responder, quips, aboutMe) ->
-	if (!aboutMe && quipFrequency < responder.random odds)
-		return null
+requestHeaders =
+	"Ocp-Apim-Subscription-Key": apiKey
+	"Content-Type": "application/json"
+	"Accept": "application/json"
+
+getRequestBody = (textToAnalyze) ->
+	requestBody =
+		documents: [
+				language: "en"
+				id: "1"
+				text: "#{textToAnalyze}"
+		]
+
+getRandomQuip = (responder, quips, aboutMe) ->
 	quips = quips.filter((item) ->
 		item.aboutMe == aboutMe
 	)
 
 	return responder.random quips
+
+getResponseQuip = (responder, quips, aboutMe) ->
+	if (!aboutMe && quipFrequency < responder.random odds)
+		return null
+
+	return getRandomQuip(responder, quips, aboutMe)
 
 respond = (responder, quip) ->
 	if (!quip)
@@ -86,14 +105,47 @@ module.exports = (robot) ->
 
 	unless apiKey
 		robot.logger.error 'HUBOT_AZURE_COGSRV_APIKEY is not set.'
+		return
+
+	unless apiUrl
+		robot.logger.error 'HUBOT_AZURE_COGSRV_APIURL is not set'
+		return
+
+	robot.respond /emote\s+(.*)/i, (msg) ->
+		words = msg.match[0]
+		msgIsAboutMe = words.indexOf(robot.name) >= 0
+		requestBody = getRequestBody(words)
+
+		robot
+			.http(apiUrl)
+				.headers(requestHeaders)
+				.post(JSON.stringify(requestBody)) (err, res, body) ->
+						data = JSON.parse(body)
+
+						if (err)
+							robot.logger.error "Error calling sentiment API: #{body}"
+							return
+
+						if (data.documents)
+							score = data.documents[0].score
+							if (score < unhappyThreshold)
+								quip = getRandomQuip(msg, unhappyQuips, msgIsAboutMe)
+								respond(msg,quip)
+
+							else if (score > happyThreshold)
+								quip = getRandomQuip(msg, happyQuips, msgIsAboutMe)
+								respond(msg,quip)
+
+							else
+								msg.send "Meh. (#{score})"
 
 	robot.listen(
 		(msg) ->
 			return false unless msg.text
-			return false unless apiKey
+			return false unless msg.envelope
 
 			room = msg.envelope.user.reply_to
-			if (! room in rooms)
+			if (!(room in rooms))
 				return false
 
 			if (msg.text.indexOf(robot.name) == 0 || msg.text.indexOf("/") == 0)
@@ -106,20 +158,10 @@ module.exports = (robot) ->
 			msg = "#{response.match}"
 			msgIsAboutMe = msg.indexOf(robot.name) >= 0
 
-			requestHeaders =
-				"Ocp-Apim-Subscription-Key": apiKey
-				"Content-Type": "application/json"
-				"Accept": "application/json"
-
-			requestBody =
-				documents: [
-						language: "en"
-						id: "1"
-						text: "#{msg}"
-				]
+			requestBody = getRequestBody(msg)
 
 			robot
-				.http('https://westus.api.cognitive.microsoft.com/text/analytics/v2.0/sentiment')
+				.http(apiUrl)
 					.headers(requestHeaders)
 					.post(JSON.stringify(requestBody)) (err, res, body) ->
 							data = JSON.parse(body)
