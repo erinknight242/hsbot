@@ -107,6 +107,34 @@ module.exports = (robot) ->
 		robot.logger.error 'HUBOT_AZURE_COGSRV_APIURL is not set'
 		return
 
+	robot.respond /emote\s+(.*)/i, (msg) ->
+		words = msg.match[0]
+		msgIsAboutMe = words.indexOf(robot.name) >= 0
+		requestBody = getRequestBody(words)
+
+		robot
+			.http(apiUrl)
+				.headers(requestHeaders)
+				.post(JSON.stringify(requestBody)) (err, res, body) ->
+						data = JSON.parse(body)
+
+						if (err)
+							robot.logger.error "Error calling sentiment API: #{body}"
+							return
+
+						if (data.documents)
+							score = data.documents[0].score
+							if (score < unhappyThreshold)
+								quip = getResponseQuip(msg, unhappyQuips, msgIsAboutMe)
+								respond(msg,quip)
+
+							else if (score > happyThreshold)
+								quip = getResponseQuip(msg, happyQuips, msgIsAboutMe)
+								respond(msg,quip)
+
+							else
+								msg.send "Meh. (#{score})"
+
 	robot.listen(
 		(msg) ->
 			return false unless msg.text
