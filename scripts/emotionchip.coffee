@@ -78,14 +78,18 @@ getRequestBody = (textToAnalyze) ->
 				text: "#{textToAnalyze}"
 		]
 
-getResponseQuip = (responder, quips, aboutMe) ->
-	if (!aboutMe && quipFrequency < responder.random odds)
-		return null
+getRandomQuip = (responder, quips, aboutMe) ->
 	quips = quips.filter((item) ->
 		item.aboutMe == aboutMe
 	)
 
 	return responder.random quips
+
+getResponseQuip = (responder, quips, aboutMe) ->
+	if (!aboutMe && quipFrequency < responder.random odds)
+		return null
+
+	return getRandomQuip(responder, quips, aboutMe)
 
 respond = (responder, quip) ->
 	if (!quip)
@@ -125,11 +129,11 @@ module.exports = (robot) ->
 						if (data.documents)
 							score = data.documents[0].score
 							if (score < unhappyThreshold)
-								quip = getResponseQuip(msg, unhappyQuips, msgIsAboutMe)
+								quip = getRandomQuip(msg, unhappyQuips, msgIsAboutMe)
 								respond(msg,quip)
 
 							else if (score > happyThreshold)
-								quip = getResponseQuip(msg, happyQuips, msgIsAboutMe)
+								quip = getRandomQuip(msg, happyQuips, msgIsAboutMe)
 								respond(msg,quip)
 
 							else
