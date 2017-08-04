@@ -65,6 +65,19 @@ rooms = [
 	process.env.HUBOT_ROOM_MONTERREY
 ]
 
+requestHeaders =
+	"Ocp-Apim-Subscription-Key": apiKey
+	"Content-Type": "application/json"
+	"Accept": "application/json"
+
+getRequestBody = (textToAnalyze) ->
+	requestBody =
+		documents: [
+				language: "en"
+				id: "1"
+				text: "#{textToAnalyze}"
+		]
+
 getResponseQuip = (responder, quips, aboutMe) ->
 	if (!aboutMe && quipFrequency < responder.random odds)
 		return null
