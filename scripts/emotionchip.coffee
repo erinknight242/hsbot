@@ -57,6 +57,8 @@ happyQuips = [
 ]
 
 rooms = [
+	"Shell", #for local debugging
+	process.env.HUBOT_ROOM_BOTTEST,
 	process.env.HUBOT_ROOM_HEADSPRING,
 	process.env.HUBOT_ROOM_DEVELOPERS,
 	process.env.HUBOT_ROOM_AUSTIN,
@@ -142,17 +144,14 @@ module.exports = (robot) ->
 	robot.listen(
 		(msg) ->
 			return false unless msg.text
-			return false unless msg.envelope
 
-			room = msg.envelope.user.reply_to
-			if (!(room in rooms))
+			if (!(msg.room in rooms))
 				return false
 
 			if (msg.text.indexOf(robot.name) == 0 || msg.text.indexOf("/") == 0)
 				false
 			else
 				msg
-		{}
 		(response) ->
 
 			msg = "#{response.match}"
