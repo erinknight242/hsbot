@@ -1,8 +1,9 @@
 # Description:
-# 	Installs the Emotion chip in hsbot
+#		Installs the Emotion chip in hsbot
 #
 # Configuration:
 #		HUBOT_AZURE_COGSRV_APIKEY environment variable set to a valid Azure Cognitive Services API key value
+#		HUBOT_AZURE_COGSRV_APIURL environment variable contains the url for the Azure Cognitive Services API endpoint
 #
 # Author:
 # 	goodmanmd
@@ -10,6 +11,7 @@
 https = require 'https'
 
 apiKey = process.env.HUBOT_AZURE_COGSRV_APIKEY
+apiUrl = process.env.HUBOT_AZURE_COGSRV_APIURL
 
 unhappyThreshold = 0.2
 happyThreshold = 0.8
@@ -86,6 +88,11 @@ module.exports = (robot) ->
 
 	unless apiKey
 		robot.logger.error 'HUBOT_AZURE_COGSRV_APIKEY is not set.'
+		return
+
+	unless apiUrl
+		robot.logger.error 'HUBOT_AZURE_COGSRV_APIURL is not set'
+		return
 
 	robot.listen(
 		(msg) ->
