@@ -13,9 +13,3 @@ module.exports = (robot) ->
   basketball = schedule.scheduleJob({hour: 16 + timeOffset, minute: 45, dayOfWeek: 2}, ->
     robot.messageRoom "18483_austin@conf.hipchat.com", "@here Basketball in 15 minutes on the parking garage roof!"
   )
-
-  #Runs every Tuesday; only sends message every other Tuesday (because cron and outlook don't agree on recurrence rules)
-  discGolf = schedule.scheduleJob({ hour: 9 + timeOffset, minute: 45, dayOfWeek: 2}, ->
-    if (moment().format("w") % 2 == 0) #even weeks of the year
-      robot.messageRoom "18483_austin@conf.hipchat.com", "@here Disc Golf in 15 minutes! Toss some discs before it gets too hot!"
-  )
