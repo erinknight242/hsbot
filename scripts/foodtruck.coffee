@@ -14,9 +14,9 @@ module.exports = (robot) ->
                   breakfast: null,
                   lunch:
                     {
-                      name: "Austin Taste Us",
-                      site: "https://twitter.com/_AustinTasteUs",
-                      time: "11:30am - 1:30pm"
+                      name: "Happy Lobster",
+                      site: "http://www.happylobstertruck.com/",
+                      time: "11:00am - 1:30pm"
                     }
                 },
                 {
@@ -72,7 +72,15 @@ module.exports = (robot) ->
                       time: "11:00am - 2:00pm"
                     }
                 },
-                null
+                {
+                  breakfast: null,
+                  lunch:
+                    {
+                      name: "Heros Gyros",
+                      site: "http://www.theherosgyros.com",
+                      time: "11:30am - 2:00pm"
+                    }
+                }
               ],
               [
                 {
