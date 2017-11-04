@@ -9,14 +9,49 @@
 #
 # Commands:
 #   hsbot monopoly help
+#   hsbot monopoly roll
 #   hsbot monopoly start new game - starts a new game from scratch
-#   
+#
 
 # Original Monopoly $ amounts will be multiplied by the scale factor to adjust 
 # for our game's extra money rewards
+
+_ = require 'underscore'
+
 SCALE_FACTOR = 1.5
 
+roll = () =>
+  total = 0
+  rolls = for number in [1..2]
+    result = Math.floor(Math.random() * 6) + 1
+    total += result
+    result
+
+  total: total
+  rolls: rolls
+
 module.exports = (robot) ->
+
+  setNextPlayer = () -> 
+    players = robot.brain.get 'monopolyPlayers'
+    turn = robot.brain.get 'monopolyTurn'
+    turn++
+    if (turn == players.length)
+      turn = 0
+    robot.brain.set 'monopolyTurn', turn
+
+  updatePlayer = (players, playerIndex, roll) ->
+    current = players[playerIndex]
+    current.location += roll
+    passedGo = false
+    if (current.location > 39)
+      current.location = current.location - 40
+      passedGo = true
+
+    robot.brain.set 'monopolyPlayers', players
+    
+    current: current
+    passedGo: passedGo
 
   robot.respond /monopoly help$/i, (msg) ->
     msg.send "\thsbot monopoly - commands are coming!"
@@ -64,15 +99,48 @@ module.exports = (robot) ->
       { name: "Luxury Tax", rent: 75, owner: 'the Bank' }
       { name: "SLTX", rent: 50, house1: 200, house2: 600, house3: 1400, house4: 1700, hotel: 2000, mortgage: 200, houseCost: 200, owner: null, houses: 0, mortgaged: false }
     ]
-    robot.brain.set 'monopolyTeams', [
+    robot.brain.set 'monopolyPlayers', [
       { name: 'Delta City', location: 0, inJail: false }
-      { 'Gotham', location: 0, inJail: false }
-      { 'DMZ', location: 0, inJail: false }
-      { 'Houston', location: 0, inJail: false }
-      { 'Dallas', location: 0, inJail: false }
-      { 'Monterrey', location: 0, inJail: false }
+      { name: 'Gotham', location: 0, inJail: false }
+      { name: 'DMZ', location: 0, inJail: false }
+      { name: 'Houston', location: 0, inJail: false }
+      { name: 'Dallas', location: 0, inJail: false }
+      { name: 'Monterrey', location: 0, inJail: false }
     ]
+    robot.brain.set 'monopolyTurn', 0
 
-  robot.respond /monopoly test$/i, (msg) =>
+  robot.respond /monopoly roll$/i, (msg) =>
     data = robot.brain.get 'monopolyBoard'
-    msg.send data[3].name
+    playerIndex = robot.brain.get 'monopolyTurn'
+    players = robot.brain.get 'monopolyPlayers'
+
+    if data
+      currentRoll = roll()
+      playerData = updatePlayer(players, playerIndex, currentRoll.total)
+      player = playerData.current
+      msg.send players[playerIndex].name + ' rolls ' + currentRoll.total + ' (' + currentRoll.rolls[0] + ', ' + currentRoll.rolls[1] + '), advances to ' + data[player.location].name + '.'
+      if playerData.passedGo
+        msg.send 'You passed Go, collect $200! (go)'
+      setNextPlayer()
+      if _.contains([2, 17, 33], player.location)
+        # TODO: Community Chest
+      else if _.contains([7, 22, 36], player.location)
+        # TODO: Chance
+      else if player.location == 0
+        # TODO: Go
+      else if player.location == 30
+        # TODO: Go to Jail
+      else if _.contains([5, 15, 25, 35], player.location)
+        # TODO: Railroad
+      else if _.contains([12, 28], player.location)
+        # TODO: Utility
+      else if player.location == 4
+        # TODO: Income Tax
+      else if player.location == 38
+        # TODO: Luxury Tax
+      else if player.location == 20
+        # TODO: Free Parking
+      else 
+        # TODO: Regular property
+    else
+      msg.send 'There is no game in progress! (doh)'
