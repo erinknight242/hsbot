@@ -23,9 +23,7 @@
 # TODO:
 # - Chance
 # - Community Chest
-# - Go to Jail
-# - Rolling 3 doubles -> Jail
-# - Get out of jail (pay $50, roll doubles)
+# - Get out of jail (roll doubles)
 # - Buy houses/hotels (limited to 32)
 # - Sell houses/hotels
 # - mortgage property (and no rent while mortgaged; houses sold off at half price)
@@ -35,7 +33,6 @@
 # - Sell back property to the bank (half cost), can't have houses on any of that color
 # - Bankruptcy (transfer to new owner, pay 10% for mortgages, sell back houses/hotels)
 # - Bankrupt to the bank; auction off properties
-# - monopoly status (who owns what, where are they, how many houses)
 # - sell get out of jail free cards
 # - 10% for income tax (once money is tracked)
 # - use SCALE_FACTOR
@@ -77,10 +74,18 @@ module.exports = (robot) ->
     current = players[playerIndex]
     current.location += roll.total
     current.doubles = roll.doubles
-    passedGo = false
-    if (current.location > 39)
-      current.location = current.location - 40
-      passedGo = true
+    if roll.doubles
+      current.doublesCount += 1
+    else 
+      current.doublesCount = 0
+
+    if current.doublesCount == 3
+      passedGo = false
+    else 
+      passedGo = false
+      if (current.location > 39)
+        current.location = current.location - 40
+        passedGo = true
 
     robot.brain.set 'monopolyPlayers', players
     
@@ -122,6 +127,24 @@ module.exports = (robot) ->
 
     robot.brain.set 'monopolyBoard', board
 
+  sendToJail = (players, playerIndex) ->
+    players[playerIndex].location = 10
+    players[playerIndex].inJail = true
+    players[playerIndex].jailRolls = 0
+    players[playerIndex].doubles = false
+    players[playerIndex].doublesCount = 0
+
+    robot.brain.set 'monopolyPlayers', players
+
+  freeFromJail = (players, playerIndex) ->
+    players[playerIndex].inJail = false
+    players[playerIndex].jailRolls = 0
+    players[playerIndex].doubles = false
+    players[playerIndex].doublesCount = 0
+
+    robot.brain.set 'monopolyPlayers', players
+
+
   robot.respond /monopoly help$/i, (msg) ->
     msg.send '\thsbot monopoly - commands are coming!'
 
@@ -131,90 +154,98 @@ module.exports = (robot) ->
     players = robot.brain.get 'monopolyPlayers'
 
     if data
-      # Roll dice for current player & update board
-      currentRoll = roll()
-      playerData = updatePlayer(players, playerIndex, currentRoll)
-      player = playerData.current
-      doubles = ', a'
-      if currentRoll.doubles
-        doubles = ', doubles! A'
-      msg.send players[playerIndex].name + ' rolls ' + currentRoll.total + 
-        doubles + 'dvances to ' + data[player.location].name + '.'
-      if playerData.passedGo
-        msg.send 'You passed Go, collect $200! (go)'
-      
-      # Present player with options
-      if _.contains([2, 17, 33], player.location)
-        # TODO: Community Chest
-        setNextPlayer()
-      else if _.contains([7, 22, 36], player.location)
-        # TODO: Chance
-        setNextPlayer()
-      else if player.location == 0
-        # Go
-        setNextPlayer()
-      else if player.location == 30
-        # TODO: Go to Jail
-        setNextPlayer()
-      else if player.location == 4
-        # Income Tax
-        msg.send 'Pay $200 to the bank' + bankerInstuctions
-        setNextPlayer()
-      else if player.location == 38
-        # Luxury Tax
-        msg.send 'Vasudha needs a new pair of shoes. Pay $75' + bankerInstuctions
-        setNextPlayer()
-      else if player.location == 20
-        # Free Parking (until money tracked in game, no bonus for Free Parking)
-        setNextPlayer()
-      else if player.location == 10
-        # Visiting Jail
-        setNextPlayer()
-      else 
-        # Remaining properties
-        owner = data[player.location].owner
-        message = ''
-        if !owner
-          msg.send 'This property is available. Buy it for $' + data[player.location].cost + '? ("hsbot monopoly buy" or "hsbot monopoly auction")'
-        else
-          railroadSet = [5, 15, 25, 35]
-          utilitySet = [12, 28]
-          if _.contains(railroadSet, player.location)
-            # Railroad
-            numberOwned = 0;
-            for railroad in railroadSet
-              if data[railroad].owner == owner
-                numberOwned += 1
-            switch
-              when numberOwned == 1 then owes = 25
-              when numberOwned == 2 then owes = 50
-              when numberOwned == 3 then owes = 100
-              when numberOwned == 4 then owes = 200
-            message = owner + ' owns ' + numberOwned + ' railroads. '
-          else if _.contains(utilitySet, player.location)
-            # Utilities
-            numberOwned = 0;
-            for utility in utilitySet
-              if data[utility].owner == owner
-                numberOwned += 1
-            owes = 4 * currentRoll.total
-            message = owner + ' owns 1 utilitity. '
-            if numberOwned == 2
-              owes = 10 * currentRoll.total
-              message = owner + ' owns 2 utilities. '
-          else
-            owes = data[player.location].rent
-            if data[player.location].houses
-              owes = data[player.location]['house' + data[player.location].houses]
-            else if data[player.location].monopoly
-              owes *= 2
-          
-          if (data[player.location].owner == player.name)
-            msg.send 'You own it! Enjoy your stay. "hsbot monopoly roll" to continue.'
-          else
-            msg.send message + 'Pay ' + data[player.location].owner + ' $' + owes + bankerInstuctions
+      if players[playerIndex].inJail
+        msg.send players[playerIndex].name + ', you\'re in jail. You can pay $50 with "hsbot monopoly jail pay" or "hsbot monopoly jail roll" to try your luck'
+      else
+        # Roll dice for current player & update board
+        currentRoll = roll()
+        playerData = updatePlayer(players, playerIndex, currentRoll)
+        player = playerData.current
+        if player.doublesCount == 3
+          msg.send players[playerIndex].name + ' rolls ' + currentRoll.total + ', **DOUBLES**! Oh no! You rolled doubles 3 times. Go to Jail. (jail)'
+          sendToJail(players, playerIndex)
           setNextPlayer()
-
+        else
+          doubles = ', a'
+          if currentRoll.doubles
+            doubles = ', **DOUBLES**! A'
+          msg.send players[playerIndex].name + ' rolls ' + currentRoll.total + 
+            doubles + 'dvances to ' + data[player.location].name + '.'
+          if playerData.passedGo
+            msg.send 'You passed Go, collect $200! (go)'
+          
+          # Present player with options
+          if _.contains([2, 17, 33], player.location)
+            # TODO: Community Chest
+            setNextPlayer()
+          else if _.contains([7, 22, 36], player.location)
+            # TODO: Chance
+            setNextPlayer()
+          else if player.location == 0
+            # Go
+            setNextPlayer()
+          else if player.location == 30
+            # Go to Jail
+            sendToJail(players, playerIndex)
+            setNextPlayer()
+          else if player.location == 4
+            # Income Tax
+            msg.send 'Pay $200 to the bank' + bankerInstuctions
+            setNextPlayer()
+          else if player.location == 38
+            # Luxury Tax
+            msg.send 'Vasudha needs a new pair of shoes. Pay $75' + bankerInstuctions
+            setNextPlayer()
+          else if player.location == 20
+            # Free Parking (until money tracked in game, no bonus for Free Parking)
+            setNextPlayer()
+          else if player.location == 10
+            # Visiting Jail
+            setNextPlayer()
+          else 
+            # Remaining properties
+            owner = data[player.location].owner
+            message = ''
+            if !owner
+              msg.send 'This property is available. Buy it for $' + data[player.location].cost + '? ("hsbot monopoly buy" or "hsbot monopoly auction")'
+            else
+              railroadSet = [5, 15, 25, 35]
+              utilitySet = [12, 28]
+              if _.contains(railroadSet, player.location)
+                # Railroad
+                numberOwned = 0;
+                for railroad in railroadSet
+                  if data[railroad].owner == owner
+                    numberOwned += 1
+                switch
+                  when numberOwned == 1 then owes = 25
+                  when numberOwned == 2 then owes = 50
+                  when numberOwned == 3 then owes = 100
+                  when numberOwned == 4 then owes = 200
+                message = owner + ' owns ' + numberOwned + ' railroads. '
+              else if _.contains(utilitySet, player.location)
+                # Utilities
+                numberOwned = 0;
+                for utility in utilitySet
+                  if data[utility].owner == owner
+                    numberOwned += 1
+                owes = 4 * currentRoll.total
+                message = owner + ' owns 1 utilitity. '
+                if numberOwned == 2
+                  owes = 10 * currentRoll.total
+                  message = owner + ' owns 2 utilities. '
+              else
+                owes = data[player.location].rent
+                if data[player.location].houses
+                  owes = data[player.location]['house' + data[player.location].houses]
+                else if data[player.location].monopoly
+                  owes *= 2
+              
+              if (data[player.location].owner == player.name)
+                msg.send 'You own it! Enjoy your stay. "hsbot monopoly roll" to continue.'
+              else
+                msg.send message + 'Pay ' + data[player.location].owner + ' $' + owes + bankerInstuctions
+              setNextPlayer()
     else
       msg.send 'There is no game in progress! (doh)'
 
@@ -249,6 +280,14 @@ module.exports = (robot) ->
     updateProperty(data, players, playerIndex, buyerIndex)
     setNextPlayer()
 
+  robot.respond /monopoly jail pay$/i, (msg) ->
+    data = robot.brain.get 'monopolyBoard'
+    playerIndex = robot.brain.get 'monopolyTurn'
+    players = robot.brain.get 'monopolyPlayers'
+
+    freeFromJail(players, playerIndex)
+    msg.send players[playerIndex].name + ' pays $50 to exit jail' + bankerInstuctions
+
   robot.respond /monopoly status$/i, (msg) ->
     data = robot.brain.get 'monopolyBoard'
     playerIndex = robot.brain.get 'monopolyTurn'
@@ -259,7 +298,11 @@ module.exports = (robot) ->
     for player in players
       ownedProperties = _.where(data, { owner: player.name })
       playerSummary += '\n' + player.name + ' owns: '
-      playerLocations += '\n' + player.name + ' is on ' + data[player.location].name
+      locationName = data[player.location].name
+      if locationName == 'Visiting Jail' && player.inJail
+        playerLocations += '\n' + player.name + ' is in Jail'
+      else 
+        playerLocations += '\n' + player.name + ' is on ' + locationName
       for property in ownedProperties
         playerSummary += '\n\t' + property.name
         if property.houses == 5
