@@ -16,37 +16,39 @@
 #   hsbot monopoly status
 #   hsbot monopoly jail pay
 #   hsbot monopoly jail roll
+#   hsbot monopoly jail card
 #   hsbot monopoly continue (for after jail rolls failed)
 #
 # Admin commands:
 #   hsbot monopoly start new game - starts a new game from scratch
-#   hsbot monopoly board - rough dump of Board object
-#   hsbot 
+#   hsbot monopoly dump - rough dump of the Monopoly brain state
 #
 # TODO:
-# - Chance/Community Chest actions
+# * Chance/Community Chest actions
+# * Dump game brain as a backup
+# * prevent invalid commands
+# * Trade/barter (monopoly update Property Owner)
+# * use SCALE_FACTOR, update Scale factor
+# * Add commands to Help
+# * only respond in Monopoly room
 # - Buy houses/hotels (limited to 32)
 # - Sell houses/hotels
 # - mortgage property (and no rent while mortgaged; houses sold off at half price)
 # - unmortgage property (pay back mortgaged value + 60)
-# - prevent invalid commands
-# - Trade/barter (monopoly update Property Owner)
 # - Sell back property to the bank (half cost), can't have houses on any of that color
 # - Bankruptcy (transfer to new owner, pay 10% for mortgages, sell back houses/hotels)
 # - Bankrupt to the bank; auction off properties
 # - sell get out of jail free cards
 # - 10% for income tax (once money is tracked)
-# - use SCALE_FACTOR
-# - only respond in Monopoly room
 # - Free Parking
-
+#
 # Original Monopoly $ amounts will be multiplied by the scale factor to adjust 
 # for our game's extra money rewards
 
 _ = require 'underscore'
 
 SCALE_FACTOR = 1.5
-bankerInstuctions = '. Theme Team: once account is updated, "hsbot monopoly roll"'
+bankerInstructions = '. Theme Team: once account is updated, "hsbot monopoly roll"'
 
 roll = () ->
   total = 0
@@ -62,7 +64,6 @@ roll = () ->
 module.exports = (robot) ->
   shuffle = (deckName) ->
     cardIndexArray = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-
     i = cardIndexArray.length;
 
     while --i
@@ -79,20 +80,24 @@ module.exports = (robot) ->
     cardIndexArray = robot.brain.get deckName
     chanceOwner = robot.brain.get 'monopolyChanceJailOwner'
     communityChestOwner = robot.brain.get 'monopolyCommunityChestJailOwner'
-
     drawnCardIndex = cardIndexArray.pop()
-    if deckName == 'monopolyChance' && drawnCardIndex == 1 && chanceOwner
-      drawnCardIndex = cardIndexArray.pop()
-    else if deckName == 'monopolyCommunityChest' && drawnCardIndex == 15 && communityChestOwner
-      drawnCardIndex = cardIndexArray.pop()
+    cards = updateDeck(deckName, chanceOwner, communityChestOwner, cardIndexArray, drawnCardIndex)
 
-    if drawnCardIndex == undefined
+    if cards.drawnCardIndex == undefined
       newDeck = shuffle(deckName)
       drawnCardIndex = newDeck.pop()
-      robot.brain.set deckName, newDeck
-    else
-      robot.brain.set deckName, cardIndexArray
-    drawnCardIndex
+      cards = updateDeck(deckName, chanceOwner, communityChestOwner, newDeck, drawnCardIndex)
+    robot.brain.set deckName, cards.deck
+    cards.drawnCardIndex
+
+  updateDeck = (deckName, chanceOwner, communityChestOwner, cards, drawnCardIndex) ->
+    if deckName == 'monopolyChance' && drawnCardIndex == 1 && chanceOwner
+      drawnCardIndex = cards.pop()
+    else if deckName == 'monopolyCommunityChest' && drawnCardIndex == 15 && communityChestOwner
+      drawnCardIndex = cards.pop()
+
+    deck: cards
+    drawnCardIndex: drawnCardIndex
 
   setNextPlayer = () -> 
     players = robot.brain.get 'monopolyPlayers'
@@ -143,6 +148,12 @@ module.exports = (robot) ->
     current = players[playerIndex]
     current.location += rollTotal
     robot.brain.set 'monopolyPlayers', players
+
+  sendPlayer = (players, playerIndex, locationIndex) ->
+    current = players[playerIndex]
+    current.location = locationIndex
+    robot.brain.set 'monopolyPlayers', players
+    current
 
   checkForMonopoly = (board, set) ->
     owner = board[set[0]].owner
@@ -212,15 +223,17 @@ module.exports = (robot) ->
       cardIndex = drawCard('monopolyCommunityChest')
       msg.send communityChestCards[cardIndex].message
       if communityChestCards[cardIndex].action
-        msg.send 'TODO: do the action'
-      setNextPlayer()
+        communityChestCards[cardIndex].action(data, players, playerIndex, playerData, currentRoll, msg, communityChestCards[cardIndex].value)
+      else
+        setNextPlayer()
     else if _.contains([7, 22, 36], player.location)
       # Chance
       cardIndex = drawCard('monopolyChance')
       msg.send chanceCards[cardIndex].message
       if chanceCards[cardIndex].action
-        msg.send 'TODO: do the action'
-      setNextPlayer()
+        chanceCards[cardIndex].action(data, players, playerIndex, playerData, currentRoll, msg, chanceCards[cardIndex].value)
+      else
+        setNextPlayer()
     else if player.location == 0
       # Go
       setNextPlayer()
@@ -230,11 +243,11 @@ module.exports = (robot) ->
       setNextPlayer()
     else if player.location == 4
       # Income Tax
-      msg.send 'Pay $200 to the bank' + bankerInstuctions
+      msg.send 'Stacy discovered you haven\'t submitted receipts for the past two months. Pay $200' + bankerInstructions
       setNextPlayer()
     else if player.location == 38
       # Luxury Tax
-      msg.send 'Vasudha needs a new pair of shoes. Pay $75' + bankerInstuctions
+      msg.send 'Vasudha needs a new pair of shoes. Pay $75' + bankerInstructions
       setNextPlayer()
     else if player.location == 20
       # Free Parking (until money tracked in game, no bonus for Free Parking)
@@ -284,12 +297,20 @@ module.exports = (robot) ->
         if (data[player.location].owner == player.name)
           msg.send 'You own it! Enjoy your stay. "hsbot monopoly roll" to continue.'
         else
-          msg.send message + 'Pay ' + data[player.location].owner + ' $' + owes + bankerInstuctions
+          msg.send message + 'Pay ' + data[player.location].owner + ' $' + owes + bankerInstructions
         setNextPlayer()
     
 
   robot.respond /monopoly help$/i, (msg) ->
-    msg.send '\thsbot monopoly - commands are coming!'
+    msg.send '\n~ Monopoly Help ~\n
+      \thsbot monopoly roll - If you aren\'t sure what to do, try this one\n
+      \thsbot monopoly buy - action for an unowned property\n
+      \thsbot monopoly auction - action for an unowned property\n
+      \thsbot monopoly sold (delta city|detroit|dmz|monterrey|houston|dallas) amount - ends an auction\n
+      \thsbot monopoly status - who owns what, and whose turn it is\n
+      \thsbot monopoly jail pay - way to get out of jail\n
+      \thsbot monopoly jail roll - way to attempt to get out of jail\n
+      \thsbot monopoly continue - for after jail rolls failed and you have to pay anyway'
 
   robot.respond /monopoly roll$/i, (msg) ->
     data = robot.brain.get 'monopolyBoard'
@@ -298,7 +319,12 @@ module.exports = (robot) ->
 
     if data
       if players[playerIndex].inJail
-        msg.send players[playerIndex].name + ', you\'re in jail. You can pay $50 with "hsbot monopoly jail pay" or "hsbot monopoly jail roll" to try your luck'
+        jailChanceCardOwner = robot.brain.get 'monopolyChanceJailOwner'
+        jailCommunityChestCardOwner = robot.brain.get 'monopolyCommunityChestJailOwner'
+        cardOption = ''
+        if _.contains([jailChanceCardOwner, jailCommunityChestCardOwner], players[playerIndex].name)
+          cardOption = ', use your Get Out of Jail Free card with "hsbot monopoly jail card,"'
+        msg.send players[playerIndex].name + ', you\'re in jail. You can pay $50 with "hsbot monopoly jail pay"' + cardOption + ' or "hsbot monopoly jail roll" to try your luck.'
       else
         # Roll dice for current player & update board
         currentRoll = roll()
@@ -324,7 +350,7 @@ module.exports = (robot) ->
     else if owner == undefined
       msg.send 'You can\'t buy ' + data[players[playerIndex].location].name + ', try rolling instead.'
     else
-      msg.send players[playerIndex].name  + ' pays the bank $' + data[players[playerIndex].location].cost + ' for ' +  data[players[playerIndex].location].name + bankerInstuctions
+      msg.send players[playerIndex].name  + ' pays the bank $' + data[players[playerIndex].location].cost + ' for ' +  data[players[playerIndex].location].name + bankerInstructions
       updateProperty(data, players, playerIndex, playerIndex)
       setNextPlayer()
 
@@ -346,7 +372,7 @@ module.exports = (robot) ->
     buyerIndex = _.findIndex(players, (player) ->
       player.name.toLowerCase() == buyerName.toLowerCase() 
     )
-    msg.send players[buyerIndex].name  + ' pays $' + soldPrice + ' for ' + data[players[playerIndex].location].name + bankerInstuctions
+    msg.send players[buyerIndex].name  + ' pays $' + soldPrice + ' for ' + data[players[playerIndex].location].name + bankerInstructions
     updateProperty(data, players, playerIndex, buyerIndex)
     setNextPlayer()
 
@@ -356,7 +382,7 @@ module.exports = (robot) ->
     players = robot.brain.get 'monopolyPlayers'
 
     freeFromJail(players, playerIndex)
-    msg.send players[playerIndex].name + ' pays $50 to exit jail' + bankerInstuctions
+    msg.send players[playerIndex].name + ' pays $50 to exit jail' + bankerInstructions
 
   robot.respond /monopoly jail roll$/i, (msg) ->
     data = robot.brain.get 'monopolyBoard'
@@ -379,15 +405,35 @@ module.exports = (robot) ->
     data = robot.brain.get 'monopolyBoard'
     playerIndex = robot.brain.get 'monopolyTurn'
     players = robot.brain.get 'monopolyPlayers'
-    currentRoll = robot.brain.get 'jailRoll'
-    advancePlayer(players, playerIndex, currentRoll)
+    rollTotal = robot.brain.get 'jailRoll'
+    advancePlayer(players, playerIndex, rollTotal)
     playTurn(data, players, playerIndex, { current: players[playerIndex], passedGo: false }, { total: currentRoll, doubles: false }, msg)
 
+  robot.respond /monopoly jail card$/i, (msg) ->
+    data = robot.brain.get 'monopolyBoard'
+    playerIndex = robot.brain.get 'monopolyTurn'
+    players = robot.brain.get 'monopolyPlayers'
+    jailChanceCardOwner = robot.brain.get 'monopolyChanceJailOwner'
+    jailCommunityChestCardOwner = robot.brain.get 'monopolyCommunityChestJailOwner'
+    if _.contains([jailChanceCardOwner, jailCommunityChestCardOwner], players[playerIndex].name) && players[playerIndex].inJail
+      freeFromJail(players, playerIndex)
+      msg.send 'You\'re free!'
+      if jailChanceCardOwner == players[playerIndex].name
+        robot.brain.set 'monopolyChanceJailOwner', null
+      else if jailCommunityChestCardOwner == players[playerIndex].name
+        robot.brain.set 'monopolyCommunityChestJailOwner', null
+      newRoll = roll()
+      advancePlayer(players, playerIndex, newRoll.total)
+      playTurn(data, players, playerIndex, { current: players[playerIndex], passedGo: false }, newRoll, msg)
+    else
+      msg.send 'You don\'t have a card to use! "hsbot monopoly jail pay" or "hsbot monopoly jail roll"'
 
   robot.respond /monopoly status$/i, (msg) ->
     data = robot.brain.get 'monopolyBoard'
     playerIndex = robot.brain.get 'monopolyTurn'
     players = robot.brain.get 'monopolyPlayers'
+    jailChanceCardOwner = robot.brain.get 'monopolyChanceJailOwner'
+    jailCommunityChestCardOwner = robot.brain.get 'monopolyCommunityChestJailOwner'
     playerSummary = ''
     playerLocations = ''
 
@@ -409,6 +455,10 @@ module.exports = (robot) ->
           playerSummary += '(mortgaged)'
       if !ownedProperties.length
         playerSummary += '0 properties'
+      if jailChanceCardOwner == player.name
+        playerSummary += '\n\tGet Out Of Jail Free (Chance)'
+      if jailCommunityChestCardOwner == player.name
+        playerSummary += '\n\tGet Out Of Jail Free (Community Chest)'
 
     msg.send 'Game Status:\n' + playerSummary
     
@@ -475,62 +525,88 @@ module.exports = (robot) ->
     shuffle('monopolyChance')
     shuffle('monopolyCommunityChest')
 
+    msg.send 'Game is up! "hsbot monopoly roll" to begin.'
+
   # undocumented until this is prettier
-  robot.respond /monopoly board$/i, (msg) ->
-    console.log robot.brain.get 'monopolyBoard'
+  robot.respond /monopoly dump$/i, (msg) ->
+    console.log 'Board:\n', robot.brain.get 'monopolyBoard'
+    console.log 'Players:\n', robot.brain.get 'monopolyPlayers'
+    console.log 'Current Turn:\n', robot.brain.get 'monopolyTurn'
+    console.log 'Chance Jail Card:\n', robot.brain.get 'monopolyChanceJailOwner'
+    console.log 'Community Chest Jail Card:\n', robot.brain.get 'monopolyCommunityChestJailOwner'
+    console.log 'Jail Roll:\n', robot.brain.get 'monopolyJailRoll'
+    console.log 'Chance Deck:\n', robot.brain.get 'monopolyChance'
+    console.log 'Community Chest Deck:\n', robot.brain.get 'monopolyCommunityChest'
 
-  goToNearestUtility = () ->
-    todo = ''
+  goToNearestUtility = (data, players, playerIndex, playerData, currentRoll, msg) ->
+    if players[playerIndex].location < 12 || players[playerIndex].location > 28
+      current = sendPlayer(players, playerIndex, 12)
+    else
+      current = sendPlayer(players, playerIndex, 28)
+    currentOwner = data[current.location].owner
 
-  assignJailCard = () ->
-    todo = ''
+    if currentOwner
+      newRoll = roll()
+      msg.send 'You rolled ' + newRoll.total + '. Pay ' + currentOwner + ' $' + 10 * newRoll.total + bankerInstructions
+      setNextPlayer()
+    else
+      msg.send data[current.location].name + ' is available for sale. Send "hsbot monopoly buy" or "hsbot monopoly auction".'
 
-  goToLocation = (index) ->
-    todo = ''
+  assignJailCard = (data, players, playerIndex, playerData, currentRoll, msg, cardName) ->
+    robot.brain.set cardName, players[playerIndex].name
+    setNextPlayer()
 
-  goBackThree = () ->
-    todo = ''
+  goToLocation = (data, players, playerIndex, playerData, currentRoll, msg, locationIndex ) ->
+    current = sendPlayer(players, playerIndex, locationIndex)
+    playTurn(data, players, playerIndex, { current: current, passedGo: false }, currentRoll, msg)
 
-  goToNearestRailroad = () ->
-    todo = ''
+  goBackThree = (data, players, playerIndex, playerData, currentRoll, msg) ->
+    current = sendPlayer(players, playerIndex, players[playerIndex].location - 3)
+    playTurn(data, players, playerIndex, { current: current, passedGo: false }, currentRoll, msg)
 
-  sendToJailCard = () ->
-    todo = ''
+  goToNearestRailroad = (data, players, playerIndex, playerData, currentRoll, msg) ->
+    msg.send 'Go to nearest railroad somehow'
+    setNextPlayer()
+
+  sendToJailCard = (data, players, playerIndex, playerData, currentRoll, msg) ->
+    sendToJail(players, playerIndex)
+    msg.send '"hsbot monopoly roll" to continue.'
+    setNextPlayer()
 
   chanceCards = [
     { message: 'Advance token to nearest utility. If unowned, you may buy it from the bank. If owned, throw dice and pay owner 10 times the amount thrown.', action: goToNearestUtility }
-    { message: 'GET OUT OF JAIL FREE. This card may be kept until needed, or sold.', action: assignJailCard }
-    { message: 'Take a Ride on the Austin Railroad. If you pass GO, collect $200.', action: goToLocation, value: 5 }
-    { message: 'Kathy pays you dividend of $50' }
-    { message: 'Go back 3 spaces', action: goBackThree }
-    { message: 'Make general repairs on all of your property. For each house, pay $25. For each hotel, $100.' }
-    { message: 'Pay poor tax of $15.' }
-    { message: 'Take a walk on the boardwalk. Advance token to SLTX.', action: goToLocation, value: 39 }
-    { message: 'Advance token to Jabil Place. If you pass GO, collect $200.', action: goToLocation, value: 0 }
-    { message: 'Advance token to the nearest Railroad and pay owner twice the rental to which they are otherwise entitled. If Railroad is unowned, you may buy it from the bank.', action: goToNearestRailroad }
-    { message: 'Your building and loan matures, collect $150' }
-    { message: 'Advance to Yeti Avenue.', action: goToLocation, value: 24 }
-    { message: 'Advance token to the nearest Railroad and pay owner twice the rental to which they are otherwise entitled. If Railroad is unowned, you may buy it from the bank.', action: goToNearestRailroad }
-    { message: 'Advance to GO. Collect $200. (go)', action: goToLocation, value: 0 }
-    { message: 'You have been elected Chairman of the Startup Games. Pay each player $50.' }
-    { message: '(siren) Go directly TO JAIL. Do not pass GO, do not collect $200. (jail)', action: sendToJailCard }
+    { message: 'GET OUT OF JAIL FREE. This card may be kept until needed, or sold.', action: assignJailCard, value: 'monopolyChanceJailOwner' }
+    # { message: 'Take a Ride on the Austin Railroad. If you pass GO, collect $200' + bankerInstructions, action: goToLocation, value: 5 }
+    # { message: 'Kathy pays you dividend of $50' + bankerInstructions }
+    # { message: 'Go back 3 spaces', action: goBackThree }
+    # { message: 'Make general repairs on all of your property. For each house, pay $25. For each hotel, $100' + bankerInstructions }
+    # { message: 'Late to the Monday Morning Meeting. Pay $15' + bankerInstructions }
+    # { message: 'Take a walk on the boardwalk. Advance token to SLTX.', action: goToLocation, value: 39 }
+    # { message: 'Advance token to Jabil Place. If you pass GO, collect $200.', action: goToLocation, value: 0 }
+    # { message: 'Advance token to the nearest Railroad and pay owner twice the rental to which they are otherwise entitled. If Railroad is unowned, you may buy it from the bank.', action: goToNearestRailroad }
+    # { message: 'Your building and loan matures, collect $150' + bankerInstructions }
+    # { message: 'Advance to Yeti Avenue.', action: goToLocation, value: 24 }
+    # { message: 'Advance token to the nearest Railroad and pay owner twice the rental to which they are otherwise entitled. If Railroad is unowned, you may buy it from the bank.', action: goToNearestRailroad }
+    # { message: 'Advance to GO. Collect $200. (go)', action: goToLocation, value: 0 }
+    # { message: 'You have been elected Chairman of the Startup Games. Pay each player $50.' + bankerInstructions }
+    # { message: '(siren) Go directly TO JAIL. Do not pass GO, do not collect $200. (jail)', action: sendToJailCard }
   ]
 
   communityChestCards = [
-    { message: 'Xmas fund matures, collect $100' }
+    # { message: 'Xmas fund matures, collect $100' + bankerInstructions }
     { message: '(siren) Go to Jail. Go directly to Jail. Do not pass GO, do not collect $200. (jail)', action: sendToJailCard }
-    { message: 'Pay Hospital $100.' }
-    { message: 'Deran won second prize in a beauty contest. Collect $10.' }
-    { message: 'Grand Opera Opening. Collect $50 from every player for opening night seats.' }
-    { message: 'From sale of Workify you get $45.' }
-    { message: 'Doctor\'s Fee: pay $50' }
-    { message: 'You are assessed for street repairs. $40 per house, $115 per hotel.' }
-    { message: 'Income Tax refund, collect $20.' }
-    { message: 'Bank Error in your favor, collect $200.' }
-    { message: 'Advance to GO, collect $200. (go)', action: goToLocation, value: 0 }
-    { message: 'Life Insurance matures, collect $100' }
-    { message: 'Pay school tax of $150' }
-    { message: 'You inherit $100' }
-    { message: 'Receive for services $25' }
-    { message: 'GET OUT OF JAIL FREE. This card may be kept until needed, or sold.', action: assignJailCard }
+    # { message: 'Pay Hospital $100' + bankerInstructions }
+    # { message: 'Deran won second prize in a beauty contest. Collect $10' + bankerInstructions }
+    # { message: 'Grand Opera Opening. Collect $50 from every player for opening night seats' + bankerInstructions }
+    # { message: 'From sale of Workify you get $45' + bankerInstructions }
+    # { message: 'Doctor\'s Fee: pay $50' + bankerInstructions }
+    # { message: 'You are assessed for street repairs. $40 per house, $115 per hotel' + bankerInstructions }
+    # { message: 'Income Tax refund, collect $20' + bankerInstructions }
+    # { message: 'Bank Error in your favor, collect $200' + bankerInstructions }
+    # { message: 'Advance to GO, collect $200. (go)', action: goToLocation, value: 0 }
+    # { message: 'Life Insurance matures, collect $100' + bankerInstructions }
+    # { message: 'Pay school tax of $150' + bankerInstructions }
+    # { message: 'You inherit $100' + bankerInstructions }
+    # { message: 'Receive for services $25' + bankerInstructions }
+    { message: 'GET OUT OF JAIL FREE. This card may be kept until needed, or sold.', action: assignJailCard, value: 'monopolyCommunityChestJailOwner' }
   ]
