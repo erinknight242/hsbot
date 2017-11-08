@@ -664,8 +664,7 @@ module.exports = (robot) ->
     i = 0
     newData = clone data
     for property in newData
-      if property.cost
-        property.cost = baseValueProperties[i].cost * scaleFactor
+      if property.cost then property.cost = baseValueProperties[i].cost * scaleFactor
       if property.rent then property.rent = baseValueProperties[i].cost * scaleFactor
       if property.house1 then property.house1 = baseValueProperties[i].cost * scaleFactor
       if property.house1 then property.house2 = baseValueProperties[i].cost * scaleFactor
