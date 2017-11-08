@@ -17,9 +17,9 @@
 # Admin commands:
 #   hsbot monopoly start new game - starts a new game from scratch
 #   hsbot monopoly dump - rough dump of the Monopoly brain state
+#   hsbot monopoly set scale factor number
 #
 # TODO:
-# * use SCALE_FACTOR, update Scale factor
 # * only respond in Monopoly room
 # - admin commands to manually update the brain variables
 # - Buy houses/hotels (limited to 32)
@@ -38,8 +38,8 @@
 
 _ = require 'underscore'
 
-SCALE_FACTOR = 1.5
 bankerInstructions = '. Theme Team: once account is updated, "hsbot monopoly roll"'
+allowedRooms = ['Shell', '18483_monopoly@conf.hipchat.com']
 
 roll = () ->
   total = 0
@@ -383,181 +383,191 @@ module.exports = (robot) ->
       \thsbot monopoly jail pay - way to get out of jail\n
       \thsbot monopoly jail roll - way to attempt to get out of jail\n
       \thsbot monopoly jail card - if you\'re lucky enough to have one of these to get out of jail\n
-      \thsbot monopoly continue - after jail rolls failed and you have to pay anyway'
+      \thsbot monopoly continue - after jail rolls failed and you have to pay anyway\n\n
+      Game commands can only be used in the Monopoly room. Join in!'
 
   robot.respond /monopoly roll$/i, (msg) ->
-    data = robot.brain.get 'monopolyBoard'
-    playerIndex = robot.brain.get 'monopolyTurn'
-    players = robot.brain.get 'monopolyPlayers'
-    turnState = robot.brain.get 'monopolyTurnState'
+    if _.contains(allowedRooms, msg.envelope.room)
+      data = robot.brain.get 'monopolyBoard'
+      playerIndex = robot.brain.get 'monopolyTurn'
+      players = robot.brain.get 'monopolyPlayers'
+      turnState = robot.brain.get 'monopolyTurnState'
 
-    if data
-      if turnState != 'roll'
-        msg.send 'Sorry, expecting ' + turnState + ' command.'
-      else if players[playerIndex].inJail
-        robot.brain.set 'monopolyTurnState', 'jail'
-        jailChanceCardOwner = robot.brain.get 'monopolyChanceJailOwner'
-        jailCommunityChestCardOwner = robot.brain.get 'monopolyCommunityChestJailOwner'
-        cardOption = ''
-        if _.contains([jailChanceCardOwner, jailCommunityChestCardOwner], players[playerIndex].name)
-          cardOption = ', use your Get Out of Jail Free card with "hsbot monopoly jail card,"'
-        msg.send players[playerIndex].name + ', you\'re in jail. You can pay $50 with "hsbot monopoly jail pay"' + cardOption + ' or "hsbot monopoly jail roll" to try your luck.'
-      else
-        # Roll dice for current player & update board
-        currentRoll = roll()
-        playerData = updatePlayer(players, playerIndex, currentRoll)
-        player = playerData.current
-        if player.doublesCount == 3
-          msg.send players[playerIndex].name + ' rolls ' + currentRoll.total + ', **DOUBLES**! Oh no! You rolled doubles 3 times. Go to Jail. (jail)'
-          sendToJail(players, playerIndex)
-          setNextPlayer()
+      if data
+        if turnState != 'roll'
+          msg.send 'Sorry, expecting ' + turnState + ' command.'
+        else if players[playerIndex].inJail
+          robot.brain.set 'monopolyTurnState', 'jail'
+          jailChanceCardOwner = robot.brain.get 'monopolyChanceJailOwner'
+          jailCommunityChestCardOwner = robot.brain.get 'monopolyCommunityChestJailOwner'
+          cardOption = ''
+          if _.contains([jailChanceCardOwner, jailCommunityChestCardOwner], players[playerIndex].name)
+            cardOption = ', use your Get Out of Jail Free card with "hsbot monopoly jail card,"'
+          msg.send players[playerIndex].name + ', you\'re in jail. You can pay $50 with "hsbot monopoly jail pay"' + cardOption + ' or "hsbot monopoly jail roll" to try your luck.'
         else
-          playTurn(data, players, playerIndex, playerData, currentRoll, msg)
-    else
-      msg.send 'There is no game in progress! (doh)'
+          # Roll dice for current player & update board
+          currentRoll = roll()
+          playerData = updatePlayer(players, playerIndex, currentRoll)
+          player = playerData.current
+          if player.doublesCount == 3
+            msg.send players[playerIndex].name + ' rolls ' + currentRoll.total + ', **DOUBLES**! Oh no! You rolled doubles 3 times. Go to Jail. (jail)'
+            sendToJail(players, playerIndex)
+            setNextPlayer()
+          else
+            playTurn(data, players, playerIndex, playerData, currentRoll, msg)
+      else
+        msg.send 'There is no game in progress! (doh)'
 
   robot.respond /monopoly buy$/i, (msg) ->
-    data = robot.brain.get 'monopolyBoard'
-    playerIndex = robot.brain.get 'monopolyTurn'
-    players = robot.brain.get 'monopolyPlayers'
-    turnState = robot.brain.get 'monopolyTurnState'
+    if _.contains(allowedRooms, msg.envelope.room)
+      data = robot.brain.get 'monopolyBoard'
+      playerIndex = robot.brain.get 'monopolyTurn'
+      players = robot.brain.get 'monopolyPlayers'
+      turnState = robot.brain.get 'monopolyTurnState'
 
-    if turnState != 'buy'
-      msg.send 'Sorry, expecting ' + turnState + ' command.'
-    else
-      owner = data[players[playerIndex].location].owner
-      if owner
-        msg.send 'You can\'t buy ' + data[players[playerIndex].location].name + ', ' + owner + ' owns it. Try rolling instead.'
-      else if owner == undefined
-        msg.send 'You can\'t buy ' + data[players[playerIndex].location].name + ', try rolling instead.'
+      if turnState != 'buy'
+        msg.send 'Sorry, expecting ' + turnState + ' command.'
       else
-        msg.send players[playerIndex].name  + ' pays the bank $' + data[players[playerIndex].location].cost + ' for ' +  data[players[playerIndex].location].name + bankerInstructions
-        updateProperty(data, players, playerIndex, playerIndex)
-        robot.brain.set 'monopolyTurnState', 'roll'
-        setNextPlayer()
+        owner = data[players[playerIndex].location].owner
+        if owner
+          msg.send 'You can\'t buy ' + data[players[playerIndex].location].name + ', ' + owner + ' owns it. Try rolling instead.'
+        else if owner == undefined
+          msg.send 'You can\'t buy ' + data[players[playerIndex].location].name + ', try rolling instead.'
+        else
+          msg.send players[playerIndex].name  + ' pays the bank $' + data[players[playerIndex].location].cost + ' for ' +  data[players[playerIndex].location].name + bankerInstructions
+          updateProperty(data, players, playerIndex, playerIndex)
+          robot.brain.set 'monopolyTurnState', 'roll'
+          setNextPlayer()
 
   robot.respond /monopoly auction$/i, (msg) ->
-    data = robot.brain.get 'monopolyBoard'
-    playerIndex = robot.brain.get 'monopolyTurn'
-    players = robot.brain.get 'monopolyPlayers'
-    turnState = robot.brain.get 'monopolyTurnState'
+    if _.contains(allowedRooms, msg.envelope.room)
+      data = robot.brain.get 'monopolyBoard'
+      playerIndex = robot.brain.get 'monopolyTurn'
+      players = robot.brain.get 'monopolyPlayers'
+      turnState = robot.brain.get 'monopolyTurnState'
 
-    if turnState != 'buy'
-      msg.send 'Sorry, expecting ' + turnState + ' command.'
-    else
-      robot.brain.set 'monopolyTurnState', 'auction'
-      msg.send data[players[playerIndex].location].name + ' is up for sale! Discuss your bids below. Once the highest bid has been placed, end by e.g. "hsbot monopoly sold Dallas 150"'
+      if turnState != 'buy'
+        msg.send 'Sorry, expecting ' + turnState + ' command.'
+      else
+        robot.brain.set 'monopolyTurnState', 'auction'
+        msg.send data[players[playerIndex].location].name + ' is up for sale! Discuss your bids below. Once the highest bid has been placed, end by e.g. "hsbot monopoly sold Dallas 150"'
 
   robot.respond /monopoly sold (delta city|gotham|dmz|monterrey|houston|dallas) \$*(\d+)$/i, (msg) ->
-    data = robot.brain.get 'monopolyBoard'
-    playerIndex = robot.brain.get 'monopolyTurn'
-    players = robot.brain.get 'monopolyPlayers'
-    turnState = robot.brain.get 'monopolyTurnState'
+    if _.contains(allowedRooms, msg.envelope.room)
+      data = robot.brain.get 'monopolyBoard'
+      playerIndex = robot.brain.get 'monopolyTurn'
+      players = robot.brain.get 'monopolyPlayers'
+      turnState = robot.brain.get 'monopolyTurnState'
 
-    if turnState != 'auction'
-      msg.send 'Sorry, expecting ' + turnState + ' command.'
-    else
-      buyerName = msg.match[1]
-      soldPrice = msg.match[2]
+      if turnState != 'auction'
+        msg.send 'Sorry, expecting ' + turnState + ' command.'
+      else
+        buyerName = msg.match[1]
+        soldPrice = msg.match[2]
 
-      buyerIndex = _.findIndex(players, (player) ->
-        player.name.toLowerCase() == buyerName.toLowerCase() 
-      )
-      msg.send players[buyerIndex].name  + ' pays $' + soldPrice + ' for ' + data[players[playerIndex].location].name + bankerInstructions
-      updateProperty(data, players, playerIndex, buyerIndex)
-      robot.brain.set 'monopolyTurnState', 'roll'
-      setNextPlayer()
-
-  robot.respond /monopoly update ([a-zA-Z &-]+) (Delta City|Gotham|DMZ|Monterrey|Houston|Dallas)$/, (msg) ->
-    data = robot.brain.get 'monopolyBoard'
-    players = robot.brain.get 'monopolyPlayers'
-
-    propertyName = msg.match[1]
-    newOwner = msg.match[2]
-
-    propertyIndex = _.findIndex(data, { name: propertyName })
-    ownerIndex = _.findIndex(players, { name: newOwner })
-    if propertyIndex < 0
-      msg.send 'I don\'t know that property, check the spelling/capitalization with "hsbot monopoly status"'
-    else if !data[propertyIndex].owner
-      msg.send 'No one owns that property! Someone must buy it first.'
-    else
-      updateThisProperty(data, players, propertyIndex, ownerIndex)
-      msg.send propertyName + ' has been transferred to ' + newOwner + '.'
-
-  robot.respond /monopoly jail pay$/i, (msg) ->
-    data = robot.brain.get 'monopolyBoard'
-    playerIndex = robot.brain.get 'monopolyTurn'
-    players = robot.brain.get 'monopolyPlayers'
-    turnState = robot.brain.get 'monopolyTurnState'
-
-    if turnState != 'jail'
-      msg.send 'Sorry, expecting ' + turnState + ' command.'
-    else
-      freeFromJail(players, playerIndex)
-      msg.send players[playerIndex].name + ' pays $50 to exit jail' + bankerInstructions
-      robot.brain.set 'monopolyTurnState', 'roll'
-
-  robot.respond /monopoly jail roll$/i, (msg) ->
-    data = robot.brain.get 'monopolyBoard'
-    playerIndex = robot.brain.get 'monopolyTurn'
-    players = robot.brain.get 'monopolyPlayers'
-    turnState = robot.brain.get 'monopolyTurnState'
-
-    if turnState != 'jail'
-      msg.send 'Sorry, expecting ' + turnState + ' command.'
-    else
-      currentRoll = roll()
-      jailRolls = updatePlayerInJail(players, playerIndex, currentRoll)
-      if currentRoll.doubles
-        msg.send 'You rolled ' + currentRoll.total + ', **DOUBLES**! You are free!'
-        playTurn(data, players, playerIndex, { current: players[playerIndex], passedGo: false }, { total: currentRoll.total, doubles: false }, msg)
-      else if jailRolls < 3
-        msg.send 'You rolled ' + currentRoll.total + ', not doubles. Better luck next time.'
+        buyerIndex = _.findIndex(players, (player) ->
+          player.name.toLowerCase() == buyerName.toLowerCase() 
+        )
+        msg.send players[buyerIndex].name  + ' pays $' + soldPrice + ' for ' + data[players[playerIndex].location].name + bankerInstructions
+        updateProperty(data, players, playerIndex, buyerIndex)
         robot.brain.set 'monopolyTurnState', 'roll'
         setNextPlayer()
-      else if jailRolls == 3
-        msg.send 'You rolled ' + currentRoll.total + ', not doubles. Pay $50 to exit jail. Theme Team, once account is updated, "hsbot monopoly continue"'
-        robot.brain.set 'jailRoll', currentRoll.total
-        robot.brain.set 'monopolyTurnState', 'continue'
+
+  robot.respond /monopoly update ([a-zA-Z &-]+) (Delta City|Gotham|DMZ|Monterrey|Houston|Dallas)$/, (msg) ->
+    if _.contains(allowedRooms, msg.envelope.room)
+      data = robot.brain.get 'monopolyBoard'
+      players = robot.brain.get 'monopolyPlayers'
+
+      propertyName = msg.match[1]
+      newOwner = msg.match[2]
+
+      propertyIndex = _.findIndex(data, { name: propertyName })
+      ownerIndex = _.findIndex(players, { name: newOwner })
+      if propertyIndex < 0
+        msg.send 'I don\'t know that property, check the spelling/capitalization with "hsbot monopoly status"'
+      else if !data[propertyIndex].owner
+        msg.send 'No one owns that property! Someone must buy it first.'
+      else
+        updateThisProperty(data, players, propertyIndex, ownerIndex)
+        msg.send propertyName + ' has been transferred to ' + newOwner + '.'
+
+  robot.respond /monopoly jail pay$/i, (msg) ->
+    if _.contains(allowedRooms, msg.envelope.room)
+      data = robot.brain.get 'monopolyBoard'
+      playerIndex = robot.brain.get 'monopolyTurn'
+      players = robot.brain.get 'monopolyPlayers'
+      turnState = robot.brain.get 'monopolyTurnState'
+
+      if turnState != 'jail'
+        msg.send 'Sorry, expecting ' + turnState + ' command.'
+      else
+        freeFromJail(players, playerIndex)
+        msg.send players[playerIndex].name + ' pays $50 to exit jail' + bankerInstructions
+        robot.brain.set 'monopolyTurnState', 'roll'
+
+  robot.respond /monopoly jail roll$/i, (msg) ->
+    if _.contains(allowedRooms, msg.envelope.room)
+      data = robot.brain.get 'monopolyBoard'
+      playerIndex = robot.brain.get 'monopolyTurn'
+      players = robot.brain.get 'monopolyPlayers'
+      turnState = robot.brain.get 'monopolyTurnState'
+
+      if turnState != 'jail'
+        msg.send 'Sorry, expecting ' + turnState + ' command.'
+      else
+        currentRoll = roll()
+        jailRolls = updatePlayerInJail(players, playerIndex, currentRoll)
+        if currentRoll.doubles
+          msg.send 'You rolled ' + currentRoll.total + ', **DOUBLES**! You are free!'
+          playTurn(data, players, playerIndex, { current: players[playerIndex], passedGo: false }, { total: currentRoll.total, doubles: false }, msg)
+        else if jailRolls < 3
+          msg.send 'You rolled ' + currentRoll.total + ', not doubles. Better luck next time.'
+          robot.brain.set 'monopolyTurnState', 'roll'
+          setNextPlayer()
+        else if jailRolls == 3
+          msg.send 'You rolled ' + currentRoll.total + ', not doubles. Pay $50 to exit jail. Theme Team, once account is updated, "hsbot monopoly continue"'
+          robot.brain.set 'jailRoll', currentRoll.total
+          robot.brain.set 'monopolyTurnState', 'continue'
 
   robot.respond /monopoly continue$/i, (msg) ->
-    data = robot.brain.get 'monopolyBoard'
-    playerIndex = robot.brain.get 'monopolyTurn'
-    players = robot.brain.get 'monopolyPlayers'
-    turnState = robot.brain.get 'monopolyTurnState'
+    if _.contains(allowedRooms, msg.envelope.room)
+      data = robot.brain.get 'monopolyBoard'
+      playerIndex = robot.brain.get 'monopolyTurn'
+      players = robot.brain.get 'monopolyPlayers'
+      turnState = robot.brain.get 'monopolyTurnState'
 
-    if turnState != 'continue'
-      msg.send 'Sorry, expecting ' + turnState + ' command.'
-    else
-      rollTotal = robot.brain.get 'jailRoll'
-      advancePlayer(players, playerIndex, rollTotal)
-      playTurn(data, players, playerIndex, { current: players[playerIndex], passedGo: false }, { total: currentRoll, doubles: false }, msg)
-      robot.brain.set 'monopolyTurnState', 'roll'
+      if turnState != 'continue'
+        msg.send 'Sorry, expecting ' + turnState + ' command.'
+      else
+        rollTotal = robot.brain.get 'jailRoll'
+        advancePlayer(players, playerIndex, rollTotal)
+        playTurn(data, players, playerIndex, { current: players[playerIndex], passedGo: false }, { total: currentRoll, doubles: false }, msg)
+        robot.brain.set 'monopolyTurnState', 'roll'
 
   robot.respond /monopoly jail card$/i, (msg) ->
-    data = robot.brain.get 'monopolyBoard'
-    playerIndex = robot.brain.get 'monopolyTurn'
-    players = robot.brain.get 'monopolyPlayers'
-    jailChanceCardOwner = robot.brain.get 'monopolyChanceJailOwner'
-    jailCommunityChestCardOwner = robot.brain.get 'monopolyCommunityChestJailOwner'
-    turnState = robot.brain.get 'monopolyTurnState'
+    if _.contains(allowedRooms, msg.envelope.room)
+      data = robot.brain.get 'monopolyBoard'
+      playerIndex = robot.brain.get 'monopolyTurn'
+      players = robot.brain.get 'monopolyPlayers'
+      jailChanceCardOwner = robot.brain.get 'monopolyChanceJailOwner'
+      jailCommunityChestCardOwner = robot.brain.get 'monopolyCommunityChestJailOwner'
+      turnState = robot.brain.get 'monopolyTurnState'
 
-    if turnState != 'jail'
-      msg.send 'Sorry, expecting ' + turnState + ' command.'
-    else if _.contains([jailChanceCardOwner, jailCommunityChestCardOwner], players[playerIndex].name) && players[playerIndex].inJail
-      freeFromJail(players, playerIndex)
-      msg.send 'You\'re free!'
-      if jailChanceCardOwner == players[playerIndex].name
-        robot.brain.set 'monopolyChanceJailOwner', null
-      else if jailCommunityChestCardOwner == players[playerIndex].name
-        robot.brain.set 'monopolyCommunityChestJailOwner', null
-      newRoll = roll()
-      robot.brain.set 'monopolyTurnState', 'roll'
-      advancePlayer(players, playerIndex, newRoll.total)
-      playTurn(data, players, playerIndex, { current: players[playerIndex], passedGo: false }, newRoll, msg)
-    else
-      msg.send 'You don\'t have a card to use! "hsbot monopoly jail pay" or "hsbot monopoly jail roll"'
+      if turnState != 'jail'
+        msg.send 'Sorry, expecting ' + turnState + ' command.'
+      else if _.contains([jailChanceCardOwner, jailCommunityChestCardOwner], players[playerIndex].name) && players[playerIndex].inJail
+        freeFromJail(players, playerIndex)
+        msg.send 'You\'re free!'
+        if jailChanceCardOwner == players[playerIndex].name
+          robot.brain.set 'monopolyChanceJailOwner', null
+        else if jailCommunityChestCardOwner == players[playerIndex].name
+          robot.brain.set 'monopolyCommunityChestJailOwner', null
+        newRoll = roll()
+        robot.brain.set 'monopolyTurnState', 'roll'
+        advancePlayer(players, playerIndex, newRoll.total)
+        playTurn(data, players, playerIndex, { current: players[playerIndex], passedGo: false }, newRoll, msg)
+      else
+        msg.send 'You don\'t have a card to use! "hsbot monopoly jail pay" or "hsbot monopoly jail roll"'
 
   robot.respond /monopoly status$/i, (msg) ->
     data = robot.brain.get 'monopolyBoard'
@@ -598,50 +608,10 @@ module.exports = (robot) ->
 
     msg.send '\nCurrent turn: ' + players[playerIndex].name + ' ' + turnState
 
-  # undocumented intentionally, since this would wipe the game's progress
+  # undocumented intentionally, since this would wipe the current game's progress
   robot.respond /monopoly start new game$/i, (msg) ->
-    robot.brain.set 'monopolyBoard', [
-      { name: "GO! (go)"}
-      { name: "Teakwood Avenue", cost: 60, rent: 4, house1: 20, house2: 60, house3: 180, house4: 320, hotel: 450, mortgage: 30, houseCost: 50, owner: null, houses: 0, mortgaged: false, monopoly: false }
-      { name: "Community Chest" }
-      { name: "Mizzou Avenue", cost: 60, rent: 4, house1: 20, house2: 60, house3: 180, house4: 320, hotel: 450, mortgage: 30, houseCost: 50, owner: null, houses: 0, mortgaged: false, monopoly: false }
-      { name: "Income Tax" }
-      { name: "Austin Railroad", cost: 200, mortgage: 100, owner: null, mortgaged: false }
-      { name: "HFSC Avenue", cost: 100, rent: 6, house1: 30, house2: 90, house3: 270, house4: 400, hotel: 550, mortgage: 50, houseCost: 50, owner: null, houses: 0, mortgaged: false, monopoly: false }
-      { name: "Chance" }
-      { name: "InfraSource Avenue", cost: 100, rent: 6, house1: 30, house2: 90, house3: 270, house4: 400, hotel: 550, mortgage: 50, houseCost: 50,  owner: null, houses: 0, mortgaged: false, monopoly: false }
-      { name: "Parallax Consulting Avenue", cost: 120, rent: 8, house1: 40, house2: 100, house3: 300, house4: 450, hotel: 600, mortgage: 60, houseCost: 50, owner: null, houses: 0, mortgaged: false, monopoly: false }
-      { name: "Visiting Jail" }
-      { name: "Jabil Place", cost: 140, rent: 10, house1: 50, house2: 150, house3: 450, house4: 625, hotel: 750, mortgage: 70, houseCost: 100, owner: null, houses: 0, mortgaged: false, monopoly: false }
-      { name: "Time Copter", cost: 150, owner: null, mortgage: 75, mortgaged: false }
-      { name: "Global Resale Avenue", cost: 140, rent: 10, house1: 50, house2: 150, house3: 450, house4: 625, hotel: 750, mortgage: 70, houseCost: 100, owner: null, houses: 0, mortgaged: false, monopoly: false }
-      { name: "Thermon Avenue", cost: 160, rent: 12, house1: 60, house2: 180, house3: 500, house4: 700, hotel: 900, mortgage: 80, houseCost: 100, owner: null, houses: 0, mortgaged: false, monopoly: false }
-      { name: "Houston Railroad", cost: 200, rent: 25, mortgage: 100, owner: null, mortgaged: false }
-      { name: "Modern Woodmen Place", cost: 180, rent: 14, house1: 70, house2: 200, house3: 550, house4: 750, hotel: 950, mortgage: 90, houseCost: 100, owner: null, houses: 0, mortgaged: false, monopoly: false }
-      { name: "Community Chest" }
-      { name: "Koch S&T Avenue", cost: 180, rent: 14, house1: 70, house2: 200, house3: 550, house4: 750, hotel: 950, mortgage: 90, houseCost: 100, owner: null, houses: 0, mortgaged: false, monopoly: false }
-      { name: "Grifols Avenue", cost: 200, rent: 16, house1: 80, house2: 220, house3: 600, house4: 800, hotel: 1000, mortgage: 100, houseCost: 100, owner: null, houses: 0, mortgaged: false, monopoly: false }
-      { name: "Free Parking"}
-      { name: "Crate & Barrel Avenue", cost: 220, rent: 18, house1: 90, house2: 250, house3: 700, house4: 875, hotel: 1050, mortgage: 110, houseCost: 150, owner: null, houses: 0, mortgaged: false, monopoly: false }
-      { name: "Chance" }
-      { name: "Emerson Avenue", cost: 220, rent: 18, house1: 90, house2: 250, house3: 700, house4: 875, hotel: 1050, mortgage: 110, houseCost: 150, owner: null, houses: 0, mortgaged: false, monopoly: false }
-      { name: "Yeti Avenue", cost: 240, rent: 20, house1: 100, house2: 300, house3: 750, house4: 925, hotel: 1100, mortgage: 120, houseCost: 150, owner: null, houses: 0, mortgaged: false, monopoly: false }
-      { name: "Dallas Railroad", cost: 200, rent: 25, mortgage: 100, owner: null, mortgaged: false }
-      { name: "Udell Avenue", cost: 260, rent: 22, house1: 110, house2: 330, house3: 800, house4: 975, hotel: 1150, mortgage: 130, houseCost: 150, owner: null, houses: 0, mortgaged: false, monopoly: false }
-      { name: "USAC Avenue", cost: 260, rent: 22, house1: 110, house2: 330, house3: 800, house4: 975, hotel: 1150, mortgage: 130, houseCost: 150, owner: null, houses: 0, mortgaged: false, monopoly: false }
-      { name: "hsbot", cost: 150, mortgage: 75, owner: null, mortgaged: false }
-      { name: "USBC Gardens", cost: 280, rent: 24, house1: 120, house2: 360, house3: 850, house4: 1025, hotel: 1200, mortgage: 140, houseCost: 150, owner: null, houses: 0, mortgaged: false, monopoly: false }
-      { name: "(siren) GO TO JAIL! (jail)" }
-      { name: "Ed-Fi Avenue", cost: 300, rent: 26, house1: 130, house2: 390, house3: 900, house4: 1100, hotel: 1275, mortgage: 150, houseCost: 200, owner: null, houses: 0, mortgaged: false, monopoly: false }
-      { name: "eMoney Avenue", cost: 300, rent: 26, house1: 130, house2: 390, house3: 900, house4: 1100, hotel: 1275, mortgage: 150, houseCost: 200, owner: null, houses: 0, mortgaged: false, monopoly: false }
-      { name: "Community Chest" }
-      { name: "3M Avenue", cost: 320, rent: 28, house1: 150, house2: 450, house3: 1000, house4: 1200, hotel: 1400, mortgage: 160, houseCost: 200, owner: null, houses: 0, mortgaged: false, monopoly: false }
-      { name: "Monterrey Railroad", cost: 200, rent: 25, mortgage: 100, owner: null, mortgaged: false }
-      { name: "Chance" }
-      { name: "Ortho Kinematics Place", cost: 350, rent: 35, house1: 175, house2: 500, house3: 1100, house4: 1300, hotel: 1500, mortgage: 175, houseCost: 200, owner: null, houses: 0, mortgaged: false, monopoly: false }
-      { name: "Luxury Tax" }
-      { name: "SLTX", cost: 400, rent: 50, house1: 200, house2: 600, house3: 1400, house4: 1700, hotel: 2000, mortgage: 200, houseCost: 200, owner: null, houses: 0, mortgaged: false, monopoly: false }
-    ]
+    scaleFactor = 1
+    robot.brain.set 'monopolyBoard', scaleProperties baseValueProperties, scaleFactor
     robot.brain.set 'monopolyPlayers', [
       { name: 'Delta City', location: 0, inJail: false }
       { name: 'Gotham', location: 0, inJail: false }
@@ -651,12 +621,13 @@ module.exports = (robot) ->
       { name: 'Monterrey', location: 0, inJail: false }
     ]
     robot.brain.set 'monopolyTurn', 0
+    robot.brain.set 'monopolyTurnState', 'roll'
     robot.brain.set 'monopolyChanceJailOwner', null
     robot.brain.set 'monopolyCommunityChestJailOwner', null
-    robot.brain.set 'monopolyTurnState', 'roll'
+    robot.brain.set 'monopolyScaleFactor', scaleFactor
 
-    shuffle('monopolyChance')
-    shuffle('monopolyCommunityChest')
+    shuffle 'monopolyChance'
+    shuffle 'monopolyCommunityChest'
 
     msg.send 'Game is up! "hsbot monopoly roll" to begin.'
 
@@ -671,6 +642,84 @@ module.exports = (robot) ->
     console.log 'Jail Roll:\n', robot.brain.get 'monopolyJailRoll'
     console.log 'Chance Deck:\n', robot.brain.get 'monopolyChance'
     console.log 'Community Chest Deck:\n', robot.brain.get 'monopolyCommunityChest'
+    console.log 'Scale factor:\n', robot.brain.get 'monopolyScaleFactor'
+
+  robot.respond /monopoly set scale factor (\d+(\.\d+)?)$/i, (msg) ->
+    scaleFactor = msg.match[1]
+    data = robot.brain.get 'monopolyBoard'
+    if data
+      robot.brain.set 'monopolyScaleFactor', scaleFactor
+      robot.brain.set 'monopolyBoard', scaleProperties data, scaleFactor
+      msg.send 'Scale factor updated.'
+    else
+      msg.send 'Start a game first!'
+
+  clone = (obj) ->
+    return obj  if obj is null or typeof (obj) isnt "object"
+    temp = new obj.constructor()
+    for key of obj
+      temp[key] = clone(obj[key])
+    temp
+
+  scaleProperties = (data, scaleFactor) ->
+    i = 0
+    newData = clone data
+    for property in newData
+      if property.cost
+        property.cost = baseValueProperties[i].cost * scaleFactor
+      if property.rent then property.rent = baseValueProperties[i].cost * scaleFactor
+      if property.house1 then property.house1 = baseValueProperties[i].cost * scaleFactor
+      if property.house1 then property.house2 = baseValueProperties[i].cost * scaleFactor
+      if property.house1 then property.house3 = baseValueProperties[i].cost * scaleFactor
+      if property.house1 then property.house4 = baseValueProperties[i].cost * scaleFactor
+      if property.hotel then property.hotel = baseValueProperties[i].cost * scaleFactor
+      if property.mortgage then property.mortgage = baseValueProperties[i].cost * scaleFactor
+      if property.houseCost then property.houseCost = baseValueProperties[i].cost * scaleFactor
+      i++
+    newData
+
+  baseValueProperties = [
+    { name: "GO! (go)"}
+    { name: "Teakwood Avenue", cost: 60, rent: 4, house1: 20, house2: 60, house3: 180, house4: 320, hotel: 450, mortgage: 30, houseCost: 50, owner: null, houses: 0, mortgaged: false, monopoly: false }
+    { name: "Community Chest" }
+    { name: "Mizzou Avenue", cost: 60, rent: 4, house1: 20, house2: 60, house3: 180, house4: 320, hotel: 450, mortgage: 30, houseCost: 50, owner: null, houses: 0, mortgaged: false, monopoly: false }
+    { name: "Income Tax" }
+    { name: "Austin Railroad", cost: 200, mortgage: 100, owner: null, mortgaged: false }
+    { name: "HFSC Avenue", cost: 100, rent: 6, house1: 30, house2: 90, house3: 270, house4: 400, hotel: 550, mortgage: 50, houseCost: 50, owner: null, houses: 0, mortgaged: false, monopoly: false }
+    { name: "Chance" }
+    { name: "InfraSource Avenue", cost: 100, rent: 6, house1: 30, house2: 90, house3: 270, house4: 400, hotel: 550, mortgage: 50, houseCost: 50,  owner: null, houses: 0, mortgaged: false, monopoly: false }
+    { name: "Parallax Consulting Avenue", cost: 120, rent: 8, house1: 40, house2: 100, house3: 300, house4: 450, hotel: 600, mortgage: 60, houseCost: 50, owner: null, houses: 0, mortgaged: false, monopoly: false }
+    { name: "Visiting Jail" }
+    { name: "Jabil Place", cost: 140, rent: 10, house1: 50, house2: 150, house3: 450, house4: 625, hotel: 750, mortgage: 70, houseCost: 100, owner: null, houses: 0, mortgaged: false, monopoly: false }
+    { name: "Time Copter", cost: 150, owner: null, mortgage: 75, mortgaged: false }
+    { name: "Global Resale Avenue", cost: 140, rent: 10, house1: 50, house2: 150, house3: 450, house4: 625, hotel: 750, mortgage: 70, houseCost: 100, owner: null, houses: 0, mortgaged: false, monopoly: false }
+    { name: "Thermon Avenue", cost: 160, rent: 12, house1: 60, house2: 180, house3: 500, house4: 700, hotel: 900, mortgage: 80, houseCost: 100, owner: null, houses: 0, mortgaged: false, monopoly: false }
+    { name: "Houston Railroad", cost: 200, rent: 25, mortgage: 100, owner: null, mortgaged: false }
+    { name: "Modern Woodmen Place", cost: 180, rent: 14, house1: 70, house2: 200, house3: 550, house4: 750, hotel: 950, mortgage: 90, houseCost: 100, owner: null, houses: 0, mortgaged: false, monopoly: false }
+    { name: "Community Chest" }
+    { name: "Koch S&T Avenue", cost: 180, rent: 14, house1: 70, house2: 200, house3: 550, house4: 750, hotel: 950, mortgage: 90, houseCost: 100, owner: null, houses: 0, mortgaged: false, monopoly: false }
+    { name: "Grifols Avenue", cost: 200, rent: 16, house1: 80, house2: 220, house3: 600, house4: 800, hotel: 1000, mortgage: 100, houseCost: 100, owner: null, houses: 0, mortgaged: false, monopoly: false }
+    { name: "Free Parking"}
+    { name: "Crate & Barrel Avenue", cost: 220, rent: 18, house1: 90, house2: 250, house3: 700, house4: 875, hotel: 1050, mortgage: 110, houseCost: 150, owner: null, houses: 0, mortgaged: false, monopoly: false }
+    { name: "Chance" }
+    { name: "Emerson Avenue", cost: 220, rent: 18, house1: 90, house2: 250, house3: 700, house4: 875, hotel: 1050, mortgage: 110, houseCost: 150, owner: null, houses: 0, mortgaged: false, monopoly: false }
+    { name: "Yeti Avenue", cost: 240, rent: 20, house1: 100, house2: 300, house3: 750, house4: 925, hotel: 1100, mortgage: 120, houseCost: 150, owner: null, houses: 0, mortgaged: false, monopoly: false }
+    { name: "Dallas Railroad", cost: 200, rent: 25, mortgage: 100, owner: null, mortgaged: false }
+    { name: "Udell Avenue", cost: 260, rent: 22, house1: 110, house2: 330, house3: 800, house4: 975, hotel: 1150, mortgage: 130, houseCost: 150, owner: null, houses: 0, mortgaged: false, monopoly: false }
+    { name: "USAC Avenue", cost: 260, rent: 22, house1: 110, house2: 330, house3: 800, house4: 975, hotel: 1150, mortgage: 130, houseCost: 150, owner: null, houses: 0, mortgaged: false, monopoly: false }
+    { name: "hsbot", cost: 150, mortgage: 75, owner: null, mortgaged: false }
+    { name: "USBC Gardens", cost: 280, rent: 24, house1: 120, house2: 360, house3: 850, house4: 1025, hotel: 1200, mortgage: 140, houseCost: 150, owner: null, houses: 0, mortgaged: false, monopoly: false }
+    { name: "(siren) GO TO JAIL! (jail)" }
+    { name: "Ed-Fi Avenue", cost: 300, rent: 26, house1: 130, house2: 390, house3: 900, house4: 1100, hotel: 1275, mortgage: 150, houseCost: 200, owner: null, houses: 0, mortgaged: false, monopoly: false }
+    { name: "eMoney Avenue", cost: 300, rent: 26, house1: 130, house2: 390, house3: 900, house4: 1100, hotel: 1275, mortgage: 150, houseCost: 200, owner: null, houses: 0, mortgaged: false, monopoly: false }
+    { name: "Community Chest" }
+    { name: "3M Avenue", cost: 320, rent: 28, house1: 150, house2: 450, house3: 1000, house4: 1200, hotel: 1400, mortgage: 160, houseCost: 200, owner: null, houses: 0, mortgaged: false, monopoly: false }
+    { name: "Monterrey Railroad", cost: 200, rent: 25, mortgage: 100, owner: null, mortgaged: false }
+    { name: "Chance" }
+    { name: "Ortho Kinematics Place", cost: 350, rent: 35, house1: 175, house2: 500, house3: 1100, house4: 1300, hotel: 1500, mortgage: 175, houseCost: 200, owner: null, houses: 0, mortgaged: false, monopoly: false }
+    { name: "Luxury Tax" }
+    { name: "SLTX", cost: 400, rent: 50, house1: 200, house2: 600, house3: 1400, house4: 1700, hotel: 2000, mortgage: 200, houseCost: 200, owner: null, houses: 0, mortgaged: false, monopoly: false }
+  ]
 
   chanceCards = [
     { message: 'Advance token to nearest utility. If unowned, you may buy it from the bank. If owned, throw dice and pay owner 10 times the amount thrown.', action: goToNearestUtility }
