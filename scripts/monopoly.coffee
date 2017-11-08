@@ -6,6 +6,7 @@
 #   hsbot monopoly roll
 #   hsbot monopoly buy
 #   hsbot monopoly auction
+#   hsbot monopoly update propertyName (delta city|gotham|dmz|monterrey|houston|dallas)
 #   hsbot monopoly sold (delta city|gotham|dmz|monterrey|houston|dallas) amount
 #   hsbot monopoly status
 #   hsbot monopoly jail pay
@@ -18,7 +19,6 @@
 #   hsbot monopoly dump - rough dump of the Monopoly brain state
 #
 # TODO:
-# * Trade/barter (monopoly update Property Owner)
 # * use SCALE_FACTOR, update Scale factor
 # * only respond in Monopoly room
 # - admin commands to manually update the brain variables
@@ -156,32 +156,34 @@ module.exports = (robot) ->
     for property in set
       if board[property].owner != owner
         monopoly = false
-    if monopoly
-      for property in set
-        board[property].monopoly = true
+
+    for property in set
+      board[property].monopoly = monopoly
+
+  updateThisProperty = (board, players, propertyIndex, buyerIndex) ->
+    property = board[propertyIndex]
+    property.owner = players[buyerIndex].name
+
+    monopolyGroups = [
+      [1, 3]
+      [6, 8, 9]
+      [11, 13, 14]
+      [16, 18, 19]
+      [21, 23, 24]
+      [26, 27, 29]
+      [31, 32, 34]
+      [37, 39]
+    ]
+
+    for group in monopolyGroups
+      if _.contains(group, propertyIndex)
+        checkForMonopoly(board, group)
+
+    robot.brain.set 'monopolyBoard', board
 
   updateProperty = (board, players, playerIndex, buyerIndex) ->
     currentIndex = players[playerIndex].location
-    current = board[currentIndex]
-    current.owner = players[buyerIndex].name
-    if (_.contains([1, 3], currentIndex))
-      checkForMonopoly(board, [1, 3])
-    else if (_.contains([6, 8, 9], currentIndex))
-      checkForMonopoly(board, [6, 8, 9])
-    else if (_.contains([11, 13, 14], currentIndex))
-      checkForMonopoly(board, [11, 13, 14])
-    else if (_.contains([16, 18, 19], currentIndex))
-      checkForMonopoly(board, [16, 18, 19])
-    else if (_.contains([21, 23, 24], currentIndex))
-      checkForMonopoly(board, [21, 23, 24])
-    else if (_.contains([26, 27, 29], currentIndex))
-      checkForMonopoly(board, [26, 27, 29])
-    else if (_.contains([31, 32, 34], currentIndex))
-      checkForMonopoly(board, [31, 32, 34])
-    else if (_.contains([37, 39], currentIndex))
-      checkForMonopoly(board, [37, 39])
-
-    robot.brain.set 'monopolyBoard', board
+    updateThisProperty(board, players, currentIndex, buyerIndex)
 
   sendToJail = (players, playerIndex) ->
     players[playerIndex].location = 10
@@ -209,7 +211,7 @@ module.exports = (robot) ->
       msg.send players[playerIndex].name + ' rolls ' + currentRoll.total +
         doubles + 'dvances to ' + data[player.location].name + '.'
     if playerData.passedGo
-      msg.send 'You passed Go, collect $200! (go)'
+      msg.send 'You passed GO, collect $200! (go)'
     
     # Present player with options
     if _.contains([2, 17, 33], player.location)
@@ -376,6 +378,7 @@ module.exports = (robot) ->
       \thsbot monopoly buy - action for an unowned property\n
       \thsbot monopoly auction - action for an unowned property\n
       \thsbot monopoly sold (delta city|gotham|dmz|monterrey|houston|dallas) amount - ends an auction\n
+      \thsbot monopoly update propertyName (delta city|gotham|dmz|monterrey|houston|dallas) - transfer property by trade or sale\n
       \thsbot monopoly status - who owns what, where they are, and whose turn it is\n
       \thsbot monopoly jail pay - way to get out of jail\n
       \thsbot monopoly jail roll - way to attempt to get out of jail\n
@@ -464,6 +467,23 @@ module.exports = (robot) ->
       updateProperty(data, players, playerIndex, buyerIndex)
       robot.brain.set 'monopolyTurnState', 'roll'
       setNextPlayer()
+
+  robot.respond /monopoly update ([a-zA-Z &-]+) (Delta City|Gotham|DMZ|Monterrey|Houston|Dallas)$/, (msg) ->
+    data = robot.brain.get 'monopolyBoard'
+    players = robot.brain.get 'monopolyPlayers'
+
+    propertyName = msg.match[1]
+    newOwner = msg.match[2]
+
+    propertyIndex = _.findIndex(data, { name: propertyName })
+    ownerIndex = _.findIndex(players, { name: newOwner })
+    if propertyIndex < 0
+      msg.send 'I don\'t know that property, check the spelling/capitalization with "hsbot monopoly status"'
+    else if !data[propertyIndex].owner
+      msg.send 'No one owns that property! Someone must buy it first.'
+    else
+      updateThisProperty(data, players, propertyIndex, ownerIndex)
+      msg.send propertyName + ' has been transferred to ' + newOwner + '.'
 
   robot.respond /monopoly jail pay$/i, (msg) ->
     data = robot.brain.get 'monopolyBoard'
