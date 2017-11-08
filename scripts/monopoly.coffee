@@ -24,8 +24,6 @@
 #   hsbot monopoly dump - rough dump of the Monopoly brain state
 #
 # TODO:
-# * Chance/Community Chest actions
-# * Dump game brain as a backup
 # * prevent invalid commands
 # * Trade/barter (monopoly update Property Owner)
 # * use SCALE_FACTOR, update Scale factor
@@ -149,8 +147,10 @@ module.exports = (robot) ->
     current.location += rollTotal
     robot.brain.set 'monopolyPlayers', players
 
-  sendPlayer = (players, playerIndex, locationIndex) ->
+  sendPlayer = (players, playerIndex, locationIndex, msg) ->
     current = players[playerIndex]
+    if players[playerIndex].location > locationIndex
+      msg.send 'You passed GO! Collect $200. (go)'
     current.location = locationIndex
     robot.brain.set 'monopolyPlayers', players
     current
@@ -207,13 +207,14 @@ module.exports = (robot) ->
 
     robot.brain.set 'monopolyPlayers', players
 
-  playTurn = (data, players, playerIndex, playerData, currentRoll, msg) ->
+  playTurn = (data, players, playerIndex, playerData, currentRoll, msg, hideRollMessage) ->
     player = players[playerIndex]
     doubles = ', a'
     if currentRoll.doubles
       doubles = ', **DOUBLES**! A'
-    msg.send players[playerIndex].name + ' rolls ' + currentRoll.total + 
-      doubles + 'dvances to ' + data[player.location].name + '.'
+    if !hideRollMessage
+      msg.send players[playerIndex].name + ' rolls ' + currentRoll.total +
+        doubles + 'dvances to ' + data[player.location].name + '.'
     if playerData.passedGo
       msg.send 'You passed Go, collect $200! (go)'
     
@@ -540,12 +541,15 @@ module.exports = (robot) ->
 
   goToNearestUtility = (data, players, playerIndex, playerData, currentRoll, msg) ->
     if players[playerIndex].location < 12 || players[playerIndex].location > 28
-      current = sendPlayer(players, playerIndex, 12)
+      current = sendPlayer(players, playerIndex, 12, msg)
     else
-      current = sendPlayer(players, playerIndex, 28)
+      current = sendPlayer(players, playerIndex, 28, msg)
     currentOwner = data[current.location].owner
 
-    if currentOwner
+    if currentOwner == players[playerIndex].name
+      msg.send 'You own it! Enjoy your stay at ' + data[current.location].name
+      setNextPlayer()
+    else if currentOwner
       newRoll = roll()
       msg.send 'You rolled ' + newRoll.total + '. Pay ' + currentOwner + ' $' + 10 * newRoll.total + bankerInstructions
       setNextPlayer()
@@ -557,16 +561,33 @@ module.exports = (robot) ->
     setNextPlayer()
 
   goToLocation = (data, players, playerIndex, playerData, currentRoll, msg, locationIndex ) ->
-    current = sendPlayer(players, playerIndex, locationIndex)
-    playTurn(data, players, playerIndex, { current: current, passedGo: false }, currentRoll, msg)
+    current = sendPlayer(players, playerIndex, locationIndex, msg)
+    playTurn(data, players, playerIndex, { current: current, passedGo: false }, currentRoll, msg, true)
 
   goBackThree = (data, players, playerIndex, playerData, currentRoll, msg) ->
-    current = sendPlayer(players, playerIndex, players[playerIndex].location - 3)
+    current = sendPlayer(players, playerIndex, players[playerIndex].location - 3, msg)
     playTurn(data, players, playerIndex, { current: current, passedGo: false }, currentRoll, msg)
 
   goToNearestRailroad = (data, players, playerIndex, playerData, currentRoll, msg) ->
-    msg.send 'Go to nearest railroad somehow'
-    setNextPlayer()
+    if players[playerIndex].location < 5 || players[playerIndex].location > 35
+      current = sendPlayer(players, playerIndex, 5, msg)
+    else if  players[playerIndex].location < 15
+      current = sendPlayer(players, playerIndex, 15, msg)
+    else if  players[playerIndex].location < 25
+      current = sendPlayer(players, playerIndex, 25, msg)
+    else
+      current = sendPlayer(players, playerIndex, 35, msg)
+    currentOwner = data[current.location].owner
+
+    if currentOwner == players[playerIndex].name
+      msg.send 'You own it! Enjoy your ride on ' + data[current.location].name
+      setNextPlayer()
+    else if currentOwner
+      newRoll = roll()
+      msg.send 'You rolled ' + newRoll.total + '. Pay ' + currentOwner + ' $' + 10 * newRoll.total + bankerInstructions
+      setNextPlayer()
+    else
+      msg.send data[current.location].name + ' is available for sale. Send "hsbot monopoly buy" or "hsbot monopoly auction".'
 
   sendToJailCard = (data, players, playerIndex, playerData, currentRoll, msg) ->
     sendToJail(players, playerIndex)
@@ -576,37 +597,37 @@ module.exports = (robot) ->
   chanceCards = [
     { message: 'Advance token to nearest utility. If unowned, you may buy it from the bank. If owned, throw dice and pay owner 10 times the amount thrown.', action: goToNearestUtility }
     { message: 'GET OUT OF JAIL FREE. This card may be kept until needed, or sold.', action: assignJailCard, value: 'monopolyChanceJailOwner' }
-    # { message: 'Take a Ride on the Austin Railroad. If you pass GO, collect $200' + bankerInstructions, action: goToLocation, value: 5 }
-    # { message: 'Kathy pays you dividend of $50' + bankerInstructions }
-    # { message: 'Go back 3 spaces', action: goBackThree }
-    # { message: 'Make general repairs on all of your property. For each house, pay $25. For each hotel, $100' + bankerInstructions }
-    # { message: 'Late to the Monday Morning Meeting. Pay $15' + bankerInstructions }
-    # { message: 'Take a walk on the boardwalk. Advance token to SLTX.', action: goToLocation, value: 39 }
-    # { message: 'Advance token to Jabil Place. If you pass GO, collect $200.', action: goToLocation, value: 0 }
-    # { message: 'Advance token to the nearest Railroad and pay owner twice the rental to which they are otherwise entitled. If Railroad is unowned, you may buy it from the bank.', action: goToNearestRailroad }
-    # { message: 'Your building and loan matures, collect $150' + bankerInstructions }
-    # { message: 'Advance to Yeti Avenue.', action: goToLocation, value: 24 }
-    # { message: 'Advance token to the nearest Railroad and pay owner twice the rental to which they are otherwise entitled. If Railroad is unowned, you may buy it from the bank.', action: goToNearestRailroad }
-    # { message: 'Advance to GO. Collect $200. (go)', action: goToLocation, value: 0 }
-    # { message: 'You have been elected Chairman of the Startup Games. Pay each player $50.' + bankerInstructions }
-    # { message: '(siren) Go directly TO JAIL. Do not pass GO, do not collect $200. (jail)', action: sendToJailCard }
+    { message: 'Take a Ride on the Austin Railroad. If you pass GO, collect $200' + bankerInstructions, action: goToLocation, value: 5 }
+    { message: 'Kathy pays you dividend of $50' + bankerInstructions }
+    { message: 'Go back 3 spaces', action: goBackThree }
+    { message: 'Make general repairs on all of your property. For each house, pay $25. For each hotel, $100' + bankerInstructions }
+    { message: 'Late to the Monday Morning Meeting. Pay $15' + bankerInstructions }
+    { message: 'Take a walk on the boardwalk. Advance token to SLTX.', action: goToLocation, value: 39 }
+    { message: 'Advance token to Jabil Place. If you pass GO, collect $200.', action: goToLocation, value: 0 }
+    { message: 'Advance token to the nearest Railroad and pay owner twice the rental to which they are otherwise entitled. If Railroad is unowned, you may buy it from the bank.', action: goToNearestRailroad }
+    { message: 'Your building and loan matures, collect $150' + bankerInstructions }
+    { message: 'Advance to Yeti Avenue.', action: goToLocation, value: 24 }
+    { message: 'Advance token to the nearest Railroad and pay owner twice the rental to which they are otherwise entitled. If Railroad is unowned, you may buy it from the bank.', action: goToNearestRailroad }
+    { message: 'Advance to GO. Collect $200. (go)', action: goToLocation, value: 0 }
+    { message: 'You have been elected Chairman of the Startup Games. Pay each player $50' + bankerInstructions }
+    { message: '(siren) Go directly TO JAIL. Do not pass GO, do not collect $200. (jail)', action: sendToJailCard }
   ]
 
   communityChestCards = [
-    # { message: 'Xmas fund matures, collect $100' + bankerInstructions }
+    { message: 'Xmas fund matures, collect $100' + bankerInstructions }
     { message: '(siren) Go to Jail. Go directly to Jail. Do not pass GO, do not collect $200. (jail)', action: sendToJailCard }
-    # { message: 'Pay Hospital $100' + bankerInstructions }
-    # { message: 'Deran won second prize in a beauty contest. Collect $10' + bankerInstructions }
-    # { message: 'Grand Opera Opening. Collect $50 from every player for opening night seats' + bankerInstructions }
-    # { message: 'From sale of Workify you get $45' + bankerInstructions }
-    # { message: 'Doctor\'s Fee: pay $50' + bankerInstructions }
-    # { message: 'You are assessed for street repairs. $40 per house, $115 per hotel' + bankerInstructions }
-    # { message: 'Income Tax refund, collect $20' + bankerInstructions }
-    # { message: 'Bank Error in your favor, collect $200' + bankerInstructions }
-    # { message: 'Advance to GO, collect $200. (go)', action: goToLocation, value: 0 }
-    # { message: 'Life Insurance matures, collect $100' + bankerInstructions }
-    # { message: 'Pay school tax of $150' + bankerInstructions }
-    # { message: 'You inherit $100' + bankerInstructions }
-    # { message: 'Receive for services $25' + bankerInstructions }
+    { message: 'Pay Hospital $100' + bankerInstructions }
+    { message: 'Deran won second prize in a beauty contest. Collect $10' + bankerInstructions }
+    { message: 'Grand Opera Opening. Collect $50 from every player for opening night seats' + bankerInstructions }
+    { message: 'From sale of Workify you get $45' + bankerInstructions }
+    { message: 'Doctor\'s Fee: pay $50' + bankerInstructions }
+    { message: 'You are assessed for street repairs. $40 per house, $115 per hotel' + bankerInstructions }
+    { message: 'Income Tax refund, collect $20' + bankerInstructions }
+    { message: 'Bank Error in your favor, collect $200' + bankerInstructions }
+    { message: 'Advance to GO, collect $200. (go)', action: goToLocation, value: 0 }
+    { message: 'Life Insurance matures, collect $100' + bankerInstructions }
+    { message: 'Pay school tax of $150' + bankerInstructions }
+    { message: 'You inherit $100' + bankerInstructions }
+    { message: 'Receive for services $25' + bankerInstructions }
     { message: 'GET OUT OF JAIL FREE. This card may be kept until needed, or sold.', action: assignJailCard, value: 'monopolyCommunityChestJailOwner' }
   ]
