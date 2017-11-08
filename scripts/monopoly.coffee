@@ -20,7 +20,6 @@
 #   hsbot monopoly set scale factor number
 #
 # TODO:
-# * only respond in Monopoly room
 # - admin commands to manually update the brain variables
 # - Buy houses/hotels (limited to 32)
 # - Sell houses/hotels
