@@ -10,6 +10,8 @@
 #   hsbot monopoly sold (delta city|gotham|dmz|monterrey|houston|dallas) amount
 #   hsbot monopoly status
 #   hsbot monopoly details propertyName
+#   hsbot monopoly mortgage propertyName
+#   hsbot monopoly unmortgage propertyName
 #   hsbot monopoly build propertyName
 #   hsbot monopoly unbuild propertyName
 #   hsbot monopoly jail pay
@@ -24,8 +26,6 @@
 #
 # TODO:
 # - admin commands to manually update the brain variables
-# - mortgage property (and no rent while mortgaged; houses sold off at half price)
-# - unmortgage property (pay back mortgaged value + 60)
 # - Sell back property to the bank (half cost), can't have houses on any of that color
 # - Bankruptcy (transfer to new owner, pay 10% for mortgages, sell back houses/hotels)
 # - Bankrupt to the bank; auction off properties
@@ -247,6 +247,9 @@ module.exports = (robot) ->
       if !owner
         msg.send 'This property is available. Buy it for $' + data[player.location].cost + '? ("hsbot monopoly buy" or "hsbot monopoly auction")'
         robot.brain.set 'monopolyTurnState', 'buy'
+      else if data[player.location].mortgaged
+        msg.send 'This property is mortgaged. Your stay is free! "hsbot monopoly roll"'
+        setNextPlayer()
       else
         railroadSet = [5, 15, 25, 35]
         utilitySet = [12, 28]
@@ -373,6 +376,18 @@ module.exports = (robot) ->
     else
       false
 
+  checkIfCanSell = (data, propertyIndex) ->
+    if data[propertyIndex].monopoly && data[propertyIndex].houses > 0
+      currentHouses = data[propertyIndex].houses
+      canSell = true
+      for group in monopolyGroups
+        if _.contains(group, propertyIndex)
+          for index in group
+            if currentHouses < data[index].houses then canSell = false
+      return canSell
+    else
+      false
+
   build = (data, propertyIndex, msg) ->
     totalHouses = robot.brain.get 'monopolyHouses'
     totalHotels = robot.brain.get 'monopolyHotels'
@@ -430,6 +445,8 @@ module.exports = (robot) ->
       \thsbot monopoly details propertyName - lists the details/prices on the property card\n
       \thsbot monopoly build propertyName - if part of a monopoly, builds a house or hotel\n
       \thsbot monopoly unbuild propertyName - if part of a monopoly, sells a house or hotel for half value\n
+      \thsbot monopoly mortgage propertyName - mortgages a property\n
+      \thsbot monopoly unmortgage propertyName - unmortgages a property at value + 10%\n
       \thsbot monopoly status - who owns what, where they are, and whose turn it is\n
       \thsbot monopoly jail pay - way to get out of jail\n
       \thsbot monopoly jail roll - way to attempt to get out of jail\n
@@ -527,7 +544,7 @@ module.exports = (robot) ->
           robot.brain.set 'monopolyTurnState', 'roll'
           setNextPlayer()
 
-  robot.respond /monopoly update ([a-zA-Z &-]+) (Delta City|Gotham|DMZ|Monterrey|Houston|Dallas)$/i, (msg) ->
+  robot.respond /monopoly update ([a-z &-]+) (Delta City|Gotham|DMZ|Monterrey|Houston|Dallas)$/i, (msg) ->
     if _.contains(allowedRooms, msg.envelope.room)
       data = robot.brain.get 'monopolyBoard'
       players = robot.brain.get 'monopolyPlayers'
@@ -546,13 +563,13 @@ module.exports = (robot) ->
           updateThisProperty(data, players, propertyIndex, ownerIndex)
           msg.send data[propertyIndex].name + ' has been transferred to ' + players[ownerIndex].name + '.'
 
-  robot.respond /monopoly build ([a-zA-Z &-]+)$/i, (msg) ->
+  robot.respond /monopoly build ([a-z &-]+)$/i, (msg) ->
     if _.contains(allowedRooms, msg.envelope.room)
       data = robot.brain.get 'monopolyBoard'
       propertyName = msg.match[1]
       if data
         propertyIndex = _.findIndex(data, (property) => property.name.toLowerCase() == propertyName.toLowerCase())
-        if data[propertyIndex].monopoly
+        if propertyIndex > -1 && data[propertyIndex].monopoly
           if checkIfCanBuild(data, propertyIndex)
             build(data, propertyIndex, msg)
           else if data[propertyIndex].houses == 5
@@ -562,18 +579,53 @@ module.exports = (robot) ->
         else
           msg.send 'You can only build on properties that are part of a monopoly.'
 
-  robot.respond /monopoly unbuild ([a-zA-Z &-]+)$/i, (msg) ->
+  robot.respond /monopoly unbuild ([a-z &-]+)$/i, (msg) ->
     if _.contains(allowedRooms, msg.envelope.room)
       data = robot.brain.get 'monopolyBoard'
       propertyName = msg.match[1]
       if data
         propertyIndex = _.findIndex(data, (property) => property.name.toLowerCase() == propertyName.toLowerCase())
-        if data[propertyIndex].houses > 0
-          removeHouse(data, propertyIndex, msg)
+        if propertyIndex > -1 && data[propertyIndex].houses > 0
+          if checkIfCanSell(data, propertyIndex)
+            removeHouse(data, propertyIndex, msg)
+          else
+            msg.send 'You have to unbuild evenly on your monopoly. Sell your other buildings first.'
         else
           msg.send 'There aren\'t any houses built here.'
 
-  robot.respond /monopoly details ([a-zA-Z &-]+)$/i, (msg) ->
+  robot.respond /monopoly mortgage ([a-z &-]+)$/i, (msg) ->
+    if _.contains(allowedRooms, msg.envelope.room)
+      data = robot.brain.get 'monopolyBoard'
+      propertyName = msg.match[1]
+      if data
+        propertyIndex = _.findIndex(data, (property) => property.name.toLowerCase() == propertyName.toLowerCase())
+        if propertyIndex > -1
+          property = data[propertyIndex]
+          if property.mortgaged
+            msg.send 'This property is already mortaged!'
+          else if property.houses > 0
+            msg.send 'You need to sell your buildings first. "hsbot monopoly unbuild ' + property.name + '"'
+          else
+            property.mortgaged = true
+            robot.brain.set 'monopolyBoard', data
+            msg.send property.owner + ' mortgaged ' + property.name + ', collect $' + property.mortgage + bankerInstructions
+
+  robot.respond /monopoly unmortgage ([a-z &-]+)$/i, (msg) ->
+    if _.contains(allowedRooms, msg.envelope.room)
+      data = robot.brain.get 'monopolyBoard'
+      propertyName = msg.match[1]
+      if data
+        propertyIndex = _.findIndex(data, (property) => property.name.toLowerCase() == propertyName.toLowerCase())
+        if propertyIndex > -1
+          property = data[propertyIndex]
+          if property.mortgaged
+            property.mortgaged = false
+            robot.brain.set 'monopolyBoard', data
+            msg.send property.owner + ' unmortgaged ' + property.name + ', pay $' + Math.round(property.mortgage * 1.1) + bankerInstructions
+          else
+            msg.send 'This property isn\'t mortgaged. (smh)'
+
+  robot.respond /monopoly details ([a-z &-]+)$/i, (msg) ->
     data = robot.brain.get 'monopolyBoard'
     if data
       match = _.find(data, (property) => property.name.toLowerCase() == msg.match[1].toLowerCase())
@@ -710,7 +762,7 @@ module.exports = (robot) ->
             if property.houses != 1 then plural = 's'
             playerSummary += ' (monopoly, ' + property.houses + ' house' + plural + ') '
           if property.mortgaged
-            playerSummary += '(mortgaged)'
+            playerSummary += ' (mortgaged)'
         if !ownedProperties.length
           playerSummary += '0 properties'
         if jailChanceCardOwner == player.name
