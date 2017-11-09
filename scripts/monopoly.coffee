@@ -39,7 +39,7 @@
 _ = require 'underscore'
 
 bankerInstructions = '. Theme Team: once account is updated, "hsbot monopoly roll"'
-allowedRooms = ['Shell', '18483_monopoly@conf.hipchat.com']
+allowedRooms = ['Shell', 'monopoly']
 
 roll = () ->
   total = 0
@@ -455,7 +455,6 @@ module.exports = (robot) ->
       Game commands can only be used in the Monopoly room. Join in!'
 
   robot.respond /monopoly roll$/i, (msg) ->
-    console.log msg.envelope
     if _.contains(allowedRooms, msg.envelope.room)
       data = robot.brain.get 'monopolyBoard'
       playerIndex = robot.brain.get 'monopolyTurn'
