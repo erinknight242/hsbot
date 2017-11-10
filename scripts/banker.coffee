@@ -21,6 +21,7 @@ module.exports = (robot) ->
     _.find accounts, (account) => account.name.toLowerCase() == name.toLowerCase()
 
   robot.respond /bank help$/i, (msg) ->
+    msg.send msg.envelope.room
     msg.send '~Bank Help~\n
       \thsbot bank balance (teamName) - public command\n
       \thsbot bank transfer amount from teamName to teamName\n
