@@ -520,9 +520,9 @@ module.exports = (robot) ->
           msg.send 'Sorry, expecting ' + turnState + ' command.'
         else
           robot.brain.set 'monopolyTurnState', 'auction'
-          msg.send data[players[playerIndex].location].name + ' is up for sale! Discuss your bids below. Once the highest bid has been placed, end by e.g. "hsbot monopoly sold Dallas 150"'
+          msg.send data[players[playerIndex].location].name + ' is up for sale! Discuss your bids below. Once the highest bid has been placed, end by e.g. "hsbot monopoly sold to Dallas for 150"'
 
-  robot.respond /monopoly sold (delta city|gotham|dmz|monterrey|houston|dallas) \$*(\d+)$/i, (msg) ->
+  robot.respond /monopoly sold (to )?(delta city|gotham|dmz|monterrey|houston|dallas) (for )?\$*(\d+)$/i, (msg) ->
     if _.contains(allowedRooms, msg.envelope.room)
       data = robot.brain.get 'monopolyBoard'
       playerIndex = robot.brain.get 'monopolyTurn'
@@ -533,8 +533,8 @@ module.exports = (robot) ->
         if turnState != 'auction'
           msg.send 'Sorry, expecting ' + turnState + ' command.'
         else
-          buyerName = msg.match[1]
-          soldPrice = msg.match[2]
+          buyerName = msg.match[2]
+          soldPrice = msg.match[4]
 
           buyerIndex = _.findIndex(players, (player) ->
             player.name.toLowerCase() == buyerName.toLowerCase() 
