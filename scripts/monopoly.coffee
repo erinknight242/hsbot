@@ -746,37 +746,45 @@ module.exports = (robot) ->
     jailChanceCardOwner = robot.brain.get 'monopolyChanceJailOwner'
     jailCommunityChestCardOwner = robot.brain.get 'monopolyCommunityChestJailOwner'
     turnState = robot.brain.get 'monopolyTurnState'
+    accounts = robot.brain.get 'monopolyAccounts'
     playerSummary = ''
     playerLocations = ''
 
     if data
-      for player in players
-        ownedProperties = _.where(data, { owner: player.name })
-        playerSummary += "\n#{player.name} owns: "
-        locationName = data[player.location].name
-        if locationName == 'Visiting Jail' && player.inJail
-          playerLocations += "\n#{player.name} is in Jail"
-        else 
-          playerLocations += "\n#{player.name} is on #{locationName}"
-        for property in ownedProperties
-          playerSummary += "\n\t#{property.name}"
-          if property.houses == 5
-            playerSummary += ' (hotel) '
-          else if property.monopoly
-            plural = ''
-            if property.houses != 1 then plural = 's'
-            playerSummary += " (monopoly, #{property.houses} house#{plural}) "
-          if property.mortgaged
-            playerSummary += ' (mortgaged)'
-        if !ownedProperties.length
-          playerSummary += '0 properties'
-        if jailChanceCardOwner == player.name
-          playerSummary += '\n\tGet Out Of Jail Free (Chance)'
-        if jailCommunityChestCardOwner == player.name
-          playerSummary += '\n\tGet Out Of Jail Free (Community Chest)'
+      if players
+        for player in players
+          ownedProperties = _.where(data, { owner: player.name })
+          playerSummary += "\n#{player.name} owns: "
+          locationName = data[player.location].name
+          if locationName == 'Visiting Jail' && player.inJail
+            playerLocations += "\n#{player.name} is in Jail"
+          else 
+            playerLocations += "\n#{player.name} is on #{locationName}"
+          for property in ownedProperties
+            playerSummary += "\n\t#{property.name}"
+            if property.houses == 5
+              playerSummary += ' (hotel) '
+            else if property.monopoly
+              plural = ''
+              if property.houses != 1 then plural = 's'
+              playerSummary += " (monopoly, #{property.houses} house#{plural}) "
+            if property.mortgaged
+              playerSummary += ' (mortgaged)'
+          if !ownedProperties.length
+            playerSummary += '0 properties'
+          if jailChanceCardOwner == player.name
+            playerSummary += '\n\tGet Out Of Jail Free (Chance)'
+          if jailCommunityChestCardOwner == player.name
+            playerSummary += '\n\tGet Out Of Jail Free (Community Chest)'
 
       msg.send "Game Status:\n#{playerSummary}"
       
+      if accounts
+        accountSummary = ''
+        for account in accounts
+          accountSummary += "\n#{account.name}: $#{account.balance}"
+        msg.send "\nAccount Balances:#{accountSummary}"
+
       msg.send "\nCurrent Position:#{playerLocations}"
 
       msg.send "\nCurrent turn: #{players[playerIndex].name} #{turnState}"
