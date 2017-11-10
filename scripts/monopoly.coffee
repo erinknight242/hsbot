@@ -21,7 +21,7 @@
 #
 # Admin commands:
 #   hsbot monopoly start new game - starts a new game from scratch
-#   hsbot monopoly dump - rough dump of the Monopoly brain state
+#   hsbot monopoly dump log - rough dump of the Monopoly brain state
 #   hsbot monopoly set scale factor number
 #
 # TODO:
@@ -38,7 +38,7 @@
 
 _ = require 'underscore'
 
-bankerInstructions = '. Theme Team: once account is updated, "hsbot monopoly roll"'
+bankerInstructions = 'Theme Team: once account is updated, "hsbot monopoly roll"'
 allowedRooms = ['Shell', 'monopoly']
 
 roll = () ->
@@ -197,8 +197,7 @@ module.exports = (robot) ->
     if currentRoll.doubles
       doubles = ', **DOUBLES**! A'
     if !hideRollMessage
-      msg.send players[playerIndex].name + ' rolls ' + currentRoll.total +
-        doubles + 'dvances to ' + data[player.location].name + '.'
+      msg.send "#{players[playerIndex].name} rolls #{currentRoll.total}#{doubles}dvances to #{data[player.location].name}."
     if playerData.passedGo
       msg.send 'You passed GO, collect $200! (go)'
     
@@ -228,11 +227,11 @@ module.exports = (robot) ->
       setNextPlayer()
     else if player.location == 4
       # Income Tax
-      msg.send 'Stacy discovered you haven\'t submitted receipts for the past two months. Pay $200' + bankerInstructions
+      msg.send "Stacy discovered you haven't submitted receipts for the past two months. Pay $200. #{bankerInstructions}"
       setNextPlayer()
     else if player.location == 38
       # Luxury Tax
-      msg.send 'Vasudha needs a new pair of shoes. Pay $75' + bankerInstructions
+      msg.send "Vasudha needs a new pair of shoes. Pay $75. #{bankerInstructions}"
       setNextPlayer()
     else if player.location == 20
       # Free Parking (until money tracked in game, no bonus for Free Parking)
@@ -245,7 +244,7 @@ module.exports = (robot) ->
       owner = data[player.location].owner
       message = ''
       if !owner
-        msg.send 'This property is available. Buy it for $' + data[player.location].cost + '? ("hsbot monopoly buy" or "hsbot monopoly auction")'
+        msg.send "This property is available. Buy it for $#{data[player.location].cost}? (\"hsbot monopoly buy\" or \"hsbot monopoly auction\")"
         robot.brain.set 'monopolyTurnState', 'buy'
       else if data[player.location].mortgaged
         msg.send 'This property is mortgaged. Your stay is free! "hsbot monopoly roll"'
@@ -264,7 +263,7 @@ module.exports = (robot) ->
             when numberOwned == 2 then owes = 50
             when numberOwned == 3 then owes = 100
             when numberOwned == 4 then owes = 200
-          message = owner + ' owns ' + numberOwned + ' railroad'
+          message = "#{owner} owns #{numberOwned} railroad"
           if numberOwned == 1
             message += '. '
           else
@@ -276,10 +275,10 @@ module.exports = (robot) ->
             if data[utility].owner == owner
               numberOwned += 1
           owes = 4 * currentRoll.total
-          message = owner + ' owns 1 utilitity. '
+          message = "#{owner} owns 1 utilitity. "
           if numberOwned == 2
             owes = 10 * currentRoll.total
-            message = owner + ' owns 2 utilities. '
+            message = "#{owner} owns 2 utilities. "
         else
           owes = data[player.location].rent
           if data[player.location].houses
@@ -290,7 +289,7 @@ module.exports = (robot) ->
         if (data[player.location].owner == player.name)
           msg.send 'You own it! Enjoy your stay. "hsbot monopoly roll" to continue.'
         else
-          msg.send message + 'Pay ' + data[player.location].owner + ' $' + owes + bankerInstructions
+          msg.send "#{message}Pay #{data[player.location].owner} $#{owes}. #{bankerInstructions}"
         setNextPlayer()
 
   goToNearestUtility = (data, players, playerIndex, playerData, currentRoll, msg) ->
@@ -301,14 +300,14 @@ module.exports = (robot) ->
     currentOwner = data[current.location].owner
 
     if currentOwner == players[playerIndex].name
-      msg.send 'You own it! Enjoy your stay at ' + data[current.location].name
+      msg.send "You own it! Enjoy your stay at #{data[current.location].name}"
       setNextPlayer()
     else if currentOwner
       newRoll = roll()
-      msg.send 'You rolled ' + newRoll.total + '. Pay ' + currentOwner + ' $' + 10 * newRoll.total + bankerInstructions
+      msg.send "You rolled #{newRoll.total}. Pay #{currentOwner} $#{10 * newRoll.total}. #{bankerInstructions}"
       setNextPlayer()
     else
-      msg.send data[current.location].name + ' is available for sale. Send "hsbot monopoly buy" or "hsbot monopoly auction".'
+      msg.send "#{data[current.location].name} is available for sale. Send \"hsbot monopoly buy\" or \"hsbot monopoly auction\"."
       robot.brain.set 'monopolyTurnState', 'buy'
 
   assignJailCard = (data, players, playerIndex, playerData, currentRoll, msg, cardName) ->
@@ -335,7 +334,7 @@ module.exports = (robot) ->
     currentOwner = data[current.location].owner
 
     if currentOwner == players[playerIndex].name
-      msg.send 'You own it! Enjoy your ride on ' + data[current.location].name
+      msg.send "You own it! Enjoy your ride on #{data[current.location].name}"
       setNextPlayer()
     else if currentOwner
       railroadSet = [5, 15, 25, 35]
@@ -348,15 +347,15 @@ module.exports = (robot) ->
         when numberOwned == 2 then owes = 100
         when numberOwned == 3 then owes = 200
         when numberOwned == 4 then owes = 400
-      message = currentOwner + ' owns ' + numberOwned + ' railroad'
+      message = "#{currentOwner} owns #{numberOwned} railroad"
       if numberOwned == 1
         message += '. '
       else
         message += 's. '
-      msg.send message + 'Pay ' + currentOwner.name + ' $' + owes + bankerInstructions
+      msg.send "#{message}Pay #{currentOwner.name} $#{owes}. #{bankerInstructions}"
       setNextPlayer()
     else
-      msg.send data[current.location].name + ' is available for sale. Send "hsbot monopoly buy" or "hsbot monopoly auction".'
+      msg.send "#{data[current.location].name} is available for sale. Send \"hsbot monopoly buy\" or \"hsbot monopoly auction\"."
       robot.brain.set 'monopolyTurnState', 'buy'
 
   sendToJailCard = (data, players, playerIndex, playerData, currentRoll, msg) ->
@@ -414,7 +413,7 @@ module.exports = (robot) ->
         robot.brain.set 'monopolyHouses', totalHouses
     if added
       robot.brain.set 'monopolyBoard', data
-      msg.send property.owner + ' built a ' + type + ', pay $' + property.houseCost + bankerInstructions
+      msg.send "#{property.owner} built a #{type}, pay $#{property.houseCost}. #{bankerInstructions}"
 
   removeHouse = (data, propertyIndex, msg) ->
     totalHouses = robot.brain.get 'monopolyHouses'
@@ -433,7 +432,7 @@ module.exports = (robot) ->
         type = 'house'
         totalHouses -= 1
         robot.brain.set 'monopolyHouses', totalHouses
-      msg.send property.owner + ' sold a ' + type + ', collect $' + property.houseCost / 2 + bankerInstructions
+      msg.send "#{property.owner} sold a #{type}, collect $#{property.houseCost / 2}. #{bankerInstructions}"
 
   robot.respond /monopoly help$/i, (msg) ->
     msg.send '\n~ Monopoly Help ~\n
@@ -463,7 +462,7 @@ module.exports = (robot) ->
 
       if data
         if turnState != 'roll'
-          msg.send 'Sorry, expecting ' + turnState + ' command.'
+          msg.send "Sorry, expecting #{turnState} command."
         else if players[playerIndex].inJail
           robot.brain.set 'monopolyTurnState', 'jail'
           jailChanceCardOwner = robot.brain.get 'monopolyChanceJailOwner'
@@ -471,14 +470,14 @@ module.exports = (robot) ->
           cardOption = ''
           if _.contains([jailChanceCardOwner, jailCommunityChestCardOwner], players[playerIndex].name)
             cardOption = ', use your Get Out of Jail Free card with "hsbot monopoly jail card,"'
-          msg.send players[playerIndex].name + ', you\'re in jail. You can pay $50 with "hsbot monopoly jail pay"' + cardOption + ' or "hsbot monopoly jail roll" to try your luck.'
+          msg.send "#{players[playerIndex].name}, you're in jail. You can pay $50 with \"hsbot monopoly jail pay\"#{cardOption} or \"hsbot monopoly jail roll\" to try your luck."
         else
           # Roll dice for current player & update board
           currentRoll = roll()
           playerData = updatePlayer(players, playerIndex, currentRoll)
           player = playerData.current
           if player.doublesCount == 3
-            msg.send players[playerIndex].name + ' rolls ' + currentRoll.total + ', **DOUBLES**! Oh no! You rolled doubles 3 times. Go to Jail. (jail)'
+            msg.send "#{players[playerIndex].name} rolls #{currentRoll.total}, **DOUBLES**! Oh no! You rolled doubles 3 times. Go to Jail. (jail)"
             sendToJail(players, playerIndex)
             setNextPlayer()
           else
@@ -495,15 +494,15 @@ module.exports = (robot) ->
 
       if data
         if turnState != 'buy'
-          msg.send 'Sorry, expecting ' + turnState + ' command.'
+          msg.send "Sorry, expecting #{turnState} command."
         else
           owner = data[players[playerIndex].location].owner
           if owner
-            msg.send 'You can\'t buy ' + data[players[playerIndex].location].name + ', ' + owner + ' owns it. Try rolling instead.'
+            msg.send "You can't buy #{data[players[playerIndex].location].name}, #{owner} owns it. Try rolling instead."
           else if owner == undefined
-            msg.send 'You can\'t buy ' + data[players[playerIndex].location].name + ', try rolling instead.'
+            msg.send "You can't buy #{data[players[playerIndex].location].name}, try rolling instead."
           else
-            msg.send players[playerIndex].name  + ' pays the bank $' + data[players[playerIndex].location].cost + ' for ' +  data[players[playerIndex].location].name + bankerInstructions
+            msg.send "#{players[playerIndex].name} pays the bank $#{data[players[playerIndex].location].cost} for #{data[players[playerIndex].location].name}. #{bankerInstructions}"
             updateProperty(data, players, playerIndex, playerIndex)
             robot.brain.set 'monopolyTurnState', 'roll'
             setNextPlayer()
@@ -517,10 +516,10 @@ module.exports = (robot) ->
 
       if data
         if turnState != 'buy'
-          msg.send 'Sorry, expecting ' + turnState + ' command.'
+          msg.send "Sorry, expecting #{turnState} command."
         else
           robot.brain.set 'monopolyTurnState', 'auction'
-          msg.send data[players[playerIndex].location].name + ' is up for sale! Discuss your bids below. Once the highest bid has been placed, end by e.g. "hsbot monopoly sold to Dallas for 150"'
+          msg.send "#{data[players[playerIndex].location].name} is up for sale! Discuss your bids below. Once the highest bid has been placed, end by e.g. \"hsbot monopoly sold to Dallas for 150\""
 
   robot.respond /monopoly sold (to )?(delta city|gotham|dmz|monterrey|houston|dallas) (for )?\$*(\d+)$/i, (msg) ->
     if _.contains(allowedRooms, msg.envelope.room)
@@ -531,7 +530,7 @@ module.exports = (robot) ->
 
       if data
         if turnState != 'auction'
-          msg.send 'Sorry, expecting ' + turnState + ' command.'
+          msg.send "Sorry, expecting #{turnState} command."
         else
           buyerName = msg.match[2]
           soldPrice = msg.match[4]
@@ -539,7 +538,7 @@ module.exports = (robot) ->
           buyerIndex = _.findIndex(players, (player) ->
             player.name.toLowerCase() == buyerName.toLowerCase() 
           )
-          msg.send players[buyerIndex].name  + ' pays $' + soldPrice + ' for ' + data[players[playerIndex].location].name + bankerInstructions
+          msg.send "#{players[buyerIndex].name} pays $#{soldPrice} for #{data[players[playerIndex].location].name}. #{bankerInstructions}"
           updateProperty(data, players, playerIndex, buyerIndex)
           robot.brain.set 'monopolyTurnState', 'roll'
           setNextPlayer()
@@ -561,7 +560,7 @@ module.exports = (robot) ->
           msg.send 'No one owns that property! Someone must buy it first.'
         else
           updateThisProperty(data, players, propertyIndex, ownerIndex)
-          msg.send data[propertyIndex].name + ' has been transferred to ' + players[ownerIndex].name + '.'
+          msg.send "#{data[propertyIndex].name} has been transferred to #{players[ownerIndex].name}."
 
   robot.respond /monopoly build ([a-z &-]+)$/i, (msg) ->
     if _.contains(allowedRooms, msg.envelope.room)
@@ -608,7 +607,7 @@ module.exports = (robot) ->
           else
             property.mortgaged = true
             robot.brain.set 'monopolyBoard', data
-            msg.send property.owner + ' mortgaged ' + property.name + ', collect $' + property.mortgage + bankerInstructions
+            msg.send "#{property.owner} mortgaged #{property.name}, collect $#{property.mortgage}. #{bankerInstructions}"
 
   robot.respond /monopoly unmortgage ([a-z &-]+)$/i, (msg) ->
     if _.contains(allowedRooms, msg.envelope.room)
@@ -621,7 +620,7 @@ module.exports = (robot) ->
           if property.mortgaged
             property.mortgaged = false
             robot.brain.set 'monopolyBoard', data
-            msg.send property.owner + ' unmortgaged ' + property.name + ', pay $' + Math.round(property.mortgage * 1.1) + bankerInstructions
+            msg.send "#{property.owner} unmortgaged #{property.name}, pay $#{Math.round(property.mortgage * 1.1)}. #{bankerInstructions}"
           else
             msg.send 'This property isn\'t mortgaged. (smh)'
 
@@ -631,23 +630,23 @@ module.exports = (robot) ->
       match = _.find(data, (property) => property.name.toLowerCase() == msg.match[1].toLowerCase())
       if match
         message = match.name + '\n'
-        if match.cost then message += 'Cost: $' + match.cost + '\n'
-        if match.rent then message += 'Rent: $' + match.rent + '\n'
-        if match.house1 then message += 'Rent with 1 house: $' + match.house1 + '\n'
-        if match.house2 then message += 'Rent with 2 houses: $' + match.house2 + '\n'
-        if match.house3 then message += 'Rent with 3 houses: $' + match.house3 + '\n'
-        if match.house4 then message += 'Rent with 4 houses: $' + match.house4 + '\n'
-        if match.hotel then message += 'Rent with a hotel: $' + match.hotel + '\n'
-        if match.mortgage then message += 'Mortgage value: $' + match.mortgage + '\n'
-        if match.houseCost then message += 'Cost per house/hotel: $' + match.houseCost + '\n'
-        if match.owner then message += 'Owner: ' + match.owner + '\n'
-        if match.owner == null then message += 'Not currently owned\n'
-        if match.monopoly then message += 'Part of a Monopoly\n'
-        if match.monopoly && match.houses < 5 then message += 'Current houses: ' + match.houses + '\n'
-        if match.monopoly && match.houses == 5 then message += 'Hotel'
+        if match.cost then message += "Cost: $#{match.cost}\n"
+        if match.rent then message += "Rent: $#{match.rent}\n"
+        if match.house1 then message += "Rent with 1 house: $#{match.house1}\n"
+        if match.house2 then message += "Rent with 2 houses: $#{match.house2}\n"
+        if match.house3 then message += "Rent with 3 houses: $#{match.house3}\n"
+        if match.house4 then message += "Rent with 4 houses: $#{match.house4}\n"
+        if match.hotel then message += "Rent with a hotel: $#{match.hotel}\n"
+        if match.mortgage then message += "Mortgage value: $#{match.mortgage}\n"
+        if match.houseCost then message += "Cost per house/hotel: $#{match.houseCost}\n"
+        if match.owner then message += "Owner: #{match.owner}\n"
+        if match.owner == null then message += "Not currently owned\n"
+        if match.monopoly then message += "Part of a Monopoly\n"
+        if match.monopoly && match.houses < 5 then message += "Current houses: #{match.houses}\n"
+        if match.monopoly && match.houses == 5 then message += "Hotel"
         msg.send message
       else 
-        msg.send 'I don\'t know that property, check the spelling.'
+        msg.send "I don't know that property, check the spelling."
     else
       msg.send 'Start a game first!'
 
@@ -661,10 +660,10 @@ module.exports = (robot) ->
 
       if data
         if turnState != 'jail'
-          msg.send 'Sorry, expecting ' + turnState + ' command.'
+          msg.send "Sorry, expecting #{turnState} command."
         else
           freeFromJail(players, playerIndex)
-          msg.send players[playerIndex].name + ' pays $50 to exit jail' + bankerInstructions
+          msg.send "#{players[playerIndex].name} pays $50 to exit jail. #{bankerInstructions}"
           robot.brain.set 'monopolyTurnState', 'roll'
 
   robot.respond /monopoly jail roll$/i, (msg) ->
@@ -676,19 +675,19 @@ module.exports = (robot) ->
 
       if data
         if turnState != 'jail'
-          msg.send 'Sorry, expecting ' + turnState + ' command.'
+          msg.send "Sorry, expecting #{turnState} command."
         else
           currentRoll = roll()
           jailRolls = updatePlayerInJail(players, playerIndex, currentRoll)
           if currentRoll.doubles
-            msg.send 'You rolled ' + currentRoll.total + ', **DOUBLES**! You are free!'
+            msg.send "You rolled #{currentRoll.total}, **DOUBLES**! You are free!"
             playTurn(data, players, playerIndex, { current: players[playerIndex], passedGo: false }, { total: currentRoll.total, doubles: false }, msg)
           else if jailRolls < 3
-            msg.send 'You rolled ' + currentRoll.total + ', not doubles. Better luck next time.'
+            msg.send "You rolled #{currentRoll.total}, not doubles. Better luck next time."
             robot.brain.set 'monopolyTurnState', 'roll'
             setNextPlayer()
           else if jailRolls == 3
-            msg.send 'You rolled ' + currentRoll.total + ', not doubles. Pay $50 to exit jail. Theme Team, once account is updated, "hsbot monopoly continue"'
+            msg.send "You rolled #{currentRoll.total}, not doubles. Pay $50 to exit jail. Theme Team, once account is updated, \"hsbot monopoly continue\""
             robot.brain.set 'jailRoll', currentRoll.total
             robot.brain.set 'monopolyTurnState', 'continue'
 
@@ -701,7 +700,7 @@ module.exports = (robot) ->
 
       if data
         if turnState != 'continue'
-          msg.send 'Sorry, expecting ' + turnState + ' command.'
+          msg.send "Sorry, expecting #{turnState} command."
         else
           rollTotal = robot.brain.get 'jailRoll'
           advancePlayer(players, playerIndex, rollTotal)
@@ -722,7 +721,7 @@ module.exports = (robot) ->
           msg.send 'Sorry, expecting ' + turnState + ' command.'
         else if _.contains([jailChanceCardOwner, jailCommunityChestCardOwner], players[playerIndex].name) && players[playerIndex].inJail
           freeFromJail(players, playerIndex)
-          msg.send 'You\'re free!'
+          msg.send "You're free!"
           if jailChanceCardOwner == players[playerIndex].name
             robot.brain.set 'monopolyChanceJailOwner', null
           else if jailCommunityChestCardOwner == players[playerIndex].name
@@ -747,20 +746,20 @@ module.exports = (robot) ->
     if data
       for player in players
         ownedProperties = _.where(data, { owner: player.name })
-        playerSummary += '\n' + player.name + ' owns: '
+        playerSummary += "\n#{player.name} owns: "
         locationName = data[player.location].name
         if locationName == 'Visiting Jail' && player.inJail
-          playerLocations += '\n' + player.name + ' is in Jail'
+          playerLocations += "\n#{player.name} is in Jail"
         else 
-          playerLocations += '\n' + player.name + ' is on ' + locationName
+          playerLocations += "\n#{player.name} is on #{locationName}"
         for property in ownedProperties
-          playerSummary += '\n\t' + property.name
+          playerSummary += "\n\t#{property.name}"
           if property.houses == 5
             playerSummary += ' (hotel) '
           else if property.monopoly
             plural = ''
             if property.houses != 1 then plural = 's'
-            playerSummary += ' (monopoly, ' + property.houses + ' house' + plural + ') '
+            playerSummary += " (monopoly, #{property.houses} house#{plural}) "
           if property.mortgaged
             playerSummary += ' (mortgaged)'
         if !ownedProperties.length
@@ -770,11 +769,11 @@ module.exports = (robot) ->
         if jailCommunityChestCardOwner == player.name
           playerSummary += '\n\tGet Out Of Jail Free (Community Chest)'
 
-      msg.send 'Game Status:\n' + playerSummary
+      msg.send "Game Status:\n#{playerSummary}"
       
-      msg.send '\nCurrent Position:' + playerLocations
+      msg.send "\nCurrent Position:#{playerLocations}"
 
-      msg.send '\nCurrent turn: ' + players[playerIndex].name + ' ' + turnState
+      msg.send "\nCurrent turn: #{players[playerIndex].name} #{turnState}"
     else
       msg.send 'No game in progress.'
 
@@ -804,7 +803,7 @@ module.exports = (robot) ->
     msg.send 'Game is up! "hsbot monopoly roll" to begin.'
 
   # undocumented until this is prettier
-  robot.respond /monopoly dump$/i, (msg) ->
+  robot.respond /monopoly dump log$/i, (msg) ->
     console.log 'Board:\n', robot.brain.get 'monopolyBoard'
     console.log 'Players:\n', robot.brain.get 'monopolyPlayers'
     console.log 'Current Turn:\n', robot.brain.get 'monopolyTurn'
@@ -895,41 +894,41 @@ module.exports = (robot) ->
   ]
 
   chanceCards = [
-    { message: 'Advance token to nearest utility. If unowned, you may buy it from the bank. If owned, throw dice and pay owner 10 times the amount thrown.', action: goToNearestUtility }
-    { message: 'GET OUT OF JAIL FREE. This card may be kept until needed, or sold.', action: assignJailCard, value: 'monopolyChanceJailOwner' }
-    { message: 'Take a Ride on the Austin Railroad. If you pass GO, collect $200' + bankerInstructions, action: goToLocation, value: 5 }
-    { message: 'Kathy pays you dividend of $50' + bankerInstructions }
-    { message: 'Go back 3 spaces', action: goBackThree }
-    { message: 'Make general repairs on all of your property. For each house, pay $25. For each hotel, $100' + bankerInstructions }
-    { message: 'Late to the Monday Morning Meeting. Pay $15' + bankerInstructions }
-    { message: 'Take a walk on the boardwalk. Advance token to SLTX.', action: goToLocation, value: 39 }
-    { message: 'Advance token to Jabil Place. If you pass GO, collect $200.', action: goToLocation, value: 11 }
-    { message: 'Advance token to the nearest Railroad and pay owner twice the rental to which they are otherwise entitled. If Railroad is unowned, you may buy it from the bank.', action: goToNearestRailroad }
-    { message: 'Your building and loan matures, collect $150' + bankerInstructions }
-    { message: 'Advance to Yeti Avenue.', action: goToLocation, value: 24 }
-    { message: 'Advance token to the nearest Railroad and pay owner twice the rental to which they are otherwise entitled. If Railroad is unowned, you may buy it from the bank.', action: goToNearestRailroad }
-    { message: 'Advance to GO. Collect $200. (go)', action: goToLocation, value: 0 }
-    { message: 'You have been elected Chairman of the Startup Games. Pay each player $50' + bankerInstructions }
-    { message: '(siren) Go directly TO JAIL. Do not pass GO, do not collect $200. (jail)', action: sendToJailCard }
+    { message: "Advance token to nearest utility. If unowned, you may buy it from the bank. If owned, throw dice and pay owner 10 times the amount thrown.", action: goToNearestUtility }
+    { message: "GET OUT OF JAIL FREE. This card may be kept until needed, or sold.", action: assignJailCard, value: 'monopolyChanceJailOwner' }
+    { message: "Take a Ride on the Austin Railroad. If you pass GO, collect $200. #{bankerInstructions}", action: goToLocation, value: 5 }
+    { message: "Kathy pays you dividend of $50. #{bankerInstructions}" }
+    { message: "Go back 3 spaces", action: goBackThree }
+    { message: "Make general repairs on all of your property. For each house, pay $25. For each hotel, $100. #{bankerInstructions}" }
+    { message: "Late to the Monday Morning Meeting. Pay $15. #{bankerInstructions}" }
+    { message: "Take a walk on the boardwalk. Advance token to SLTX.", action: goToLocation, value: 39 }
+    { message: "Advance token to Jabil Place. If you pass GO, collect $200.", action: goToLocation, value: 11 }
+    { message: "Advance token to the nearest Railroad and pay owner twice the rental to which they are otherwise entitled. If Railroad is unowned, you may buy it from the bank.", action: goToNearestRailroad }
+    { message: "Your building and loan matures, collect $150. #{bankerInstructions}" }
+    { message: "Advance to Yeti Avenue.", action: goToLocation, value: 24 }
+    { message: "Advance token to the nearest Railroad and pay owner twice the rental to which they are otherwise entitled. If Railroad is unowned, you may buy it from the bank.", action: goToNearestRailroad }
+    { message: "Advance to GO. Collect $200. (go)", action: goToLocation, value: 0 }
+    { message: "You have been elected Chairman of the Startup Games. Pay each player $50. #{bankerInstructions}" }
+    { message: "(siren) Go directly TO JAIL. Do not pass GO, do not collect $200. (jail)", action: sendToJailCard }
   ]
 
   communityChestCards = [
-    { message: 'Xmas fund matures, collect $100' + bankerInstructions }
-    { message: '(siren) Go to Jail. Go directly to Jail. Do not pass GO, do not collect $200. (jail)', action: sendToJailCard }
-    { message: 'Pay Hospital $100' + bankerInstructions }
-    { message: 'Deran won second prize in a beauty contest. Collect $10' + bankerInstructions }
-    { message: 'Grand Opera Opening. Collect $50 from every player for opening night seats' + bankerInstructions }
-    { message: 'From sale of Workify you get $45' + bankerInstructions }
-    { message: 'Doctor\'s Fee: pay $50' + bankerInstructions }
-    { message: 'You are assessed for street repairs. $40 per house, $115 per hotel' + bankerInstructions }
-    { message: 'Income Tax refund, collect $20' + bankerInstructions }
-    { message: 'Bank Error in your favor, collect $200' + bankerInstructions }
-    { message: 'Advance to GO, collect $200. (go)', action: goToLocation, value: 0 }
-    { message: 'Life Insurance matures, collect $100' + bankerInstructions }
-    { message: 'Pay school tax of $150' + bankerInstructions }
-    { message: 'You inherit $100' + bankerInstructions }
-    { message: 'Receive for services $25' + bankerInstructions }
-    { message: 'GET OUT OF JAIL FREE. This card may be kept until needed, or sold.', action: assignJailCard, value: 'monopolyCommunityChestJailOwner' }
+    { message: "Xmas fund matures, collect $100. #{bankerInstructions}" }
+    { message: "(siren) Go to Jail. Go directly to Jail. Do not pass GO, do not collect $200. (jail)", action: sendToJailCard }
+    { message: "Pay Hospital $100. #{bankerInstructions}" }
+    { message: "Deran won second prize in a beauty contest. Collect $10. #{bankerInstructions}" }
+    { message: "Grand Opera Opening. Collect $50 from every player for opening night seats. #{bankerInstructions}" }
+    { message: "From sale of Workify you get $45. #{bankerInstructions}" }
+    { message: "Doctor's Fee: pay $50. #{bankerInstructions}" }
+    { message: "You are assessed for street repairs. $40 per house, $115 per hotel. #{bankerInstructions}" }
+    { message: "Income Tax refund, collect $20. #{bankerInstructions}" }
+    { message: "Bank Error in your favor, collect $200. #{bankerInstructions}" }
+    { message: "Advance to GO, collect $200. (go)", action: goToLocation, value: 0 }
+    { message: "Life Insurance matures, collect $100. #{bankerInstructions}" }
+    { message: "Pay school tax of $150. #{bankerInstructions}" }
+    { message: "You inherit $100. #{bankerInstructions}" }
+    { message: "Receive for services $25. #{bankerInstructions}" }
+    { message: "GET OUT OF JAIL FREE. This card may be kept until needed, or sold.", action: assignJailCard, value: 'monopolyCommunityChestJailOwner' }
   ]
 
   monopolyGroups = [
