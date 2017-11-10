@@ -9,6 +9,7 @@
 #   hsbot monopoly update propertyName (delta city|gotham|dmz|monterrey|houston|dallas)
 #   hsbot monopoly sold (delta city|gotham|dmz|monterrey|houston|dallas) amount
 #   hsbot monopoly status
+#   hsbot monopoly board
 #   hsbot monopoly details propertyName
 #   hsbot monopoly mortgage propertyName
 #   hsbot monopoly unmortgage propertyName
@@ -40,6 +41,7 @@ _ = require 'underscore'
 
 bankerInstructions = '. Theme Team: once account is updated, "hsbot monopoly roll"'
 allowedRooms = ['Shell', 'monopoly']
+boardImage = 'https://i.imgur.com/2vyzOVR.png'
 
 roll = () ->
   total = 0
@@ -437,6 +439,7 @@ module.exports = (robot) ->
 
   robot.respond /monopoly help$/i, (msg) ->
     msg.send '\n~ Monopoly Help ~\n
+      \thsbot monopoly board - Static image of the game board
       \thsbot monopoly roll - If you aren\'t sure what to do, try this one\n
       \thsbot monopoly buy - action for an unowned property\n
       \thsbot monopoly auction - action for an unowned property\n
@@ -453,6 +456,9 @@ module.exports = (robot) ->
       \thsbot monopoly jail card - if you\'re lucky enough to have one of these to get out of jail\n
       \thsbot monopoly continue - after jail rolls failed and you have to pay anyway\n\n
       Game commands can only be used in the Monopoly room. Join in!'
+
+  robot.respond /monopoly board$/i, (msg) ->
+    msg.send boardImage
 
   robot.respond /monopoly roll$/i, (msg) ->
     if _.contains(allowedRooms, msg.envelope.room)
