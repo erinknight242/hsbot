@@ -102,6 +102,10 @@ module.exports = (robot) ->
     robot.brain.set 'monopolyTurn', turn
     turn
 
+    playerIndex = robot.brain.get 'monopolyTurn'
+    turnState = robot.brain.get 'monopolyTurnState'
+    robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, "\nCurrent turn is now: #{players[playerIndex].name} #{turnState}"
+
   updatePlayerInJail = (players, playerIndex, roll) ->
     current = players[playerIndex]
 
@@ -176,6 +180,20 @@ module.exports = (robot) ->
     currentIndex = players[playerIndex].location
     updateThisProperty(board, players, currentIndex, buyerIndex)
 
+  getAccount = (name, accounts) ->
+    _.find accounts, (account) => account.name.toLowerCase() == name.toLowerCase()
+
+  updatePlayerAccount = (player, amount) ->
+    accounts = robot.brain.get 'monopolyAccounts'
+    account = getAccount(player, accounts)
+    if account
+      balance = parseInt account.balance
+      if balance > amount
+        balance -= amount
+        account.balance = balance
+        robot.brain.set 'monopolyAccounts', accounts
+        robot.messageRoom process.env.HUBOT_ROOM_ADMIN_MONOPOLY, "$#{amount} subtracted from #{account.name}."
+
   sendToJail = (players, playerIndex) ->
     players[playerIndex].location = 10
     players[playerIndex].inJail = true
@@ -230,10 +248,12 @@ module.exports = (robot) ->
     else if player.location == 4
       # Income Tax
       msg.send "Stacy discovered you haven't submitted receipts for the past two months. Pay $200. #{bankerInstructions}"
+      updatePlayerAccount(player.name, 200)
       setNextPlayer()
     else if player.location == 38
       # Luxury Tax
       msg.send "Vasudha needs a new pair of shoes. Pay $75. #{bankerInstructions}"
+      updatePlayerAccount(player.name, 75)
       setNextPlayer()
     else if player.location == 20
       # Free Parking (until money tracked in game, no bonus for Free Parking)
@@ -508,7 +528,10 @@ module.exports = (robot) ->
           else if owner == undefined
             msg.send "You can't buy #{data[players[playerIndex].location].name}, try rolling instead."
           else
-            msg.send "#{players[playerIndex].name} pays the bank $#{data[players[playerIndex].location].cost} for #{data[players[playerIndex].location].name}. #{bankerInstructions}"
+            player = players[playerIndex].name
+            amount = data[players[playerIndex].location].cost
+            msg.send "#{player} pays the bank $#{amount} for #{data[players[playerIndex].location].name}. #{bankerInstructions}"
+            updatePlayerAccount(player, amount)
             updateProperty(data, players, playerIndex, playerIndex)
             robot.brain.set 'monopolyTurnState', 'roll'
             setNextPlayer()
@@ -544,7 +567,10 @@ module.exports = (robot) ->
           buyerIndex = _.findIndex(players, (player) ->
             player.name.toLowerCase() == buyerName.toLowerCase() 
           )
+
+          player = players[buyerIndex].name
           msg.send "#{players[buyerIndex].name} pays $#{soldPrice} for #{data[players[playerIndex].location].name}. #{bankerInstructions}"
+          updatePlayerAccount(player, soldPrice)
           updateProperty(data, players, playerIndex, buyerIndex)
           robot.brain.set 'monopolyTurnState', 'roll'
           setNextPlayer()
