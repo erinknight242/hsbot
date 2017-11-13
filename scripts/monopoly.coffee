@@ -249,10 +249,12 @@ module.exports = (robot) ->
     else if player.location == 4
       # Income Tax
       msg.send "Stacy discovered you haven't submitted receipts for the past two months. Pay $200. #{bankerInstructions}"
+      updatePlayerAccount(player.name, 200)
       setNextPlayer()
     else if player.location == 38
       # Luxury Tax
       msg.send "Vasudha needs a new pair of shoes. Pay $75. #{bankerInstructions}"
+      updatePlayerAccount(player.name, 75)
       setNextPlayer()
     else if player.location == 20
       # Free Parking (until money tracked in game, no bonus for Free Parking)
