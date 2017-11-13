@@ -566,7 +566,10 @@ module.exports = (robot) ->
           buyerIndex = _.findIndex(players, (player) ->
             player.name.toLowerCase() == buyerName.toLowerCase() 
           )
+
+          player = players[buyerIndex].name
           msg.send "#{players[buyerIndex].name} pays $#{soldPrice} for #{data[players[playerIndex].location].name}. #{bankerInstructions}"
+          updatePlayerAccount(player, soldPrice)
           updateProperty(data, players, playerIndex, buyerIndex)
           robot.brain.set 'monopolyTurnState', 'roll'
           setNextPlayer()
