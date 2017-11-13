@@ -176,6 +176,20 @@ module.exports = (robot) ->
     currentIndex = players[playerIndex].location
     updateThisProperty(board, players, currentIndex, buyerIndex)
 
+  getAccount = (name, accounts) ->
+    _.find accounts, (account) => account.name.toLowerCase() == name.toLowerCase()
+
+  updatePlayerAccount = (player, amount) ->
+    accounts = robot.brain.get 'monopolyAccounts'
+    account = getAccount(player, accounts)
+    if account
+      balance = parseInt account.balance
+      if balance > amount
+        balance -= amount
+        account.balance = balance
+        robot.brain.set 'monopolyAccounts', accounts
+        robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, "$#{amount} subtracted from #{account.name}."
+
   sendToJail = (players, playerIndex) ->
     players[playerIndex].location = 10
     players[playerIndex].inJail = true
@@ -508,7 +522,10 @@ module.exports = (robot) ->
           else if owner == undefined
             msg.send "You can't buy #{data[players[playerIndex].location].name}, try rolling instead."
           else
-            msg.send "#{players[playerIndex].name} pays the bank $#{data[players[playerIndex].location].cost} for #{data[players[playerIndex].location].name}. #{bankerInstructions}"
+            player = players[playerIndex].name
+            amount = data[players[playerIndex].location].cost
+            msg.send "#{player} pays the bank $#{amount} for #{data[players[playerIndex].location].name}. #{bankerInstructions}"
+            updatePlayerAccount(player, amount)
             updateProperty(data, players, playerIndex, playerIndex)
             robot.brain.set 'monopolyTurnState', 'roll'
             setNextPlayer()
