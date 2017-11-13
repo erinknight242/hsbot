@@ -192,7 +192,6 @@ module.exports = (robot) ->
         balance -= amount
         account.balance = balance
         robot.brain.set 'monopolyAccounts', accounts
-        robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, "$#{amount} subtracted from #{account.name}."
         robot.messageRoom process.env.HUBOT_ROOM_ADMIN_MONOPOLY, "$#{amount} subtracted from #{account.name}."
 
   sendToJail = (players, playerIndex) ->
