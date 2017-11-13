@@ -100,11 +100,11 @@ module.exports = (robot) ->
     if (turn == players.length)
       turn = 0
     robot.brain.set 'monopolyTurn', turn
-    turn
 
     playerIndex = robot.brain.get 'monopolyTurn'
     turnState = robot.brain.get 'monopolyTurnState'
     robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, "\nCurrent turn is now: #{players[playerIndex].name} #{turnState}"
+    turn
 
   updatePlayerInJail = (players, playerIndex, roll) ->
     current = players[playerIndex]
