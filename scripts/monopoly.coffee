@@ -100,11 +100,11 @@ module.exports = (robot) ->
     if (turn == players.length)
       turn = 0
     robot.brain.set 'monopolyTurn', turn
-    turn
 
     playerIndex = robot.brain.get 'monopolyTurn'
     turnState = robot.brain.get 'monopolyTurnState'
     robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, "\nCurrent turn is now: #{players[playerIndex].name} #{turnState}"
+    turn
 
   updatePlayerInJail = (players, playerIndex, roll) ->
     current = players[playerIndex]
@@ -188,11 +188,13 @@ module.exports = (robot) ->
     account = getAccount(player, accounts)
     if account
       balance = parseInt account.balance
+      oldBalance = balance
       if balance > amount
         balance -= amount
+        newBalance = balance
         account.balance = balance
         robot.brain.set 'monopolyAccounts', accounts
-        robot.messageRoom process.env.HUBOT_ROOM_ADMIN_MONOPOLY, "$#{amount} subtracted from #{account.name}."
+        robot.messageRoom process.env.HUBOT_ROOM_ADMIN_MONOPOLY, "#{account.name} account updated from #{oldBalance} to #{newBalance}."
 
   sendToJail = (players, playerIndex) ->
     players[playerIndex].location = 10
