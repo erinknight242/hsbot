@@ -194,7 +194,7 @@ module.exports = (robot) ->
         newBalance = balance
         account.balance = balance
         robot.brain.set 'monopolyAccounts', accounts
-        robot.messageRoom process.env.HUBOT_ROOM_ADMIN_MONOPOLY, "#{account.name} account updated from #{oldBalance} to #{newBalance}."
+        robot.messageRoom process.env.HUBOT_ROOM_ADMIN_MONOPOLY, "#{account.name} account updated from $#{oldBalance} to $#{newBalance}."
 
   sendToJail = (players, playerIndex) ->
     players[playerIndex].location = 10
