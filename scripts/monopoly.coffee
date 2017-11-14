@@ -92,7 +92,7 @@ module.exports = (robot) ->
     deck: cards
     drawnCardIndex: drawnCardIndex
 
-  setNextPlayer = () -> 
+  setNextPlayer = (msg) ->
     players = robot.brain.get 'monopolyPlayers'
     turn = robot.brain.get 'monopolyTurn'
     if !players[turn].doubles
@@ -103,7 +103,7 @@ module.exports = (robot) ->
 
     playerIndex = robot.brain.get 'monopolyTurn'
     turnState = robot.brain.get 'monopolyTurnState'
-    robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, "\nCurrent turn is now: #{players[playerIndex].name} #{turnState}"
+    msg.send "\nCurrent turn is now: #{players[playerIndex].name} #{turnState}"
     turn
 
   updatePlayerInJail = (players, playerIndex, roll) ->
@@ -231,7 +231,7 @@ module.exports = (robot) ->
       if communityChestCards[cardIndex].action
         communityChestCards[cardIndex].action(data, players, playerIndex, playerData, currentRoll, msg, communityChestCards[cardIndex].value)
       else
-        setNextPlayer()
+        setNextPlayer(msg)
     else if _.contains([7, 22, 36], player.location)
       # Chance
       cardIndex = drawCard('monopolyChance')
@@ -239,31 +239,31 @@ module.exports = (robot) ->
       if chanceCards[cardIndex].action
         chanceCards[cardIndex].action(data, players, playerIndex, playerData, currentRoll, msg, chanceCards[cardIndex].value)
       else
-        setNextPlayer()
+        setNextPlayer(msg)
     else if player.location == 0
       # Go
-      setNextPlayer()
+      setNextPlayer(msg)
     else if player.location == 30
       # Go to Jail
       sendToJail(players, playerIndex)
-      setNextPlayer()
+      setNextPlayer(msg)
     else if player.location == 4
       # Income Tax
       msg.send "Stacy discovered you haven't submitted receipts for the past two months. Pay $200. #{bankerInstructions}"
       updatePlayerAccount(player.name, 200)
-      setNextPlayer()
+      setNextPlayer(msg)
     else if player.location == 38
       # Luxury Tax
       msg.send "Vasudha needs a new pair of shoes. Pay $75. #{bankerInstructions}"
       updatePlayerAccount(player.name, 75)
-      setNextPlayer()
+      setNextPlayer(msg)
     else if player.location == 20
       # Free Parking (until money tracked in game, no bonus for Free Parking)
-      setNextPlayer()
+      setNextPlayer(msg)
     else if player.location == 10
       # Visiting Jail
-      setNextPlayer()
-    else 
+      setNextPlayer(msg)
+    else
       # Remaining properties
       owner = data[player.location].owner
       message = ''
@@ -272,7 +272,7 @@ module.exports = (robot) ->
         robot.brain.set 'monopolyTurnState', 'buy'
       else if data[player.location].mortgaged
         msg.send 'This property is mortgaged. Your stay is free! "hsbot monopoly roll"'
-        setNextPlayer()
+        setNextPlayer(msg)
       else
         railroadSet = [5, 15, 25, 35]
         utilitySet = [12, 28]
@@ -314,7 +314,7 @@ module.exports = (robot) ->
           msg.send 'You own it! Enjoy your stay. "hsbot monopoly roll" to continue.'
         else
           msg.send "#{message}Pay #{data[player.location].owner} $#{owes}. #{bankerInstructions}"
-        setNextPlayer()
+        setNextPlayer(msg)
 
   goToNearestUtility = (data, players, playerIndex, playerData, currentRoll, msg) ->
     if players[playerIndex].location < 12 || players[playerIndex].location > 28
@@ -325,18 +325,18 @@ module.exports = (robot) ->
 
     if currentOwner == players[playerIndex].name
       msg.send "You own it! Enjoy your stay at #{data[current.location].name}"
-      setNextPlayer()
+      setNextPlayer(msg)
     else if currentOwner
       newRoll = roll()
       msg.send "You rolled #{newRoll.total}. Pay #{currentOwner} $#{10 * newRoll.total}. #{bankerInstructions}"
-      setNextPlayer()
+      setNextPlayer(msg)
     else
       msg.send "#{data[current.location].name} is available for sale. Send \"hsbot monopoly buy\" or \"hsbot monopoly auction\"."
       robot.brain.set 'monopolyTurnState', 'buy'
 
   assignJailCard = (data, players, playerIndex, playerData, currentRoll, msg, cardName) ->
     robot.brain.set cardName, players[playerIndex].name
-    setNextPlayer()
+    setNextPlayer(msg)
 
   goToLocation = (data, players, playerIndex, playerData, currentRoll, msg, locationIndex ) ->
     current = sendPlayer(players, playerIndex, locationIndex, msg, locationIndex == 0)
@@ -359,7 +359,7 @@ module.exports = (robot) ->
 
     if currentOwner == players[playerIndex].name
       msg.send "You own it! Enjoy your ride on #{data[current.location].name}"
-      setNextPlayer()
+      setNextPlayer(msg)
     else if currentOwner
       railroadSet = [5, 15, 25, 35]
       numberOwned = 0;
@@ -377,7 +377,7 @@ module.exports = (robot) ->
       else
         message += 's. '
       msg.send "#{message}Pay #{currentOwner.name} $#{owes}. #{bankerInstructions}"
-      setNextPlayer()
+      setNextPlayer(msg)
     else
       msg.send "#{data[current.location].name} is available for sale. Send \"hsbot monopoly buy\" or \"hsbot monopoly auction\"."
       robot.brain.set 'monopolyTurnState', 'buy'
@@ -385,7 +385,7 @@ module.exports = (robot) ->
   sendToJailCard = (data, players, playerIndex, playerData, currentRoll, msg) ->
     sendToJail(players, playerIndex)
     msg.send '"hsbot monopoly roll" to continue.'
-    setNextPlayer()
+    setNextPlayer(msg)
 
   checkIfCanBuild = (data, propertyIndex) ->
     if data[propertyIndex].monopoly && data[propertyIndex].houses < 5
@@ -507,7 +507,7 @@ module.exports = (robot) ->
           if player.doublesCount == 3
             msg.send "#{players[playerIndex].name} rolls #{currentRoll.total}, **DOUBLES**! Oh no! You rolled doubles 3 times. Go to Jail. (jail)"
             sendToJail(players, playerIndex)
-            setNextPlayer()
+            setNextPlayer(msg)
           else
             playTurn(data, players, playerIndex, playerData, currentRoll, msg)
       else
@@ -536,7 +536,7 @@ module.exports = (robot) ->
             updatePlayerAccount(player, amount)
             updateProperty(data, players, playerIndex, playerIndex)
             robot.brain.set 'monopolyTurnState', 'roll'
-            setNextPlayer()
+            setNextPlayer(msg)
 
   robot.respond /monopoly auction$/i, (msg) ->
     if _.contains(allowedRooms, msg.envelope.room)
@@ -575,7 +575,7 @@ module.exports = (robot) ->
           updatePlayerAccount(player, soldPrice)
           updateProperty(data, players, playerIndex, buyerIndex)
           robot.brain.set 'monopolyTurnState', 'roll'
-          setNextPlayer()
+          setNextPlayer(msg)
 
   robot.respond /monopoly update ([a-z &-]+) (Delta City|Gotham|DMZ|Monterrey|Houston|Dallas)$/i, (msg) ->
     if _.contains(allowedRooms, msg.envelope.room)
@@ -719,7 +719,7 @@ module.exports = (robot) ->
           else if jailRolls < 3
             msg.send "You rolled #{currentRoll.total}, not doubles. Better luck next time."
             robot.brain.set 'monopolyTurnState', 'roll'
-            setNextPlayer()
+            setNextPlayer(msg)
           else if jailRolls == 3
             msg.send "You rolled #{currentRoll.total}, not doubles. Pay $50 to exit jail. Theme Team, once account is updated, \"hsbot monopoly continue\""
             robot.brain.set 'jailRoll', currentRoll.total
