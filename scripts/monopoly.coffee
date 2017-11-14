@@ -103,7 +103,7 @@ module.exports = (robot) ->
 
     playerIndex = robot.brain.get 'monopolyTurn'
     turnState = robot.brain.get 'monopolyTurnState'
-    msg.send "/topic Current turn is now: #{players[playerIndex].name} #{turnState}"
+    msg.topic "Current turn is now: #{players[playerIndex].name} #{turnState}"
     turn
 
   updatePlayerInJail = (players, playerIndex, roll) ->
