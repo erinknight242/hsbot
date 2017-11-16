@@ -24,6 +24,7 @@
 #   hsbot monopoly start new game - starts a new game from scratch
 #   hsbot monopoly dump log - rough dump of the Monopoly brain state
 #   hsbot monopoly set scale factor number
+#   hsbot monopoly set brain key value - sets single value brain state variables
 #
 # TODO:
 # - admin commands to manually update the brain variables
@@ -858,6 +859,12 @@ module.exports = (robot) ->
     console.log 'Scale factor:\n', robot.brain.get 'monopolyScaleFactor'
     console.log 'Houses in use:\n', robot.brain.get 'monopolyHouses'
     console.log 'Hotels in use:\n', robot.brain.get 'monopolyHotels'
+
+  robot.respond /monopoly set brain (monopolyTurn|monopolyTurnState|monopolyChanceJailOwner|monopolyCommunityChestJailOwner|monopolyJailRoll|monopolyHouses|monopolyHotels) ([a-z0-9 &-]+)/i, (msg) ->
+    key = msg.match[1]
+    value = msg.match[2]
+    robot.brain.set key, value
+    msg.send "#{key} set to #{value}."
 
   robot.respond /monopoly set scale factor (\d+(\.\d+)?)$/i, (msg) ->
     scaleFactor = msg.match[1]
