@@ -739,7 +739,7 @@ module.exports = (robot) ->
         else
           rollTotal = robot.brain.get 'jailRoll'
           advancePlayer(players, playerIndex, rollTotal)
-          playTurn(data, players, playerIndex, { current: players[playerIndex], passedGo: false }, { total: currentRoll, doubles: false }, msg)
+          playTurn(data, players, playerIndex, { current: players[playerIndex], passedGo: false }, { total: rollTotal, doubles: false }, msg)
           robot.brain.set 'monopolyTurnState', 'roll'
 
   robot.respond /monopoly jail card$/i, (msg) ->
