@@ -25,6 +25,8 @@
 #   hsbot monopoly dump log - rough dump of the Monopoly brain state
 #   hsbot monopoly set scale factor number
 #   hsbot monopoly set brain key value - sets single value brain state variables
+#   hsbot monopoly toggle jail state playerName - sets the player inJail to true/false
+#   hsbot monopoly move playerName (to) propertyName - moves a player to somewhere else
 #
 # TODO:
 # - admin commands to manually update the brain variables
@@ -722,6 +724,7 @@ module.exports = (robot) ->
             robot.brain.set 'monopolyTurnState', 'roll'
             setNextPlayer(msg)
           else if jailRolls == 3
+            freeFromJail players, playerIndex
             msg.send "You rolled #{currentRoll.total}, not doubles. Pay $50 to exit jail. Theme Team, once account is updated, \"hsbot monopoly continue\""
             robot.brain.set 'jailRoll', currentRoll.total
             robot.brain.set 'monopolyTurnState', 'continue'
@@ -859,6 +862,36 @@ module.exports = (robot) ->
     console.log 'Scale factor:\n', robot.brain.get 'monopolyScaleFactor'
     console.log 'Houses in use:\n', robot.brain.get 'monopolyHouses'
     console.log 'Hotels in use:\n', robot.brain.get 'monopolyHotels'
+
+  robot.respond /monopoly toggle jail state (delta city|gotham|dmz|monterrey|houston|dallas)$/i, (msg) ->
+    players = robot.brain.get 'monopolyPlayers'
+    playerName = msg.match[1]
+    playerIndex = _.findIndex(players, (player) => player.name.toLowerCase() == playerName.toLowerCase())
+    if playerIndex < 0
+      msg.send "Sorry, I don't know #{playerName}"
+    else
+      newState = !players[playerIndex].inJail
+      if newState == true
+        sendToJail(players, playerIndex)
+        msg.send "#{players[playerIndex].name} sent to jail."
+      else
+        freeFromJail(players, playerIndex)
+        msg.send "#{players[playerIndex].name} freed from jail."
+
+  robot.respond /monopoly move (delta city|gotham|dmz|monterrey|houston|dallas)( to)? ([a-z &-]+)$/i, (msg) ->
+    players = robot.brain.get 'monopolyPlayers'
+    data = robot.brain.get 'monopolyBoard'
+    playerName = msg.match[1]
+    propertyName = msg.match[3]
+    if data
+      propertyIndex = _.findIndex(data, (property) => property.name.toLowerCase() == propertyName.toLowerCase())
+      playerIndex = _.findIndex(players, (player) => player.name.toLowerCase() == playerName.toLowerCase())
+      if propertyIndex < 0 || playerIndex < 0
+        msg.send "Sorry, check your spelling."
+      else
+        players[playerIndex].location = propertyIndex
+        robot.brain.set 'monopolyPlayers', players
+        msg.send "#{players[playerIndex].name} moved to #{data[propertyIndex].name}."
 
   robot.respond /monopoly set brain (monopolyTurn|monopolyTurnState|monopolyChanceJailOwner|monopolyCommunityChestJailOwner|monopolyJailRoll|monopolyHouses|monopolyHotels) ([a-z0-9 &-]+)/i, (msg) ->
     key = msg.match[1]
