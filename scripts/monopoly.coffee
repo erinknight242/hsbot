@@ -18,6 +18,7 @@
 #   hsbot monopoly jail roll
 #   hsbot monopoly jail card
 #   hsbot monopoly continue (for after jail rolls failed)
+#   hsbot monopoly teamName declare bankruptcy 
 #
 # Admin commands:
 #   hsbot monopoly start new game - starts a new game from scratch
@@ -34,6 +35,7 @@ bankerInstructions = '"hsbot monopoly roll" to continue after the payment has co
 allowedRooms = ['Shell', 'monopoly']
 adminRooms = ['Shell', 'monopoly_admins']
 boardImage = 'https://i.imgur.com/2vyzOVR.png'
+sadTuba = 'https://www.youtube.com/watch?v=9Jz1TjCphXE'
 
 roll = () ->
   total = 0
@@ -105,8 +107,11 @@ module.exports = (robot) ->
       if !players[playerIndex].doubles
         playerIndex = findNextPlayer(players, playerIndex)
       robot.brain.set 'monopolyTurn', playerIndex
-
-      msg.topic "Current turn is now: #{players[playerIndex].name} #{turnState}"
+      message = "Current turn is now: #{players[playerIndex].name} #{turnState}"
+      if msg
+        msg.topic message
+      else
+        robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, message
       playerIndex
 
   findNextPlayer = (players, playerIndex) ->
@@ -494,6 +499,27 @@ module.exports = (robot) ->
       msg.send "#{property.owner} sold a #{type}, collect $#{amount}. #{bankerInstructions}"
       addToPlayerAccount(property.owner, amount)
 
+  auctionProperties = (propertyArray) ->
+    robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, "Auction time! First up:" #TODO
+
+  transferProperties = (data, propertyArray, newOwner) ->
+    for property in propertyArray
+      propertyIndex = _.findIndex(data, (match) -> match.name == property.name)
+      data[propertyIndex].owner = newOwner
+    robot.brain.set 'monopolyBoard', data
+
+  retirePlayer = (players, losingIndex, accounts, message) ->
+    currentTurn = robot.brain.get 'monopolyTurn'
+    players[losingIndex].isBankrupt = true
+    players[losingIndex].doubles = false
+    players[losingIndex].inJail = false
+    robot.brain.set 'monopolyPlayers', players
+    robot.brain.set 'monopolyAccounts', accounts
+    robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, message
+    if currentTurn == losingIndex
+      robot.brain.set 'monopolyTurnState', 'roll'
+      setNextPlayer(null)
+
   robot.respond /monopoly help$/i, (msg) ->
     msg.send '\n~ Monopoly Help ~\n
       \thsbot monopoly board - Static image of the game board
@@ -827,7 +853,9 @@ module.exports = (robot) ->
           ownedProperties = _.where(data, { owner: player.name })
           playerSummary += "\n#{player.name} owns: "
           locationName = data[player.location].name
-          if locationName == 'Visiting Jail' && player.inJail
+          if player.isBankrupt
+            playerLocations += "\n#{player.name} is bankrupt."
+          else if locationName == 'Visiting Jail' && player.inJail
             playerLocations += "\n#{player.name} is in Jail"
           else 
             playerLocations += "\n#{player.name} is on #{locationName}"
@@ -898,6 +926,68 @@ module.exports = (robot) ->
       shuffle 'monopolyCommunityChest'
 
       msg.send 'Game is up! Confirm starting balances for all players, then "hsbot monopoly roll" to begin.'
+
+  robot.respond /monopoly (delta city|gotham|dmz|monterrey|houston|dallas) declares bankruptcy to (delta city|gotham|dmz|monterrey|houston|dallas|the bank)$/i, (msg) ->
+    if _.contains(adminRooms, msg.envelope.room)
+      data = robot.brain.get 'monopolyBoard'
+      players = robot.brain.get 'monopolyPlayers'
+      losingName = msg.match[1]
+      gainingName = msg.match[2]
+
+      if data
+        losingIndex = _.findIndex players, (player) -> player.name.toLowerCase() == losingName.toLowerCase()
+        accounts = robot.brain.get 'monopolyAccounts'
+        losingAccount = _.find accounts, (account) -> account.name.toLowerCase() == losingName.toLowerCase()
+        balance = parseInt losingAccount.balance
+        if losingIndex > -1
+          playerProperties = _.where(data, { owner: players[losingIndex].name })
+          if _.any(playerProperties, (property) -> property.houses > 0)
+            msg.send "You must sell all of your buildings before you can declare bankruptcy."
+          else
+            chanceOwner = robot.brain.get 'monopolyChanceJailOwner'
+            communityChestOwner = robot.brain.get 'monopolyCommunityChestJailOwner'
+            gainingIndex = _.findIndex players, (player) -> player.name.toLowerCase() == gainingName.toLowerCase()
+
+            if gainingIndex > -1 #losing to another player
+              robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, sadTuba
+              gainingAccount = _.find accounts, (account) -> account.name.toLowerCase() == gainingName.toLowerCase()
+              gainingAccount.balance = parseInt(gainingAccount.balance) + balance
+              losingAccount.balance = 0
+              message = "#{players[losingIndex].name} hands over $#{balance} to #{players[gainingIndex].name}"
+              if playerProperties.length > 0
+                message += ', in addition to the following properties:\n'
+                propertyList = ''
+                for property in playerProperties
+                  propertyList += "\t#{property.name}\n"
+                message += propertyList
+              if chanceOwner == players[losingIndex].name
+                message += "#{players[gainingIndex].name} also gets their Chance - Get Out of Jail Free card.\n"
+                robot.brain.set 'monopolyChanceJailOwner', players[gainingIndex].name
+              if communityChestOwner == players[losingIndex].name
+                message += "#{players[gainingIndex].name} also gets their Community Chest - Get Out of Jail Free card.\n"
+                robot.brain.set 'monopolyCommunityChestJailOwner', players[gainingIndex].name
+              retirePlayer players, losingIndex, accounts, message
+              if playerProperties.length > 0
+                transferProperties(data, playerProperties, players[gainingIndex].name)
+            else if gainingName.toLowerCase() == 'the bank'
+              losingAccount.balance = 0
+              robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, sadTuba
+              message = "#{players[losingIndex].name} hands over $#{balance} to the bank."
+              if chanceOwner == players[losingIndex].name
+                message += 'Their Chance - Get Out of Jail Free card is returned to the deck.\n'
+                robot.brain.set 'monopolyChanceJailOwner', null
+              if communityChestOwner == players[losingIndex].name
+                message += 'Their Community Chest - Get Out of Jail Free card is returned to the deck.\n'
+                robot.brain.set 'monopolyCommunityChestJailOwner', null
+              retirePlayer players, losingIndex, accounts, message
+              if playerProperties.length > 0
+                auctionProperties(playerProperties)
+            else
+              msg.send 'What was that? Check your spelling.'
+        else
+          msg.send 'What was that? Check your spelling.'
+      else
+        msg.send 'No game in progress.'
 
   # undocumented until this is prettier
   robot.respond /monopoly dump log$/i, (msg) ->
