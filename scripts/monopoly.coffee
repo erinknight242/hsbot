@@ -500,7 +500,17 @@ module.exports = (robot) ->
       addToPlayerAccount(property.owner, amount)
 
   auctionProperties = (propertyArray) ->
+    robot.brain.set 'monopolyPropertiesInAuction', propertyArray
+    robot.brain.set 'monopolyAuctionIndex', 0
     robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, "Auction time! First up:" #TODO
+    auctionProperty(propertyArray[0].name)
+
+  auctionProperty = (propertyName) ->
+    previousState = robot.brain.get 'monopolyTurnState'
+    if previousState != 'bankruptAuction'
+      robot.brain.set 'monopolyPreAuctionState', previousState
+    robot.brain.set 'monopolyTurnState', 'bankruptAuction'
+    robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, "#{propertyName} is up for sale! Discuss your bids below. Once the highest bid has been placed, end by e.g. \"hsbot monopoly bankrupt sold to Dallas for 150\""
 
   transferProperties = (data, propertyArray, newOwner) ->
     for property in propertyArray
@@ -638,6 +648,37 @@ module.exports = (robot) ->
           updateProperty(data, players, playerIndex, buyerIndex)
           robot.brain.set 'monopolyTurnState', 'roll'
           setNextPlayer(msg)
+
+  robot.respond /monopoly bankrupt sold (to )?(delta city|gotham|dmz|monterrey|houston|dallas) (for )?\$*(\d+)$/i, (msg) ->
+    if _.contains(allowedRooms, msg.envelope.room)
+      data = robot.brain.get 'monopolyBoard'
+      players = robot.brain.get 'monopolyPlayers'
+      turnState = robot.brain.get 'monopolyTurnState'
+      propertyArray = robot.brain.get 'monopolyPropertiesInAuction'
+      currentAuction = robot.brain.get 'monopolyAuctionIndex'
+      previousState = robot.brain.get 'monopolyPreAuctionState'
+
+      if data
+        if turnState != 'bankruptAuction'
+          msg.send "Sorry, expecting #{turnState} command."
+        else
+          buyerName = msg.match[2]
+          soldPrice = msg.match[4]
+
+          buyerIndex = _.findIndex(players, (player) ->
+            player.name.toLowerCase() == buyerName.toLowerCase() 
+          )
+          propertyIndex = _.findIndex(data, { name: propertyArray[currentAuction].name })
+          player = players[buyerIndex].name
+          msg.send "#{players[buyerIndex].name} pays $#{soldPrice} for #{data[propertyIndex].name}."
+          updatePlayerAccount(player, soldPrice)
+          updateThisProperty(data, players, propertyIndex, buyerIndex)
+          currentAuction += 1
+          if currentAuction < propertyArray.length
+            robot.brain.set 'monopolyAuctionIndex', currentAuction
+            auctionProperty(propertyArray[currentAuction].name)
+          else
+            robot.brain.set 'monopolyTurnState', previousState
 
   robot.respond /monopoly update ([a-z &-]+) (Delta City|Gotham|DMZ|Monterrey|Houston|Dallas)$/i, (msg) ->
     if _.contains(adminRooms, msg.envelope.room)
