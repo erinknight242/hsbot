@@ -103,13 +103,21 @@ module.exports = (robot) ->
       msg.topic "#{players[winnerIndex].name} won!"
     else 
       if !players[playerIndex].doubles
-        playerIndex++
-      if (playerIndex == players.length)
-        playerIndex = 0
+        playerIndex = findNextPlayer(players, playerIndex)
       robot.brain.set 'monopolyTurn', playerIndex
 
       msg.topic "Current turn is now: #{players[playerIndex].name} #{turnState}"
       playerIndex
+
+  findNextPlayer = (players, playerIndex) ->
+    invalidPlayer = true
+    while invalidPlayer
+      playerIndex++
+      if playerIndex == players.length
+        playerIndex = 0
+      if !players[playerIndex].isBankrupt
+        invalidPlayer = false
+    playerIndex
 
   updatePlayerInJail = (players, playerIndex, roll) ->
     current = players[playerIndex]
@@ -748,6 +756,7 @@ module.exports = (robot) ->
           jailRolls = updatePlayerInJail(players, playerIndex, currentRoll)
           if currentRoll.doubles
             msg.send "You rolled #{currentRoll.total}, **DOUBLES**! You are free!"
+            robot.brain.set 'monopolyTurnState', 'roll'
             playTurn(data, players, playerIndex, { current: players[playerIndex], passedGo: false }, { total: currentRoll.total, doubles: false }, msg)
           else if jailRolls < 3
             msg.send "You rolled #{currentRoll.total}, not doubles. Better luck next time."
@@ -771,9 +780,9 @@ module.exports = (robot) ->
           msg.send "Sorry, expecting #{turnState} command."
         else
           rollTotal = robot.brain.get 'jailRoll'
+          robot.brain.set 'monopolyTurnState', 'roll'
           advancePlayer(players, playerIndex, rollTotal)
           playTurn(data, players, playerIndex, { current: players[playerIndex], passedGo: false }, { total: rollTotal, doubles: false }, msg)
-          robot.brain.set 'monopolyTurnState', 'roll'
 
   robot.respond /monopoly jail card$/i, (msg) ->
     if _.contains(allowedRooms, msg.envelope.room)
@@ -888,7 +897,7 @@ module.exports = (robot) ->
       shuffle 'monopolyChance'
       shuffle 'monopolyCommunityChest'
 
-      msg.send 'Game is up! "hsbot monopoly roll" to begin.'
+      msg.send 'Game is up! Confirm starting balances for all players, then "hsbot monopoly roll" to begin.'
 
   # undocumented until this is prettier
   robot.respond /monopoly dump log$/i, (msg) ->
