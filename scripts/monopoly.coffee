@@ -332,6 +332,8 @@ module.exports = (robot) ->
           msg.send 'You own it! Enjoy your stay. "hsbot monopoly roll" to continue.'
         else
           msg.send "#{message}Pay #{data[player.location].owner} $#{owes}. #{bankerInstructions}"
+          subtractFromPlayerAccount(player.name, owes)
+          addToPlayerAccount(data[player.location].owner, owes)
         setNextPlayer(msg)
 
   goToNearestUtility = (data, players, playerIndex, playerData, currentRoll, msg) ->
