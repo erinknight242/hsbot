@@ -202,7 +202,7 @@ module.exports = (robot) ->
         robot.brain.set 'monopolyAccounts', accounts
         robot.messageRoom process.env.HUBOT_ROOM_ADMIN_MONOPOLY, "#{account.name} account updated from $#{oldBalance} to $#{newBalance}."
   
-  addToPlayerAccount(player, account) ->
+  addToPlayerAccount = (player, account) ->
     accounts = robot.brain.get 'monopolyAccounts'
     account = getAccount(player, accounts)
     if account
