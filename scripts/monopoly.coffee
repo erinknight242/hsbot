@@ -155,6 +155,7 @@ module.exports = (robot) ->
     current = players[playerIndex]
     if players[playerIndex].location > locationIndex && !skipGo
       msg.send 'You passed GO! Collect $200. (go)'
+      addToPlayerAccount(players[playerIndex].name, 200)
     current.location = locationIndex
     robot.brain.set 'monopolyPlayers', players
     current
