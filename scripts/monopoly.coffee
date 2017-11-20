@@ -6,7 +6,6 @@
 #   hsbot monopoly roll
 #   hsbot monopoly buy
 #   hsbot monopoly auction
-#   hsbot monopoly sold (delta city|gotham|dmz|monterrey|houston|dallas) amount
 #   hsbot monopoly status
 #   hsbot monopoly board
 #   hsbot monopoly details propertyName
@@ -28,6 +27,9 @@
 #   hsbot monopoly set brain key value - sets single value brain state variables
 #   hsbot monopoly toggle jail state playerName - sends player to/from jail
 #   hsbot monopoly move playerName (to) propertyName - moves a player to somewhere else
+#   hsbot monopoly sold (delta city|gotham|dmz|monterrey|houston|dallas) amount
+#   hsbot monopoly bankrupt sold (delta city|gotham|dmz|monterrey|houston|dallas) amount (now)
+
 
 _ = require 'underscore'
 
@@ -185,9 +187,10 @@ module.exports = (robot) ->
     for property in set
       board[property].monopoly = monopoly
 
-  updateThisProperty = (board, players, propertyIndex, buyerIndex) ->
+  updateThisProperty = (board, players, propertyIndex, buyerIndex, unmortgage) ->
     property = board[propertyIndex]
     property.owner = players[buyerIndex].name
+    if unmortgage then property.mortgaged = false
 
     for group in monopolyGroups
       if _.contains(group, propertyIndex)
@@ -503,14 +506,20 @@ module.exports = (robot) ->
     robot.brain.set 'monopolyPropertiesInAuction', propertyArray
     robot.brain.set 'monopolyAuctionIndex', 0
     robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, "Auction time! First up:" #TODO
-    auctionProperty(propertyArray[0].name)
+    auctionProperty(propertyArray[0])
 
-  auctionProperty = (propertyName) ->
+  auctionProperty = (property) ->
     previousState = robot.brain.get 'monopolyTurnState'
     if previousState != 'bankruptAuction'
       robot.brain.set 'monopolyPreAuctionState', previousState
     robot.brain.set 'monopolyTurnState', 'bankruptAuction'
-    robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, "#{propertyName} is up for sale! Discuss your bids below. Once the highest bid has been placed, end by e.g. \"hsbot monopoly bankrupt sold to Dallas for 150\""
+    message = "#{property.name} is up for sale! Discuss your bids below. "
+    if property.mortgaged
+      tenPercent = parseInt(property.mortgage) * 0.1
+      fullPrice = parseInt(property.mortgage) + tenPercent
+      message += "This property is mortgaged, so the winner either has to pay an additional $#{fullPrice} to unmortgage it now, or $#{tenPercent} now to transfer it mortgaged and $#{fullPrice} later to unmortgage. "
+    message += 'Once a highest bid is reached, Theme Team will complete the sale.'
+    robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, message
 
   transferProperties = (data, propertyArray, newOwner) ->
     for property in propertyArray
@@ -536,8 +545,6 @@ module.exports = (robot) ->
       \thsbot monopoly roll - If you aren\'t sure what to do, try this one\n
       \thsbot monopoly buy - action for an unowned property\n
       \thsbot monopoly auction - action for an unowned property\n
-      \thsbot monopoly sold (delta city|gotham|dmz|monterrey|houston|dallas) amount - ends an auction\n
-      \thsbot monopoly update propertyName (delta city|gotham|dmz|monterrey|houston|dallas) - transfer property by trade or sale\n
       \thsbot monopoly details propertyName - lists the details/prices on the property card\n
       \thsbot monopoly build propertyName - if part of a monopoly, builds a house or hotel\n
       \thsbot monopoly unbuild propertyName - if part of a monopoly, sells a house or hotel for half value\n
@@ -649,7 +656,7 @@ module.exports = (robot) ->
           robot.brain.set 'monopolyTurnState', 'roll'
           setNextPlayer(msg)
 
-  robot.respond /monopoly bankrupt sold (to )?(delta city|gotham|dmz|monterrey|houston|dallas) (for )?\$*(\d+)$/i, (msg) ->
+  robot.respond /monopoly bankrupt sold (to )?(delta city|gotham|dmz|monterrey|houston|dallas) (for )?\$*(\d+)( now)?$/i, (msg) ->
     if _.contains(allowedRooms, msg.envelope.room)
       data = robot.brain.get 'monopolyBoard'
       players = robot.brain.get 'monopolyPlayers'
@@ -663,20 +670,34 @@ module.exports = (robot) ->
           msg.send "Sorry, expecting #{turnState} command."
         else
           buyerName = msg.match[2]
-          soldPrice = msg.match[4]
+          soldPrice = parseInt msg.match[4]
+          payNow = if msg.match[5] == undefined then false else true
 
           buyerIndex = _.findIndex(players, (player) ->
             player.name.toLowerCase() == buyerName.toLowerCase() 
           )
           propertyIndex = _.findIndex(data, { name: propertyArray[currentAuction].name })
           player = players[buyerIndex].name
-          msg.send "#{players[buyerIndex].name} pays $#{soldPrice} for #{data[propertyIndex].name}."
+
+          mortgageMessage = ''
+          if data[propertyIndex].mortgaged
+            mortgageValue = parseInt data[propertyIndex].mortgage
+            tenPercent = mortgageValue * 0.1
+
+            if payNow
+              soldPrice += mortgageValue + tenPercent
+              mortgageMessage = ' (unmortgaged)'
+            else
+              soldPrice += tenPercent
+              mortgageMessage = ' (mortgaged)'
+
+          robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, "#{players[buyerIndex].name} pays $#{soldPrice} for #{data[propertyIndex].name}#{mortgageMessage}."
           updatePlayerAccount(player, soldPrice)
-          updateThisProperty(data, players, propertyIndex, buyerIndex)
+          updateThisProperty(data, players, propertyIndex, buyerIndex, payNow)
           currentAuction += 1
           if currentAuction < propertyArray.length
             robot.brain.set 'monopolyAuctionIndex', currentAuction
-            auctionProperty(propertyArray[currentAuction].name)
+            auctionProperty(propertyArray[currentAuction])
           else
             robot.brain.set 'monopolyTurnState', previousState
 
@@ -739,7 +760,7 @@ module.exports = (robot) ->
         if propertyIndex > -1
           property = data[propertyIndex]
           if property.mortgaged
-            msg.send 'This property is already mortaged!'
+            msg.send 'This property is already mortgaged!'
           else if property.houses > 0
             msg.send 'You need to sell your buildings first. "hsbot monopoly unbuild ' + property.name + '"'
           else
@@ -938,10 +959,13 @@ module.exports = (robot) ->
         \thsbot monopoly dump log - rough dump of the Monopoly brain state\n
         \thsbot monopoly set scale factor number\n
         \thsbot monopoly set brain key value - sets single value brain state variables\n
-        \toptions: (monopolyTurn|monopolyTurnState|monopolyChanceJailOwner|monopolyCommunityChestJailOwner|monopolyJailRoll|monopolyHouses|monopolyHotels)
+        \toptions: (monopolyTurn|monopolyTurnState|monopolyChanceJailOwner|monopolyCommunityChestJailOwner|monopolyJailRoll|monopolyHouses|monopolyHotels|monopolyPreAuctionState|monopolyAuctionIndex)
         \thsbot monopoly update propertyName teamName\n
-        \thsbot monopoly toggle jail state playerName - sends player to or from jail
-        \thsbot monopoly move playerName (to) propertyName - moves a player to somewhere else'
+        \thsbot monopoly toggle jail state playerName - sends player to or from jail\n
+        \thsbot monopoly move playerName (to) propertyName - moves a player to somewhere else\n
+        \thsbot monopoly sold teamName amount - ends an auction\n
+        \thsbot monopoly update propertyName teamName - transfer property by trade or sale\n
+        \thsbot monopoly bankrupt sold teamName amount (now) - end bankrupt auction, now pays to unmortgage'
 
   robot.respond /monopoly start new game$/i, (msg) ->
     if _.contains(adminRooms, msg.envelope.room)
