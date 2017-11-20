@@ -205,8 +205,8 @@ module.exports = (robot) ->
   getObjectByName = (objectName, objectArray) ->
     _.find objectArray, (object) -> object.name.toLowerCase() == objectName.toLowerCase()
 
-  getAccount = (name, accounts) ->
-    getObjectByName name, accounts
+  getAccount = (accountName, accounts) ->
+    getObjectByName accountName, accounts
 
   getPlayer = (playerName, players) ->
     getObjectByName playerName, players
@@ -214,19 +214,24 @@ module.exports = (robot) ->
   subtractFromPlayerAccount = (player, amount) ->
     accounts = robot.brain.get 'monopolyAccounts'
     account = getAccount(player, accounts)
+    amount = parseInt amount
     if account
       balance = parseInt account.balance
       oldBalance = balance
-      if balance > amount
+      if balance >= amount
         balance -= amount
         newBalance = balance
         account.balance = balance
         robot.brain.set 'monopolyAccounts', accounts
+        robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, "#{account.name} account updated from $#{oldBalance} to $#{newBalance}."
         robot.messageRoom process.env.HUBOT_ROOM_ADMIN_MONOPOLY, "#{account.name} account updated from $#{oldBalance} to $#{newBalance}."
-  
+      else
+        robot.messageRoom process.env.HUBOT_ROOM_ADMIN_MONOPOLY, notEnoughMoneyMessage player, accounts
+
   addToPlayerAccount = (player, amount) ->
     accounts = robot.brain.get 'monopolyAccounts'
     account = getAccount(player, accounts)
+    amount = parseInt amount
     if account
       balance = parseInt account.balance
       oldBalance = balance
@@ -234,6 +239,7 @@ module.exports = (robot) ->
       newBalance = balance
       account.balance = balance
       robot.brain.set 'monopolyAccounts', accounts
+      robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, "#{account.name} account updated from $#{oldBalance} to $#{newBalance}."
       robot.messageRoom process.env.HUBOT_ROOM_ADMIN_MONOPOLY, "#{account.name} account updated from $#{oldBalance} to $#{newBalance}."
 
   sendToJail = (players, playerIndex) ->
@@ -624,8 +630,11 @@ module.exports = (robot) ->
       playerIndex = robot.brain.get 'monopolyTurn'
       players = robot.brain.get 'monopolyPlayers'
       turnState = robot.brain.get 'monopolyTurnState'
+      accounts = robot.brain.get 'monopolyAccounts'
 
       if data
+        player = players[playerIndex].name
+        amount = data[players[playerIndex].location].cost
         if turnState != 'buy'
           msg.send "Sorry, expecting #{turnState} command."
         else
@@ -634,14 +643,14 @@ module.exports = (robot) ->
             msg.send "You can't buy #{data[players[playerIndex].location].name}, #{owner} owns it. Try rolling instead."
           else if owner == undefined
             msg.send "You can't buy #{data[players[playerIndex].location].name}, try rolling instead."
-          else
-            player = players[playerIndex].name
-            amount = data[players[playerIndex].location].cost
+          else if checkIfPlayerCanAfford accounts, player, amount
             msg.send "#{player} pays the bank $#{amount} for #{data[players[playerIndex].location].name}. #{bankerInstructions}"
             subtractFromPlayerAccount(player, amount)
             updateProperty(data, players, playerIndex, playerIndex)
             robot.brain.set 'monopolyTurnState', 'roll'
             setNextPlayer(msg)
+          else
+            msg.send notEnoughMoneyMessage player, accounts
 
   robot.respond /monopoly auction$/i, (msg) ->
     if _.contains(allowedRooms, msg.envelope.room)
@@ -675,9 +684,9 @@ module.exports = (robot) ->
           buyerIndex = _.findIndex(players, (player) ->
             player.name.toLowerCase() == buyerName.toLowerCase() 
           )
-          if checkIfPlayerCanAfford accounts, players[buyerIndex].name, soldPrice
-            player = players[buyerIndex].name
-            robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, "#{players[buyerIndex].name} pays $#{soldPrice} for #{data[players[playerIndex].location].name}. #{bankerInstructions}"
+          player = players[buyerIndex].name
+          if checkIfPlayerCanAfford accounts, player, soldPrice
+            robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, "#{player} pays $#{soldPrice} for #{data[players[playerIndex].location].name}. #{bankerInstructions}"
             subtractFromPlayerAccount(player, soldPrice)
             updateProperty(data, players, playerIndex, buyerIndex)
             robot.brain.set 'monopolyTurnState', 'roll'
@@ -734,33 +743,35 @@ module.exports = (robot) ->
           else
             msg.send notEnoughMoneyMessage player, accounts
 
-  robot.respond /monopoly update ([a-z &-]+) (Delta City|Gotham|DMZ|Monterrey|Houston|Dallas) (for )?\$*(\d+)( now)?$/i, (msg) ->
+  robot.respond /monopoly update (Delta City|Gotham|DMZ|Monterrey|Houston|Dallas) (for )?\$*(\d+)( now)? ([a-z &-]+)$/i, (msg) ->
     if _.contains(adminRooms, msg.envelope.room)
       data = robot.brain.get 'monopolyBoard'
       players = robot.brain.get 'monopolyPlayers'
       accounts = robot.brain.get 'monopolyAccounts'
 
-      propertyName = msg.match[1]
-      newOwner = msg.match[2]
-      soldAmount = msg.match[4]
-      payNow = if msg.match[5] == undefined then false else true
+      newOwner = msg.match[1]
+      propertyName = msg.match[5]
+      soldAmount = msg.match[3]
+      payNow = if msg.match[4] == undefined then false else true
 
       if data
         propertyIndex = _.findIndex(data, (property) => property.name.toLowerCase() == propertyName.toLowerCase())
+        if propertyIndex < 0 then msg.send 'I don\'t know that property, check the spelling with "hsbot monopoly status"'
         ownerIndex = _.findIndex(players, (player) => player.name.toLowerCase() == newOwner.toLowerCase())
         price = calculateTotalPrice(data, propertyIndex, soldAmount, payNow)
-        if propertyIndex < 0
-          msg.send 'I don\'t know that property, check the spelling with "hsbot monopoly status"'
-        else if !data[propertyIndex].owner
+        player = players[ownerIndex].name
+        if !data[propertyIndex].owner
           msg.send 'No one owns that property! Someone must buy it first.'
         else if data[propertyIndex].houses > 0
           msg.send 'Existing buildings must be sold before you can sell this property.'
-        else if checkIfPlayerCanAfford accounts, players[ownerIndex].name, price
+        else if checkIfPlayerCanAfford accounts, player, price
+          subtractFromPlayerAccount player, price
+          addToPlayerAccount data[propertyIndex].owner, soldAmount
           updateThisProperty(data, players, propertyIndex, ownerIndex)
-          msg.send "#{data[propertyIndex].name} has been transferred to #{players[ownerIndex].name}."
-          robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, "#{data[propertyIndex].name} has been transferred to #{players[ownerIndex].name}."
+          msg.send "#{data[propertyIndex].name} has been transferred to #{player}."
+          robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, "#{data[propertyIndex].name} has been transferred to #{player}."
         else
-          msg.send notEnoughMoneyMessage players[ownerIndex].name, accounts
+          msg.send notEnoughMoneyMessage player, accounts
 
   robot.respond /monopoly build ([a-z &-]+)$/i, (msg) ->
     if _.contains(allowedRooms, msg.envelope.room)
