@@ -188,7 +188,7 @@ module.exports = (robot) ->
   getAccount = (name, accounts) ->
     _.find accounts, (account) => account.name.toLowerCase() == name.toLowerCase()
 
-  updatePlayerAccount = (player, amount) ->
+  subtractFromPlayerAccount = (player, amount) ->
     accounts = robot.brain.get 'monopolyAccounts'
     account = getAccount(player, accounts)
     if account
@@ -255,12 +255,12 @@ module.exports = (robot) ->
     else if player.location == 4
       # Income Tax
       msg.send "Stacy discovered you haven't submitted receipts for the past two months. Pay $200. #{bankerInstructions}"
-      updatePlayerAccount(player.name, 200)
+      subtractFromPlayerAccount(player.name, 200)
       setNextPlayer(msg)
     else if player.location == 38
       # Luxury Tax
       msg.send "Vasudha needs a new pair of shoes. Pay $75. #{bankerInstructions}"
-      updatePlayerAccount(player.name, 75)
+      subtractFromPlayerAccount(player.name, 75)
       setNextPlayer(msg)
     else if player.location == 20
       # Free Parking (until money tracked in game, no bonus for Free Parking)
@@ -538,7 +538,7 @@ module.exports = (robot) ->
             player = players[playerIndex].name
             amount = data[players[playerIndex].location].cost
             msg.send "#{player} pays the bank $#{amount} for #{data[players[playerIndex].location].name}. #{bankerInstructions}"
-            updatePlayerAccount(player, amount)
+            subtractFromPlayerAccount(player, amount)
             updateProperty(data, players, playerIndex, playerIndex)
             robot.brain.set 'monopolyTurnState', 'roll'
             setNextPlayer(msg)
@@ -577,7 +577,7 @@ module.exports = (robot) ->
 
           player = players[buyerIndex].name
           msg.send "#{players[buyerIndex].name} pays $#{soldPrice} for #{data[players[playerIndex].location].name}. #{bankerInstructions}"
-          updatePlayerAccount(player, soldPrice)
+          subtractFromPlayerAccount(player, soldPrice)
           updateProperty(data, players, playerIndex, buyerIndex)
           robot.brain.set 'monopolyTurnState', 'roll'
           setNextPlayer(msg)
