@@ -345,7 +345,10 @@ module.exports = (robot) ->
       setNextPlayer(msg)
     else if currentOwner
       newRoll = roll()
-      msg.send "You rolled #{newRoll.total}. Pay #{currentOwner} $#{10 * newRoll.total}. #{bankerInstructions}"
+      amount = 10 * newRoll.total
+      msg.send "You rolled #{newRoll.total}. Pay #{currentOwner} $#{amount}. #{bankerInstructions}"
+      subtractFromPlayerAccount(players[playerIndex].name, amount)
+      addToPlayerAccount(currentOwner, amount)
       setNextPlayer(msg)
     else
       msg.send "#{data[current.location].name} is available for sale. Send \"hsbot monopoly buy\" or \"hsbot monopoly auction\"."
@@ -394,6 +397,8 @@ module.exports = (robot) ->
       else
         message += 's. '
       msg.send "#{message}Pay #{currentOwner.name} $#{owes}. #{bankerInstructions}"
+      addToPlayerAccount(currentOwner.name, owes)
+      subtractFromPlayerAccount(players[playerIndex].name, owes)
       setNextPlayer(msg)
     else
       msg.send "#{data[current.location].name} is available for sale. Send \"hsbot monopoly buy\" or \"hsbot monopoly auction\"."
@@ -455,6 +460,7 @@ module.exports = (robot) ->
     if added
       robot.brain.set 'monopolyBoard', data
       msg.send "#{property.owner} built a #{type}, pay $#{property.houseCost}. #{bankerInstructions}"
+      subtractFromPlayerAccount(property.owner, property.houseCost)
 
   removeHouse = (data, propertyIndex, msg) ->
     totalHouses = robot.brain.get 'monopolyHouses'
@@ -473,7 +479,9 @@ module.exports = (robot) ->
         type = 'house'
         totalHouses -= 1
         robot.brain.set 'monopolyHouses', totalHouses
-      msg.send "#{property.owner} sold a #{type}, collect $#{property.houseCost / 2}. #{bankerInstructions}"
+      amount = property.houseCost / 2
+      msg.send "#{property.owner} sold a #{type}, collect $#{amount}. #{bankerInstructions}"
+      addToPlayerAccount(property.owner, amount)
 
   robot.respond /monopoly help$/i, (msg) ->
     msg.send '\n~ Monopoly Help ~\n
@@ -660,6 +668,7 @@ module.exports = (robot) ->
             property.mortgaged = true
             robot.brain.set 'monopolyBoard', data
             msg.send "#{property.owner} mortgaged #{property.name}, collect $#{property.mortgage}. #{bankerInstructions}"
+            addToPlayerAccount(property.owner, property.mortgage)
 
   robot.respond /monopoly unmortgage ([a-z &-]+)$/i, (msg) ->
     if _.contains(allowedRooms, msg.envelope.room)
@@ -672,7 +681,9 @@ module.exports = (robot) ->
           if property.mortgaged
             property.mortgaged = false
             robot.brain.set 'monopolyBoard', data
-            msg.send "#{property.owner} unmortgaged #{property.name}, pay $#{Math.round(property.mortgage * 1.1)}. #{bankerInstructions}"
+            amount = Math.round(property.mortgate * 1.1)
+            msg.send "#{property.owner} unmortgaged #{property.name}, pay $#{amount}. #{bankerInstructions}"
+            subtractFromPlayerAccount(property.owner, amount)
           else
             msg.send 'This property isn\'t mortgaged. (smh)'
 
@@ -716,6 +727,7 @@ module.exports = (robot) ->
         else
           freeFromJail(players, playerIndex)
           msg.send "#{players[playerIndex].name} pays $50 to exit jail. #{bankerInstructions}"
+          subtractFromPlayerAccount(players[playerIndex].name, 50)
           robot.brain.set 'monopolyTurnState', 'roll'
 
   robot.respond /monopoly jail roll$/i, (msg) ->
