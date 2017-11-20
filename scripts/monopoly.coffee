@@ -1196,9 +1196,9 @@ module.exports = (robot) ->
 
   baseValueProperties = [
     { name: "GO! (go)"}
-    { name: "Teakwood Avenue", cost: 60, rent: 4, house1: 20, house2: 60, house3: 180, house4: 320, hotel: 450, mortgage: 30, houseCost: 50, owner: 'Delta City', houses: 0, mortgaged: false, monopoly: false }
+    { name: "Teakwood Avenue", cost: 60, rent: 4, house1: 20, house2: 60, house3: 180, house4: 320, hotel: 450, mortgage: 30, houseCost: 50, owner: null, houses: 0, mortgaged: false, monopoly: false }
     { name: "Community Chest" }
-    { name: "Mizzou Avenue", cost: 60, rent: 4, house1: 20, house2: 60, house3: 180, house4: 320, hotel: 450, mortgage: 30, houseCost: 50, owner: 'Delta City', houses: 0, mortgaged: false, monopoly: false }
+    { name: "Mizzou Avenue", cost: 60, rent: 4, house1: 20, house2: 60, house3: 180, house4: 320, hotel: 450, mortgage: 30, houseCost: 50, owner: null, houses: 0, mortgaged: false, monopoly: false }
     { name: "Income Tax" }
     { name: "Austin Railroad", cost: 200, mortgage: 100, owner: null, mortgaged: false }
     { name: "HFSC Avenue", cost: 100, rent: 6, house1: 30, house2: 90, house3: 270, house4: 400, hotel: 550, mortgage: 50, houseCost: 50, owner: null, houses: 0, mortgaged: false, monopoly: false }
