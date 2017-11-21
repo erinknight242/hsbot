@@ -137,3 +137,15 @@ module.exports = (robot) ->
           message += "#{account.name}: $#{account.balance}\n"
         msg.send message
 
+  robot.respond /bank initialize accounts \$*(\d+)$/i, (msg) ->
+    amount = msg.match[1]
+    accounts = [
+      { name: 'Delta City', balance: amount }
+      { name: 'Gotham', balance: amount }
+      { name: 'DMZ', balance: amount }
+      { name: 'Houston', balance: amount }
+      { name: 'Dallas', balance: amount }
+      { name: 'Monterrey', balance: amount }
+    ]
+    robot.brain.set 'monopolyAccounts', accounts
+    msg.send "All accounts set to $#{amount}."
