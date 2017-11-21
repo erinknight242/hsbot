@@ -170,7 +170,7 @@ module.exports = (robot) ->
     current = players[playerIndex]
     if players[playerIndex].location > locationIndex && !skipGo
       msg.send 'You passed GO! Collect $200. (go)'
-      addToPlayerAccount(players[playerIndex].name, 200)
+      addToPlayerAccount(players[playerIndex].name, 200, msg)
     current.location = locationIndex
     robot.brain.set 'monopolyPlayers', players
     current
@@ -214,7 +214,7 @@ module.exports = (robot) ->
   getPlayerIndex = (playerName, players) ->
     _.findIndex players, (player) -> player.name.toLowerCase() == playerName.toLowerCase()
 
-  subtractFromPlayerAccount = (player, amount) ->
+  subtractFromPlayerAccount = (player, amount, msg) ->
     accounts = robot.brain.get 'monopolyAccounts'
     account = getAccount(player, accounts)
     amount = parseInt amount
@@ -226,15 +226,13 @@ module.exports = (robot) ->
         newBalance = balance
         account.balance = balance
         robot.brain.set 'monopolyAccounts', accounts
-        robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, "#{account.name} account updated from $#{oldBalance} to $#{newBalance}."
-        robot.messageRoom process.env.HUBOT_ROOM_ADMIN_MONOPOLY, "#{account.name} account updated from $#{oldBalance} to $#{newBalance}."
+        msg.send "#{account.name} account updated from $#{oldBalance} to $#{newBalance}."
         return true
       else
-        robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, notEnoughMoneyMessage player, accounts
-        robot.messageRoom process.env.HUBOT_ROOM_ADMIN_MONOPOLY, notEnoughMoneyMessage player, accounts
+        msg.send notEnoughMoneyMessage player, accounts
         return false
 
-  addToPlayerAccount = (player, amount) ->
+  addToPlayerAccount = (player, amount, msg) ->
     accounts = robot.brain.get 'monopolyAccounts'
     account = getAccount(player, accounts)
     amount = parseInt amount
@@ -245,8 +243,7 @@ module.exports = (robot) ->
       newBalance = balance
       account.balance = balance
       robot.brain.set 'monopolyAccounts', accounts
-      robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, "#{account.name} account updated from $#{oldBalance} to $#{newBalance}."
-      robot.messageRoom process.env.HUBOT_ROOM_ADMIN_MONOPOLY, "#{account.name} account updated from $#{oldBalance} to $#{newBalance}."
+      msg.send "#{account.name} account updated from $#{oldBalance} to $#{newBalance}."
 
   sendToJail = (players, playerIndex) ->
     players[playerIndex].location = 10
@@ -276,7 +273,7 @@ module.exports = (robot) ->
       msg.send "#{players[playerIndex].name} rolls #{currentRoll.total}#{doubles}dvances to #{data[player.location].name}."
     if playerData.passedGo
       msg.send 'You passed GO, collect $200! (go)'
-      addToPlayerAccount player.name, 200
+      addToPlayerAccount player.name, 200, msg
     # Present player with options
     if _.contains([2, 17, 33], player.location)
       # Community Chest
@@ -304,12 +301,12 @@ module.exports = (robot) ->
     else if player.location == 4
       # Income Tax
       msg.send "Stacy discovered you haven't submitted receipts for the past two months. Pay $200. #{bankerInstructions}"
-      if !subtractFromPlayerAccount(player.name, 200) then robot.brain.set 'monopolyTurnState', 'resolveBankruptcy'
+      if !subtractFromPlayerAccount(player.name, 200, msg) then robot.brain.set 'monopolyTurnState', 'resolveBankruptcy'
       setNextPlayer(msg)
     else if player.location == 38
       # Luxury Tax
       msg.send "Vasudha needs a new pair of shoes. Pay $75. #{bankerInstructions}"
-      if !subtractFromPlayerAccount(player.name, 75) then robot.brain.set 'monopolyTurnState', 'resolveBankruptcy'
+      if !subtractFromPlayerAccount(player.name, 75, msg) then robot.brain.set 'monopolyTurnState', 'resolveBankruptcy'
       setNextPlayer(msg)
     else if player.location == 20
       # Free Parking (until money tracked in game, no bonus for Free Parking)
@@ -368,8 +365,8 @@ module.exports = (robot) ->
           msg.send 'You own it! Enjoy your stay. "hsbot monopoly roll" to continue.'
         else
           msg.send "#{message}Pay #{data[player.location].owner} $#{owes}. #{bankerInstructions}"
-          if subtractFromPlayerAccount(player.name, owes)
-            addToPlayerAccount(data[player.location].owner, owes)
+          if subtractFromPlayerAccount(player.name, owes, msg)
+            addToPlayerAccount(data[player.location].owner, owes, msg)
           else
             robot.brain.set 'monopolyTurnState', 'resolveBankruptcy'
         setNextPlayer(msg)
@@ -391,8 +388,8 @@ module.exports = (robot) ->
       newRoll = roll()
       amount = 10 * newRoll.total
       msg.send "You rolled #{newRoll.total}. Pay #{currentOwner} $#{amount}. #{bankerInstructions}"
-      if subtractFromPlayerAccount(playerName, amount)
-        addToPlayerAccount(currentOwner, amount)
+      if subtractFromPlayerAccount(playerName, amount, msg)
+        addToPlayerAccount(currentOwner, amount, msg)
       else
         robot.brain.set 'monopolyTurnState', 'resolveBankruptcy'
       setNextPlayer(msg)
@@ -446,8 +443,8 @@ module.exports = (robot) ->
       else
         message += 's. '
       msg.send "#{message}Pay #{currentOwner} $#{owes}. #{bankerInstructions}"
-      if subtractFromPlayerAccount(players[playerIndex].name, owes)
-        addToPlayerAccount(currentOwner, owes)
+      if subtractFromPlayerAccount(players[playerIndex].name, owes, msg)
+        addToPlayerAccount(currentOwner, owes, msg)
       else
         robot.brain.set 'monopolyTurnState', 'resolveBankruptcy'
       setNextPlayer(msg)
@@ -461,7 +458,7 @@ module.exports = (robot) ->
     setNextPlayer(msg)
 
   getPaid = (data, players, playerIndex, playerData, currentRoll, msg, amount) ->
-    addToPlayerAccount(players[playerIndex].name, amount)
+    addToPlayerAccount(players[playerIndex].name, amount, msg)
     setNextPlayer(msg)
 
   payRepairs = (data, players, playerIndex, playerData, currentRoll, msg, repairCosts) ->
@@ -476,19 +473,19 @@ module.exports = (robot) ->
       else if property.houses > 0
         totalFee += houseCost * property.houses
     msg.send "#{playerName} owes $#{totalFee}. #{bankerInstructions}"
-    if totalFee > 0 && !subtractFromPlayerAccount playerName, totalFee then robot.brain.set 'monopolyTurnState', 'resolveBankruptcy'
+    if totalFee > 0 && !subtractFromPlayerAccount playerName, totalFee, msg then robot.brain.set 'monopolyTurnState', 'resolveBankruptcy'
     setNextPlayer(msg)
 
   payBank = (data, players, playerIndex, playerData, currentRoll, msg, amount) ->
-    if !subtractFromPlayerAccount(players[playerIndex].name, amount) then robot.brain.set 'monopolyTurnState', 'resolveBankruptcy'
+    if !subtractFromPlayerAccount(players[playerIndex].name, amount, msg) then robot.brain.set 'monopolyTurnState', 'resolveBankruptcy'
     setNextPlayer(msg)
 
   payEachPlayer = (data, players, playerIndex, playerData, currentRoll, msg, amount) ->
     currentPlayers = _.filter players, { isBankrupt: false }
     for player in currentPlayers
       if player.name != players[playerIndex].name
-        if subtractFromPlayerAccount(players[playerIndex].name, amount)
-          addToPlayerAccount player.name, amount
+        if subtractFromPlayerAccount(players[playerIndex].name, amount, msg)
+          addToPlayerAccount player.name, amount, msg
         else
           robot.brain.set 'monopolyTurnState', 'resolveBankruptcy'
     setNextPlayer(msg)
@@ -497,8 +494,8 @@ module.exports = (robot) ->
     currentPlayers = _.filter players, { isBankrupt: false }
     for player in currentPlayers
       if player.name != players[playerIndex].name
-        if subtractFromPlayerAccount(player.name, amount)
-          addToPlayerAccount players[playerIndex].name, amount
+        if subtractFromPlayerAccount(player.name, amount, msg)
+          addToPlayerAccount players[playerIndex].name, amount, msg
         else
           robot.brain.set 'monopolyTurnState', 'resolveBankruptcy'
     setNextPlayer(msg)
@@ -558,7 +555,7 @@ module.exports = (robot) ->
         robot.brain.set 'monopolyHouses', totalHouses
     if added
       robot.brain.set 'monopolyBoard', data
-      if subtractFromPlayerAccount(property.owner, property.houseCost)
+      if subtractFromPlayerAccount(property.owner, property.houseCost, msg)
         msg.send "#{property.owner} built a #{type}, pay $#{property.houseCost}. #{bankerInstructions}"
       else
         robot.brain.set 'monopolyTurnState', 'resolveBankruptcy'
@@ -582,7 +579,7 @@ module.exports = (robot) ->
         robot.brain.set 'monopolyHouses', totalHouses
       amount = property.houseCost / 2
       msg.send "#{property.owner} sold a #{type}, collect $#{amount}. #{bankerInstructions}"
-      addToPlayerAccount(property.owner, amount)
+      addToPlayerAccount(property.owner, amount, msg)
 
   calculateTotalPrice = (data, propertyIndex, soldPrice, payNow) ->
     amount = parseInt soldPrice
@@ -635,6 +632,14 @@ module.exports = (robot) ->
     if currentTurn == losingIndex
       robot.brain.set 'monopolyTurnState', 'roll'
       setNextPlayer(null)
+      
+  propertyColor = (propertyName) ->
+    data = robot.brain.get 'monopolyBoard'
+    propertyIndex = _.findIndex(data, { name: propertyName })
+    for group, index in monopolyGroups
+      if _.contains group, propertyIndex
+        return monopolyColors[index]
+    return ''
 
   robot.respond /monopoly help$/i, (msg) ->
     msg.send '\n~ Monopoly Help ~\n
@@ -716,7 +721,7 @@ module.exports = (robot) ->
           else if owner == undefined
             msg.send "You can't buy #{data[players[playerIndex].location].name}, try rolling instead."
           else if checkIfPlayerCanAfford accounts, player, amount
-            if subtractFromPlayerAccount(player, amount)
+            if subtractFromPlayerAccount(player, amount, msg)
               updateProperty(data, players, playerIndex, playerIndex)
               msg.send "#{player} pays the bank $#{amount} for #{data[players[playerIndex].location].name}. #{bankerInstructions}"
               robot.brain.set 'monopolyTurnState', 'roll'
@@ -758,7 +763,7 @@ module.exports = (robot) ->
           buyerIndex = getPlayerIndex(buyerName, players)
           player = players[buyerIndex].name
           if checkIfPlayerCanAfford accounts, player, soldPrice
-            if subtractFromPlayerAccount(player, soldPrice)
+            if subtractFromPlayerAccount(player, soldPrice, msg)
               updateProperty(data, players, playerIndex, buyerIndex)
               robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, "#{player} pays $#{soldPrice} for #{data[players[playerIndex].location].name}. #{bankerInstructions}"
               robot.brain.set 'monopolyTurnState', 'roll'
@@ -802,7 +807,7 @@ module.exports = (robot) ->
               mortgageMessage = ' (mortgaged)'
 
           if checkIfPlayerCanAfford accounts, players[buyerIndex].name, soldPrice
-            if subtractFromPlayerAccount(player, soldPrice)
+            if subtractFromPlayerAccount(player, soldPrice, msg)
               robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, "#{players[buyerIndex].name} pays $#{soldPrice} for #{data[propertyIndex].name}#{mortgageMessage}."
               updateThisProperty(data, players, propertyIndex, buyerIndex, payNow)
               currentAuction += 1
@@ -838,8 +843,8 @@ module.exports = (robot) ->
         else if data[propertyIndex].houses > 0
           msg.send 'Existing buildings must be sold before you can sell this property.'
         else if checkIfPlayerCanAfford accounts, player, price
-          if subtractFromPlayerAccount player, price
-            addToPlayerAccount data[propertyIndex].owner, soldAmount
+          if subtractFromPlayerAccount player, price, msg
+            addToPlayerAccount data[propertyIndex].owner, soldAmount, msg
             updateThisProperty(data, players, propertyIndex, ownerIndex)
             msg.send "#{data[propertyIndex].name} has been transferred to #{player}."
             robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, "#{data[propertyIndex].name} has been transferred to #{player}."
@@ -899,7 +904,7 @@ module.exports = (robot) ->
             property.mortgaged = true
             robot.brain.set 'monopolyBoard', data
             msg.send "#{property.owner} mortgaged #{property.name}, collect $#{property.mortgage}."
-            addToPlayerAccount(property.owner, property.mortgage)
+            addToPlayerAccount(property.owner, property.mortgage, msg)
 
   robot.respond /monopoly unmortgage ([a-z &-]+)$/i, (msg) ->
     if _.contains(allowedRooms, msg.envelope.room)
@@ -912,7 +917,7 @@ module.exports = (robot) ->
           if property.mortgaged
             amount = Math.round(property.mortgate * 1.1)
             if checkIfPlayerCanAfford accounts, property.owner, amount
-              if subtractFromPlayerAccount(property.owner, amount)
+              if subtractFromPlayerAccount(property.owner, amount, msg)
                 property.mortgaged = false
                 robot.brain.set 'monopolyBoard', data
                 msg.send "#{property.owner} unmortgaged #{property.name}, pay $#{amount}. #{bankerInstructions}"
@@ -961,7 +966,7 @@ module.exports = (robot) ->
         if turnState != 'jail'
           msg.send "Sorry, expecting #{turnState} command."
         else
-          if subtractFromPlayerAccount(players[playerIndex].name, 50)
+          if subtractFromPlayerAccount(players[playerIndex].name, 50, msg)
             freeFromJail(players, playerIndex)
             msg.send "#{players[playerIndex].name} pays $50 to exit jail. #{bankerInstructions}"
             robot.brain.set 'monopolyTurnState', 'roll'
@@ -1082,6 +1087,7 @@ module.exports = (robot) ->
               playerSummary += " (monopoly, #{property.houses} house#{plural}) "
             if property.mortgaged
               playerSummary += ' (mortgaged)'
+            playerSummary += " #{propertyColor(property.name)}"
           if !ownedProperties.length
             playerSummary += '0 properties'
           if jailChanceCardOwner == player.name
@@ -1384,4 +1390,15 @@ module.exports = (robot) ->
     [26, 27, 29]
     [31, 32, 34]
     [37, 39]
+  ]
+
+  monopolyColors = [
+    '#772caf'
+    '#93d2ee'
+    '#d33edf'
+    '#e8964d'
+    '#e80000'
+    '#ffec00'
+    '#378639'
+    '#3346cc'
   ]
