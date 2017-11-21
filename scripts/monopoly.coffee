@@ -635,6 +635,14 @@ module.exports = (robot) ->
     if currentTurn == losingIndex
       robot.brain.set 'monopolyTurnState', 'roll'
       setNextPlayer(null)
+      
+  propertyColor = (propertyName) ->
+    data = robot.brain.get 'monopolyBoard'
+    propertyIndex = _.findIndex(data, { name: propertyName })
+    for group, index in monopolyGroups
+      if _.contains group, propertyIndex
+        return monopolyColors[index]
+    return ''
 
   robot.respond /monopoly help$/i, (msg) ->
     msg.send '\n~ Monopoly Help ~\n
@@ -1082,6 +1090,7 @@ module.exports = (robot) ->
               playerSummary += " (monopoly, #{property.houses} house#{plural}) "
             if property.mortgaged
               playerSummary += ' (mortgaged)'
+            playerSummary += " #{propertyColor(property.name)}"
           if !ownedProperties.length
             playerSummary += '0 properties'
           if jailChanceCardOwner == player.name
@@ -1384,4 +1393,15 @@ module.exports = (robot) ->
     [26, 27, 29]
     [31, 32, 34]
     [37, 39]
+  ]
+
+  monopolyColors = [
+    '#772caf'
+    '#93d2ee'
+    '#d33edf'
+    '#e8964d'
+    '#e80000'
+    '#ffec00'
+    '#378639'
+    '#3346cc'
   ]
