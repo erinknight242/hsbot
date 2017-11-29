@@ -34,7 +34,7 @@
 _ = require 'underscore'
 
 bankerInstructions = '"hsbot monopoly roll" to continue.'
-allowedRooms = ['Shell', 'monopoly']
+allowedRooms = ['Shell', 'monopoly', 'monopoly_admins']
 adminRooms = ['Shell', 'monopoly_admins']
 boardImage = 'https://i.imgur.com/2vyzOVR.png'
 sadTuba = 'https://www.youtube.com/watch?v=9Jz1TjCphXE'
@@ -863,10 +863,10 @@ module.exports = (robot) ->
         if propertyIndex > -1 && data[propertyIndex].monopoly
           playerName = data[propertyIndex].owner
           if checkIfCanBuild(data, propertyIndex)
-            if checkIfPlayerCanAfford accounts, player, data[propertyIndex].houseCost
+            if checkIfPlayerCanAfford accounts, playerName, data[propertyIndex].houseCost
               build(data, propertyIndex, msg)
             else
-              msg.send notEnoughMoneyMessage player, accounts
+              msg.send notEnoughMoneyMessage playerName, accounts
           else if data[propertyIndex].houses == 5
             msg.send 'You already built a hotel here! Go build somewhere else!'
           else
