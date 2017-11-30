@@ -36,7 +36,7 @@ _ = require 'underscore'
 bankerInstructions = '"hsbot monopoly roll" to continue.'
 allowedRooms = ['Shell', 'monopoly', 'monopoly_admins']
 adminRooms = ['Shell', 'monopoly_admins']
-boardImage = 'https://i.imgur.com/2vyzOVR.png'
+boardImage = 'http://hsbot-monopoly-board.azurewebsites.net/'
 sadTuba = 'https://www.youtube.com/watch?v=9Jz1TjCphXE'
 
 roll = () ->
