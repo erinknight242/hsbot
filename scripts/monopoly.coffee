@@ -556,8 +556,8 @@ module.exports = (robot) ->
         robot.brain.set 'monopolyHouses', totalHouses
     if added
       robot.brain.set 'monopolyBoard', data
-      if subtractFromPlayerAccount(property.owner, property.houseCost, msg)
         msg.send "#{property.owner} built a #{type}, pay $#{property.houseCost}. #{bankerInstructions}"
+        subtractFromPlayerAccount(property.owner, property.houseCost, msg)
       else
         robot.brain.set 'monopolyTurnState', resolveBankruptcy
 
@@ -872,6 +872,8 @@ module.exports = (robot) ->
             msg.send 'You already built a hotel here! Go build somewhere else!'
           else
             msg.send 'You have to build evenly on your monopoly. Build on other properties first.'
+        else if propertyIndex < 0
+          msg.send "I don't know #{propertyName}, check your spelling."
         else
           msg.send 'You can only build on properties that are part of a monopoly.'
 
