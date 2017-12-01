@@ -534,26 +534,26 @@ module.exports = (robot) ->
     totalHouses = robot.brain.get 'monopolyHouses'
     totalHotels = robot.brain.get 'monopolyHotels'
     property = data[propertyIndex]
-    property.houses += 1
-    added = true
+    added = false
     if (property.houses < 5)
       type = 'house'
-      totalHouses += 1
-      if totalHouses > 32
-        msg.send '32 houses are already in use, wait until some are replaced or sold.'
-        added = false
-      else
+      if totalHouses < 32
+        totalHouses += 1
+        property.houses += 1
+        added = true
         robot.brain.set 'monopolyHouses', totalHouses
+      else
+        msg.send '32 houses are already in use, wait until some are replaced or sold.'
     else if (property.houses == 5)
       type = 'hotel'
-      totalHotels += 1
-      totalHouses -= 4
-      if totalHotels > 12
-        msg.send '12 hotels are already in use, wait until some are sold.'
-        added = false
-      else
+      if totalHotels < 12
+        totalHotels += 1
+        totalHouses -= 4
+        added = true
         robot.brain.set 'monopolyHotels', totalHotels
         robot.brain.set 'monopolyHouses', totalHouses
+      else
+        msg.send '12 hotels are already in use, wait until some are sold.'
     if added
       robot.brain.set 'monopolyBoard', data
       msg.send "#{property.owner} built a #{type}, pay $#{property.houseCost}. #{bankerInstructions}"
@@ -647,8 +647,6 @@ module.exports = (robot) ->
       \thsbot monopoly buy - action for an unowned property\n
       \thsbot monopoly auction - action for an unowned property\n
       \thsbot monopoly details propertyName - lists the details/prices on the property card\n
-      \thsbot monopoly build propertyName - if part of a monopoly, builds a house or hotel\n
-      \thsbot monopoly unbuild propertyName - if part of a monopoly, sells a house or hotel for half value\n
       \thsbot monopoly mortgage propertyName - mortgages a property\n
       \thsbot monopoly unmortgage propertyName - unmortgages a property at value + 10%\n
       \thsbot monopoly status - who owns what, where they are, and whose turn it is\n
@@ -853,7 +851,7 @@ module.exports = (robot) ->
           msg.send notEnoughMoneyMessage player, accounts
 
   robot.respond /monopoly build ([0-9a-z &-]+)$/i, (msg) ->
-    if _.contains(allowedRooms, msg.envelope.room)
+    if _.contains(adminRooms, msg.envelope.room)
       data = robot.brain.get 'monopolyBoard'
       accounts = robot.brain.get 'monopolyAccounts'
       propertyName = msg.match[1]
@@ -876,7 +874,7 @@ module.exports = (robot) ->
           msg.send 'You can only build on properties that are part of a monopoly.'
 
   robot.respond /monopoly unbuild ([0-9a-z &-]+)$/i, (msg) ->
-    if _.contains(allowedRooms, msg.envelope.room)
+    if _.contains(adminRooms, msg.envelope.room)
       data = robot.brain.get 'monopolyBoard'
       propertyName = msg.match[1]
       if data
@@ -1124,7 +1122,9 @@ module.exports = (robot) ->
         \thsbot monopoly sold teamName amount - ends an auction\n
         \thsbot monopoly update propertyName teamName - transfer property by trade or sale\n
         \thsbot monopoly bankrupt sold teamName amount (now) - end bankrupt auction, now pays to unmortgage\n
-        \thsbot monopoly teamName declares bankruptcy to (teamName|the bank) - sells off a players assets and takes them out of the game'
+        \thsbot monopoly teamName declares bankruptcy to (teamName|the bank) - sells off a players assets and takes them out of the game\n
+        \thsbot monopoly build propertyName - if part of a monopoly, builds a house or hotel\n
+        \thsbot monopoly unbuild propertyName - if part of a monopoly, sells a house or hotel for half value\n'
 
   robot.respond /monopoly start new game$/i, (msg) ->
     if _.contains(adminRooms, msg.envelope.room)
