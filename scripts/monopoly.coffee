@@ -822,7 +822,7 @@ module.exports = (robot) ->
           else
             msg.send notEnoughMoneyMessage player, accounts
 
-  robot.respond /monopoly update (Delta City|Gotham|DMZ|Monterrey|Houston|Dallas) (for )?\$*(\d+)( now)? ([a-z &-]+)$/i, (msg) ->
+  robot.respond /monopoly update (Delta City|Gotham|DMZ|Monterrey|Houston|Dallas) (for )?\$*(\d+)( now)? ([0-9a-z &-]+)$/i, (msg) ->
     if _.contains(adminRooms, msg.envelope.room)
       data = robot.brain.get 'monopolyBoard'
       players = robot.brain.get 'monopolyPlayers'
@@ -854,7 +854,7 @@ module.exports = (robot) ->
         else
           msg.send notEnoughMoneyMessage player, accounts
 
-  robot.respond /monopoly build ([a-z &-]+)$/i, (msg) ->
+  robot.respond /monopoly build ([0-9a-z &-]+)$/i, (msg) ->
     if _.contains(allowedRooms, msg.envelope.room)
       data = robot.brain.get 'monopolyBoard'
       accounts = robot.brain.get 'monopolyAccounts'
@@ -875,7 +875,7 @@ module.exports = (robot) ->
         else
           msg.send 'You can only build on properties that are part of a monopoly.'
 
-  robot.respond /monopoly unbuild ([a-z &-]+)$/i, (msg) ->
+  robot.respond /monopoly unbuild ([0-9a-z &-]+)$/i, (msg) ->
     if _.contains(allowedRooms, msg.envelope.room)
       data = robot.brain.get 'monopolyBoard'
       propertyName = msg.match[1]
@@ -889,7 +889,7 @@ module.exports = (robot) ->
         else
           msg.send 'There aren\'t any houses built here.'
 
-  robot.respond /monopoly mortgage ([a-z &-]+)$/i, (msg) ->
+  robot.respond /monopoly mortgage ([0-9a-z &-]+)$/i, (msg) ->
     if _.contains(allowedRooms, msg.envelope.room)
       data = robot.brain.get 'monopolyBoard'
       propertyName = msg.match[1]
@@ -907,7 +907,7 @@ module.exports = (robot) ->
             msg.send "#{property.owner} mortgaged #{property.name}, collect $#{property.mortgage}."
             addToPlayerAccount(property.owner, property.mortgage, msg)
 
-  robot.respond /monopoly unmortgage ([a-z &-]+)$/i, (msg) ->
+  robot.respond /monopoly unmortgage ([0-9a-z &-]+)$/i, (msg) ->
     if _.contains(allowedRooms, msg.envelope.room)
       data = robot.brain.get 'monopolyBoard'
       propertyName = msg.match[1]
@@ -929,7 +929,7 @@ module.exports = (robot) ->
           else
             msg.send 'This property isn\'t mortgaged. (smh)'
 
-  robot.respond /monopoly details ([a-z &-]+)$/i, (msg) ->
+  robot.respond /monopoly details ([0-9a-z &-]+)$/i, (msg) ->
     data = robot.brain.get 'monopolyBoard'
     if data
       match = _.find(data, (property) => property.name.toLowerCase() == msg.match[1].toLowerCase())
@@ -1244,7 +1244,7 @@ module.exports = (robot) ->
           freeFromJail(players, playerIndex)
           msg.send "#{players[playerIndex].name} freed from jail."
 
-  robot.respond /monopoly move (delta city|gotham|dmz|monterrey|houston|dallas)( to)? ([a-z &-]+)$/i, (msg) ->
+  robot.respond /monopoly move (delta city|gotham|dmz|monterrey|houston|dallas)( to)? ([0-9a-z &-]+)$/i, (msg) ->
     if _.contains(adminRooms, msg.envelope.room)
       players = robot.brain.get 'monopolyPlayers'
       data = robot.brain.get 'monopolyBoard'
