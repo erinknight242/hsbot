@@ -556,10 +556,8 @@ module.exports = (robot) ->
         robot.brain.set 'monopolyHouses', totalHouses
     if added
       robot.brain.set 'monopolyBoard', data
-        msg.send "#{property.owner} built a #{type}, pay $#{property.houseCost}. #{bankerInstructions}"
-        subtractFromPlayerAccount(property.owner, property.houseCost, msg)
-      else
-        robot.brain.set 'monopolyTurnState', resolveBankruptcy
+      msg.send "#{property.owner} built a #{type}, pay $#{property.houseCost}. #{bankerInstructions}"
+      subtractFromPlayerAccount(property.owner, property.houseCost, msg)
 
   removeHouse = (data, propertyIndex, msg) ->
     totalHouses = robot.brain.get 'monopolyHouses'
