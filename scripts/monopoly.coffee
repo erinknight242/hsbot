@@ -531,8 +531,8 @@ module.exports = (robot) ->
     balance >= parseInt amount
 
   build = (data, propertyIndex, msg) ->
-    totalHouses = robot.brain.get 'monopolyHouses'
-    totalHotels = robot.brain.get 'monopolyHotels'
+    totalHouses = parseInt(robot.brain.get 'monopolyHouses')
+    totalHotels = parseInt(robot.brain.get 'monopolyHotels')
     property = data[propertyIndex]
     added = false
     if (property.houses < 5)
