@@ -357,7 +357,9 @@ module.exports = (robot) ->
             message = "#{owner} owns 2 utilities. "
         else
           owes = data[player.location].rent
-          if data[player.location].houses
+          if data[player.location].houses == 5
+            owes = data[player.location].hotel
+          else if data[player.location].houses
             owes = data[player.location]['house' + data[player.location].houses]
           else if data[player.location].monopoly
             owes *= 2
