@@ -910,6 +910,7 @@ module.exports = (robot) ->
   robot.respond /monopoly unmortgage ([0-9a-z &-]+)$/i, (msg) ->
     if _.contains(allowedRooms, msg.envelope.room)
       data = robot.brain.get 'monopolyBoard'
+      accounts = robot.brain.get 'monopolyAccounts'
       propertyName = msg.match[1]
       if data
         propertyIndex = _.findIndex(data, (property) => property.name.toLowerCase() == propertyName.toLowerCase())
