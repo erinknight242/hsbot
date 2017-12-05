@@ -926,7 +926,7 @@ module.exports = (robot) ->
               else
                 robot.brain.set 'monopolyTurnState', resolveBankruptcy
             else
-              msg.send notEnoughMoneyMessage player, accounts
+              msg.send notEnoughMoneyMessage property.owner, accounts
           else
             msg.send 'This property isn\'t mortgaged. (smh)'
 
