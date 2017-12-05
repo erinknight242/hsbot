@@ -917,7 +917,7 @@ module.exports = (robot) ->
         if propertyIndex > -1
           property = data[propertyIndex]
           if property.mortgaged
-            amount = Math.round(property.mortgate * 1.1)
+            amount = Math.round(parseInt(property.mortgage) * 1.1)
             if checkIfPlayerCanAfford accounts, property.owner, amount
               if subtractFromPlayerAccount(property.owner, amount, msg)
                 property.mortgaged = false
