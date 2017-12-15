@@ -104,8 +104,7 @@ module.exports = (robot) ->
     winnerIndex = checkForWinner(players)
     if winnerIndex > -1
       robot.brain.set 'monopolyTurnState', 'new game'
-      msg.send "#{players[winnerIndex].name} WINS!! (party) (mindblown) (fireworks)"
-      msg.topic "#{players[winnerIndex].name} won!"
+      robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, "#{players[winnerIndex].name} WINS!! (party) (mindblown) (fireworks)"
     else 
       if !players[playerIndex].doubles
         playerIndex = findNextPlayer(players, playerIndex)
