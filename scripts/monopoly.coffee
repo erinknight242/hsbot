@@ -1122,11 +1122,12 @@ module.exports = (robot) ->
         \thsbot monopoly toggle jail state playerName - sends player to or from jail\n
         \thsbot monopoly move playerName (to) propertyName - moves a player to somewhere else\n
         \thsbot monopoly sold teamName amount - ends an auction\n
-        \thsbot monopoly update propertyName teamName - transfer property by trade or sale\n
+        \thsbot monopoly update teamName for amount now? propertyName - transfer property by trade or sale\n
         \thsbot monopoly bankrupt sold teamName amount (now) - end bankrupt auction, now pays to unmortgage\n
         \thsbot monopoly teamName declares bankruptcy to (teamName|the bank) - sells off a players assets and takes them out of the game\n
         \thsbot monopoly build propertyName - if part of a monopoly, builds a house or hotel\n
-        \thsbot monopoly unbuild propertyName - if part of a monopoly, sells a house or hotel for half value\n'
+        \thsbot monopoly unbuild propertyName - if part of a monopoly, sells a house or hotel for half value\n
+        \thsbot monopoly toggle bankrupt teamName - switches the isBankrupt flag for a team\n'
 
   robot.respond /monopoly start new game$/i, (msg) ->
     if _.contains(adminRooms, msg.envelope.room)
@@ -1277,6 +1278,21 @@ module.exports = (robot) ->
         robot.brain.set 'monopolyScaleFactor', scaleFactor
         robot.brain.set 'monopolyBoard', scaleProperties data, scaleFactor
         msg.send 'Scale factor updated.'
+      else
+        msg.send 'Start a game first!'
+
+  robot.respond /monopoly toggle bankrupt (delta city|gotham|dmz|monterrey|houston|dallas)$/i, (msg) ->
+    if _.contains(adminRooms, msg.envelope.room)
+      players = robot.brain.get 'monopolyPlayers'
+      if players
+        playerName = msg.match[1]
+        playerIndex = _.findIndex(players, (player) => player.name.toLowerCase() == playerName.toLowerCase())
+        if playerIndex < 0
+          msg.send 'Sorry, check your spelling'
+        else
+          players[playerIndex].isBankrupt = !players[playerIndex].isBankrupt
+          robot.brain.set 'monopolyPlayers', players
+          msg.send "#{players[playerIndex].name} isBankrupt set to #{players[playerIndex].isBankrupt}."
       else
         msg.send 'Start a game first!'
 
