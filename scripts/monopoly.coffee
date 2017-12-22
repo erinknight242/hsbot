@@ -1122,7 +1122,7 @@ module.exports = (robot) ->
       bids.push { username: username, amount: bidAmount }
       robot.brain.set 'monopolyBids', bids
       msg.send "$#{bidAmount} bid recorded from #{username}."
-      robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY_ADMINS, "#{username} submitted a bid."
+      robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, "#{username} submitted a bid."
     else
       msg.send 'There is not an active auction to bid on.'
 
