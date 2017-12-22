@@ -18,6 +18,7 @@
 #   hsbot monopoly jail card
 #   hsbot monopoly continue (for after jail rolls failed)
 #   hsbot monopoly list available properties
+#   hsbot monopoly bid amount
 #
 # Admin commands:
 #   hsbot monopoly start new game - starts a new game from scratch
@@ -30,6 +31,8 @@
 #   hsbot monopoly sold (delta city|gotham|dmz|monterrey|houston|dallas) amount
 #   hsbot monopoly bankrupt sold (delta city|gotham|dmz|monterrey|houston|dallas) amount (now)
 #   hsbot monopoly teamName declares bankruptcy to (teamName|the bank)
+#   hsbot monopoly start|end silent auction
+#   hsbot monopoly dump bids - for debugging or resolving disputes
 
 _ = require 'underscore'
 
@@ -655,8 +658,8 @@ module.exports = (robot) ->
       \thsbot monopoly jail roll - way to attempt to get out of jail\n
       \thsbot monopoly jail card - if you\'re lucky enough to have one of these to get out of jail\n
       \thsbot monopoly continue - after jail rolls failed and you have to pay anyway\n
-      \thsbot monopoly list available properties - lists unowned property names\n\n
-      Game commands can only be used in the Monopoly room. Join in!'
+      \thsbot monopoly list available properties - lists unowned property names\n
+      \thsbot monopoly bid $amount - logs your bid in the current silent auction\n'
 
   robot.respond /monopoly board$/i, (msg) ->
     msg.send boardImage
@@ -1110,6 +1113,19 @@ module.exports = (robot) ->
     else
       msg.send 'No game in progress.'
 
+  robot.respond /monopoly bid \$*(\d+)$/i, (msg) ->
+    bidsAllowed = robot.brain.get 'monopolyAcceptingBids'
+    username = msg.message.user.name
+    bidAmount = msg.match[1]
+    bids = robot.brain.get 'monopolyBids'
+    if bidsAllowed == true
+      bids.push { username: username, amount: bidAmount }
+      robot.brain.set 'monopolyBids', bids
+      msg.send "$#{bidAmount} bid recorded from #{username}."
+      robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY_ADMINS, "#{username} submitted a bid."
+    else
+      msg.send 'There is not an active auction to bid on.'
+
   robot.respond /monopoly admin help$/i, (msg) ->
     if _.contains(adminRooms, msg.envelope.room)
       msg.send '\n~ Monopoly Admin Help ~\n
@@ -1127,7 +1143,10 @@ module.exports = (robot) ->
         \thsbot monopoly teamName declares bankruptcy to (teamName|the bank) - sells off a players assets and takes them out of the game\n
         \thsbot monopoly build propertyName - if part of a monopoly, builds a house or hotel\n
         \thsbot monopoly unbuild propertyName - if part of a monopoly, sells a house or hotel for half value\n
-        \thsbot monopoly toggle bankrupt teamName - switches the isBankrupt flag for a team\n'
+        \thsbot monopoly toggle bankrupt teamName - switches the isBankrupt flag for a team\n
+        \thsbot monopoly start silent auction - listens for bids on a house\n
+        \thsbot monopoly end silent auction - stops listening and announces the winner\n
+        \thsbot monopoly dump bids - lists the bids logged in the most recent (or current) auction\n'
 
   robot.respond /monopoly start new game$/i, (msg) ->
     if _.contains(adminRooms, msg.envelope.room)
@@ -1148,6 +1167,8 @@ module.exports = (robot) ->
       robot.brain.set 'monopolyScaleFactor', scaleFactor
       robot.brain.set 'monopolyHouses', 0
       robot.brain.set 'monopolyHotels', 0
+      robot.brain.set 'monopolyBids', []
+      robot.brain.set 'monopolyAcceptingBids', false
 
       shuffle 'monopolyChance'
       shuffle 'monopolyCommunityChest'
@@ -1215,6 +1236,56 @@ module.exports = (robot) ->
           msg.send 'What was that? Check your spelling.'
       else
         msg.send 'No game in progress.'
+
+  robot.respond /monopoly start silent auction$/i, (msg) ->
+    if _.contains(adminRooms, msg.envelope.room)
+      data = robot.brain.get 'monopolyBoard'
+      bidsAllowed = robot.brain.get 'monopolyAcceptingBids'
+      if bidsAllowed == false
+        if data
+          msg.send 'Listening for bids...'
+          robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, 'A silent auction has begun! To place a bid privately, open a direct message with Headspring Bot or in another room that includes the bot send, for example: "hsbot monopoly bid $100". You will get a confirmation message that your bid has been recorded. When the auction is over, the person who sent the highest bid wins! If you change your mind and want to bid higher, you or someone else on your team can send another bid. Bid carefully; your bid can not be retracted once it\'s been sent. Whole numbers only; bids with decimal amounts will be ignored.'
+          bids = []
+          robot.brain.set 'monopolyBids', bids
+          robot.brain.set 'monopolyAcceptingBids', true
+        else
+          msg.send 'Start a game first.'
+      else
+        msg.send 'There is already an auction in progress.'
+
+  robot.respond /monopoly end silent auction$/i, (msg) ->
+    if _.contains(adminRooms, msg.envelope.room)
+      bidsAllowed = robot.brain.get 'monopolyAcceptingBids'
+      if bidsAllowed == true
+        robot.brain.set 'monopolyAcceptingBids', false
+        bids = robot.brain.get 'monopolyBids'
+        msg.send 'Bidding has ended.'
+
+        if bids.length > 0
+          highestBidder = 0
+          highestBid = parseInt bids[0].amount
+          for bid, index in bids
+            currentBid = parseInt bid.amount
+            if currentBid > highestBid
+              highestBidder = index
+              highestBid = currentBid
+          robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, "The highest bidder is #{bids[highestBidder].username} with $#{bids[highestBidder].amount}. Congratulations! (party) Admins - do yo' thing to update the accounts."
+        else
+          robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, 'Silent auction has ended. There were no bids!'
+      else
+        msg.send 'There isn\'t an active auction to end.'
+
+  robot.respond /monopoly dump bids$/i, (msg) ->
+    if _.contains(adminRooms, msg.envelope.room)
+      bids = robot.brain.get 'monopolyBids'
+      if bids
+        bidList = ''
+        for bid in bids
+          bidList += "#{bid.username} - $#{bid.amount}\n"
+        if bids.length == 0
+          msg.send 'No bids recorded yet.'
+        else
+          msg.send bidList
 
   # undocumented until this is prettier
   robot.respond /monopoly dump log$/i, (msg) ->
