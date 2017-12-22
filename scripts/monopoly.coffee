@@ -1283,9 +1283,9 @@ module.exports = (robot) ->
         for bid in bids
           bidList += "#{bid.username} - $#{bid.amount}\n"
         if bids.length == 0
-          msg.send 'No bids recorded yet.'
+          robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, 'No bids recorded yet.'
         else
-          msg.send bidList
+          robot.messageRoom process.env.HUBOT_ROOM_MONOPOLY, bidList
 
   # undocumented until this is prettier
   robot.respond /monopoly dump log$/i, (msg) ->
