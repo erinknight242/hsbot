@@ -19,10 +19,14 @@ module.exports = function lunchdropCommand(robot) {
           res.send('No restaurants currently scheduled for today.');
         }
 
-        res.send("Today's restaurants from Lunchdrop are:");
-        todaysLunch.deliveries.forEach(x => res.send(`\n${x.restaurant.name}`));
-        res.send(`\nOrder: ${orderLink}`);
-        res.send(`Sign up: ${signUpLink}`);
+        let message = "Today's restaurants from Lunchdrop are:\n";
+        message += todaysLunch.deliveries.reduce(
+          (prev, current) => `${prev}\n${current.restaurant.name}\n`,
+          ''
+        );
+        message += `\nSign up: ${signUpLink}`;
+        message += `\nOrder: ${orderLink}`;
+        res.send(message);
       } catch (e) {
         res.send("Sorry I wasn't able to understand what lunchdrop said.");
       }
