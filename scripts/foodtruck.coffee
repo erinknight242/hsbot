@@ -12,12 +12,7 @@ module.exports = (robot) ->
               [
                 {
                   breakfast: null,
-                  lunch:
-                    {
-                      name: "Happy Lobster",
-                      site: "http://www.happylobstertruck.com/",
-                      time: "11:00am - 1:30pm"
-                    }
+                  lunch: null
                 },
                 {
                   breakfast: null,
@@ -67,9 +62,9 @@ module.exports = (robot) ->
                     }
                   lunch:
                     {
-                      name: "The Ginger Armadillo",
-                      site: "http://thegingerarmadillo.com/locate",
-                      time: "11:00am - 2:00pm"
+                      name: "Cluck-N-Burger",
+                      site: "https://www.facebook.com/CLUCKNBURGER/",
+                      time: "11:30am - 1:30pm"
                     }
                 },
                 {
@@ -87,9 +82,9 @@ module.exports = (robot) ->
                   breakfast: null,
                   lunch:
                     {
-                      name: "Glory Rolll",
-                      site: "https://www.facebook.com/thegloryroll/",
-                      time: "11:30am - 1:30pm"
+                      name: "Dragon Bowl",
+                      site: "https://www.facebook.com/DragonBowlATX",
+                      time: "11:30am - 2:00pm"
                     }
                 },
                 null
