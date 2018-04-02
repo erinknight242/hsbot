@@ -28,8 +28,8 @@ module.exports = (robot) ->
                 {
                   breakfast: null
                   lunch: {
-                    name: "Tamale Addiction",
-                    site: "http://tamaleaddiction.com/",
+                    name: "Ramonas Hummus",
+                    site: "https://www.ramonashummus.com/",
                     time: "11:30am - 2:00pm"
                   }
                 },
