@@ -5,28 +5,37 @@
 #   hubot where is mercury - find a conference room by name
 
 conferenceRooms = {
-  mercury: "http://i.imgur.com/AZfkrM8.png",
-  zinc: "http://i.imgur.com/z8JcXX5.png",
-  silver: "http://i.imgur.com/sT3pAGO.png",
-  titanium: "http://i.imgur.com/ZUqPTp7.png",
-  oxygen: "http://i.imgur.com/5eHK2Hd.png",
-  hydrogen: "http://i.imgur.com/48mayHi.png",
-  silicon: "http://i.imgur.com/rvw1Y5P.png",
-  carbon: "http://i.imgur.com/9CeF1oB.png",
-  nitrogen: "http://i.imgur.com/MqF2DZz.png",
-  promethium: "http://i.imgur.com/zxwVDru.png",
+  # Austin
+  mercury: "https://i.imgur.com/6GyUimi.png",
+  zinc: "https://i.imgur.com/erKXXNJ.png",
+  silver: "https://i.imgur.com/YmA07P3.png",
+  titanium: "https://i.imgur.com/lrSteNN.png",
+  oxygen: "https://i.imgur.com/KotsrgR.png",
+  hydrogen: "https://i.imgur.com/rtr6Yf8.png",
+  silicon: "https://i.imgur.com/TI7o6HV.png",
+  carbon: "https://i.imgur.com/EszbFwm.png",
+  nitrogen: "https://i.imgur.com/ky4pgBK.png",
+  promethium: "https://i.imgur.com/1S6ieRs.png",
+
+  # Not Rooms
+  coffee: "(jura)",
   jimmy: "https://s3.amazonaws.com/grabbagoftimg/jimmy.png",
+
+  # Austin 1st floor
   neocoltrane: "http://i.imgur.com/H8FUzPS.png",
   davis: "http://i.imgur.com/pE20nhD.png",
   brubeck: "http://i.imgur.com/dmJ2BDv.png",
   parker: "http://i.imgur.com/v1AhrJQ.png",
-  coffee: "(jura)",
+
+  # Houston
   burnet: "http://i.imgur.com/CUJd3Di.png",
   capitaloftexas: "http://i.imgur.com/20GipJn.png",
   mopac: "http://i.imgur.com/YrVXsQA.png",
   morado: "http://i.imgur.com/4Uc5c2G.png",
   richmond: "http://i.imgur.com/XEv0cEw.png",
   spicewood: "http://i.imgur.com/UMxipTc.png",
+
+  # Dallas
   babbage: "http://i.imgur.com/NBa3oPh.png",
   church: "http://i.imgur.com/wSNZg2G.png",
   descartes: "http://i.imgur.com/N9kdLb6.png",
