@@ -18,7 +18,7 @@ roll = (die, qty = 1, mod = 0) ->
   rolls: rolls
 
 module.exports = (robot) ->
-  robot.respond /dnd (\d+)?d(\d+)(\+(\d+))?/i, (msg) ->
+  robot.respond /roll (\d+)?d(\d+)(\+(\d+))?/i, (msg) ->
     qty = msg.match[1]
     die = msg.match[2]
     mod = msg.match[4] # `match[3]` includes the '+'
