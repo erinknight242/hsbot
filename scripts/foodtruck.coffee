@@ -33,9 +33,9 @@ module.exports = (robot) ->
                 {
                   breakfast: null
                   lunch: {
-                    name: "Ramonas Hummus",
-                    site: "https://www.ramonashummus.com/",
-                    time: "11:30am - 2:00pm"
+                    name: "Tamale Addiction",
+                    site: "http://thecampusatarboretum.info/toc.cfm",
+                    time: "11:30am - 1:00pm"
                   }
                 },
                 {
@@ -87,12 +87,20 @@ module.exports = (robot) ->
                   breakfast: null,
                   lunch:
                     {
-                      name: "Dragon Bowl",
-                      site: "https://www.facebook.com/DragonBowlATX",
+                      name: "Stony's Pizza",
+                      site: "http://www.stonysatx.com/truck-locator.html",
                       time: "11:30am - 2:00pm"
                     }
                 },
-                null
+                {
+                  breakfast: null,
+                  lunch:
+                    {
+                      name: "Munchiez",
+                      site: "http://thecampusatarboretum.info/toc.cfm",
+                      time: "11:30am - 2:00pm"
+                    }
+                }
               ],
               null]
     today = new Date()
