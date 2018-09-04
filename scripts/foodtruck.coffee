@@ -65,12 +65,7 @@ module.exports = (robot) ->
                       site: "http://www.tacofoodgroup.com/",
                       time: "8:00am - 10:15am"
                     }
-                  lunch:
-                    {
-                      name: "Cluck-N-Burger",
-                      site: "https://www.facebook.com/CLUCKNBURGER/",
-                      time: "11:30am - 1:30pm"
-                    }
+                  lunch: null
                 },
                 {
                   breakfast: null,
@@ -93,7 +88,12 @@ module.exports = (robot) ->
                     }
                 },
                 {
-                  breakfast: null,
+                  breakfast:
+                    {
+                      name: "The Wafel Guys",
+                      site: "http://www.thewafelguys.com/",
+                      time: "8:30am - 10:30am"
+                    }
                   lunch:
                     {
                       name: "Munchiez",
