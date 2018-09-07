@@ -297,7 +297,7 @@ module.exports = (robot) ->
   robot.respond /hva help$/i, (msg) ->
     msg.send nominateHelpText
 
-  robot.respond /brag (about |on )?((@[a-z0-9]+(, and |, & |, | and | & | )?)+)(.+)/i, (msg) ->
+  robot.respond /brag *(about|on)? *((@[a-z0-9]+( *, *and *| *, *& *| *, *| *and *| *& *| *)?)+)(.+)/i, (msg) ->
     #console.log("robot name: " + robot.name)
     sender = msg.message.user.name
     #console.log("sender: " + sender)
@@ -381,7 +381,7 @@ module.exports = (robot) ->
             else
               msg.send "Unable to match brag(s) with Jira results. Check the Jira HVA project to confirm success."
 
-  robot.respond /hva (to |for )@([a-zA-Z0-9]+) for (DFE|PAV|COM|PLG|OWN|GRIT|HUMILITY|CANDOR|CURIOSITY|AGENCY)(.+)/i, (msg) ->
+  robot.respond /hva *(to *|for *)?@([a-zA-Z0-9]+) *for *(DFE|PAV|COM|PLG|OWN|GRIT|HUMILITY|CANDOR|CURIOSITY|AGENCY)(.+)/i, (msg) ->
     #console.log("robot name: " + robot.name)
     sender = msg.message.user.name
     #console.log("sender: " + sender)
