@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using SlothBot;
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 
 namespace Hsbot.Slack.Web
@@ -21,22 +20,21 @@ namespace Hsbot.Slack.Web
 
       public void ConfigureServices(IServiceCollection services)
       {
-        services.AddTransient<ISlackConfig>(svc => new HsbotConfig {SlackApiKey = _config["slack:apiKey"]});
-        services.AddSingleton<Core.Hsbot>();
+        services.AddHsbot(new HsbotConfig {SlackApiKey = _config["slack:apiKey"]});
         services.AddSingleton<IHostedService, HsbotHostedService>();
       }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
-        {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
+      public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+      {
+          if (env.IsDevelopment())
+          {
+              app.UseDeveloperExceptionPage();
+          }
 
-            app.Run(async (context) =>
-            {
-                await context.Response.WriteAsync("Beep boop bop");
-            });
-        }
+          app.Run(async (context) =>
+          {
+              await context.Response.WriteAsync("Beep boop bop");
+          });
+      }
     }
 }
