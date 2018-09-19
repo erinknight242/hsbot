@@ -3,3 +3,22 @@ node_modules
 .hubot_history
 *lib/
 npm-debug.log
+
+#Build Folders
+[Bb]in
+csx/
+rcf/
+[Oo]bj
+logistics/bin
+.vs/
+
+#User-specific files
+*.suo
+*.csproj.user
+*.ccproj.user
+*.sln.DotSettings.user
+*.csproj.DotSettings.user
+*.pubxml.user
+*.dbmdl
+.vs/
+
