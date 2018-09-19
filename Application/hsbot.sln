@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2047
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hsbot.Slack.Web", "Hsbot.Slack.Web\Hsbot.Slack.Web.csproj", "{03B176DF-306F-4BA0-8A4B-077A14D7C6CD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{03B176DF-306F-4BA0-8A4B-077A14D7C6CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{03B176DF-306F-4BA0-8A4B-077A14D7C6CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{03B176DF-306F-4BA0-8A4B-077A14D7C6CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{03B176DF-306F-4BA0-8A4B-077A14D7C6CD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4DD86C55-0B07-4FC4-BCBF-CB58C972EDC2}
+	EndGlobalSection
+EndGlobal
