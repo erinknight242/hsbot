@@ -4,13 +4,13 @@ using SlothBot.MessagingPipeline;
 
 namespace Hsbot.Slack.Core.MessageHandlers
 {
-    public class Ping : IMessageHandler
+    public class Ping : DirectMentionMessageHandler
     {
-      public IEnumerable<CommandDescription> GetSupportedCommands()
+      public override IEnumerable<CommandDescription> GetSupportedCommands()
       {
         return new[]
         {
-          new CommandDescription()
+          new CommandDescription
           {
             Command = "ping",
             Description = "Replies to user who sent the message with 'Pong!'"
@@ -18,13 +18,12 @@ namespace Hsbot.Slack.Core.MessageHandlers
         };
       }
 
-      public bool DoesHandle(IncomingMessage message)
+      protected override bool ShouldHandle(IncomingMessage message)
       {
-        return message.BotIsMentioned &&
-               message.TargetedText.StartsWith("ping", StringComparison.OrdinalIgnoreCase);
+        return message.TargetedText.StartsWith("ping", StringComparison.OrdinalIgnoreCase);
       }
 
-      public IEnumerable<ResponseMessage> Handle(IncomingMessage message)
+      public override IEnumerable<ResponseMessage> Handle(IncomingMessage message)
       {
         yield return message.ReplyToChannel("Pong!");
       }
