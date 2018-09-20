@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using SlothBot.MessagingPipeline;
 
@@ -13,6 +15,15 @@ namespace Hsbot.Slack.Core.Extensions
       public static bool StartsWith(this IncomingMessage message, string start, StringComparison compareType = StringComparison.OrdinalIgnoreCase)
       {
         return message.TargetedText.StartsWith(start, compareType);
+      }
+
+      /// <summary>
+      /// Determines if message.TargetedText contains the supplied string (case insensitive)
+      /// </summary>
+      /// <returns>True if message.TargetedText contains the supplied string, false otherwise</returns>
+      public static bool Contains(this IncomingMessage message, string text)
+      {
+        return message.TargetedText.ToLowerInvariant().Contains(text.ToLowerInvariant());
       }
 
       /// <summary>
@@ -31,6 +42,24 @@ namespace Hsbot.Slack.Core.Extensions
       public static Match Match(this IncomingMessage message, Regex matchRegex)
       {
         return matchRegex.Match(message.TargetedText);
+      }
+
+      /// <summary>
+      /// Checks if a message was sent to a specific channel
+      /// </summary>
+      /// <returns>True if message was sent to target channel, false otherwise</returns>
+      public static bool IsForChannel(this IncomingMessage message, string channel)
+      {
+        return message.Channel.Equals(channel, StringComparison.OrdinalIgnoreCase);
+      }
+
+      /// <summary>
+      /// Checks if a message was sent to a specific channel
+      /// </summary>
+      /// <returns>True if message was sent to any of the given target channels, false otherwise</returns>
+      public static bool IsForChannel(this IncomingMessage message, IEnumerable<string> channels)
+      {
+        return channels.Any(channel => message.IsForChannel(channel));
       }
     }
 }
