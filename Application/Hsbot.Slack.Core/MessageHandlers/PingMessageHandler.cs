@@ -5,7 +5,7 @@ using SlothBot.MessagingPipeline;
 
 namespace Hsbot.Slack.Core.MessageHandlers
 {
-    public class Ping : DirectMentionMessageHandler
+    public class PingMessageHandler : DirectMentionMessageHandler
     {
       private const string CommandText = "ping";
 
@@ -31,7 +31,7 @@ namespace Hsbot.Slack.Core.MessageHandlers
         yield return message.ReplyToChannel("Pong!");
       }
 
-      public Ping(IRandomNumberGenerator randomNumberGenerator) : base(randomNumberGenerator)
+      public PingMessageHandler(IRandomNumberGenerator randomNumberGenerator) : base(randomNumberGenerator)
       {
       }
     }
