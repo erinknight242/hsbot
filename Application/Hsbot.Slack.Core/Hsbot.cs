@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using SlothBot;
 using SlothBot.MessagingPipeline;
 
@@ -7,9 +9,9 @@ namespace Hsbot.Slack.Core
   {
     public Hsbot(ISlackConfig slackConfig,
       ISlothLog log,
-      IMessageHandler[] messageHandlers = null,
-      IPlugin[] plugins = null)
-      : base(slackConfig, log, messageHandlers, plugins)
+      IEnumerable<IMessageHandler> messageHandlers,
+      IEnumerable<IPlugin> plugins = null)
+      : base(slackConfig, log, messageHandlers?.ToArray(), plugins?.ToArray())
     {
     }
   }
