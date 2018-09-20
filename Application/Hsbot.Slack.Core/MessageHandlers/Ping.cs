@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Hsbot.Slack.Core.Extensions;
+using Hsbot.Slack.Core.Random;
 using SlothBot.MessagingPipeline;
 
 namespace Hsbot.Slack.Core.MessageHandlers
@@ -25,9 +26,13 @@ namespace Hsbot.Slack.Core.MessageHandlers
         return message.StartsWith(CommandText);
       }
 
-      public override IEnumerable<ResponseMessage> Handle(IncomingMessage message)
+      protected override IEnumerable<ResponseMessage> HandleCore(IncomingMessage message)
       {
         yield return message.ReplyToChannel("Pong!");
+      }
+
+      public Ping(IRandomNumberGenerator randomNumberGenerator) : base(randomNumberGenerator)
+      {
       }
     }
 }
