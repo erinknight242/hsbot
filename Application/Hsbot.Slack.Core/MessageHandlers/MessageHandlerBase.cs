@@ -10,7 +10,7 @@ namespace Hsbot.Slack.Core.MessageHandlers
       protected readonly IRandomNumberGenerator RandomNumberGenerator;
 
       public static readonly string[] AllChannels = null;
-      public static readonly string[] FunChannels = {"#general", "#developers", "#austin", "#houston", "#dallas", "#monterrey"};
+      public static readonly string[] FunChannels = {"#general", "#developers", "#austin", "#houston", "#dallas", "#monterrey", "#hsbottesting"};
 
       protected MessageHandlerBase(IRandomNumberGenerator randomNumberGenerator)
       {
