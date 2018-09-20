@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Reflection;
 using Hsbot.Slack.Core;
+using Hsbot.Slack.Core.Random;
 using Microsoft.Extensions.DependencyInjection;
 using SlothBot;
 using SlothBot.MessagingPipeline;
@@ -14,6 +15,7 @@ namespace Hsbot.Slack.Web
         RegisterMessageHandlers(services);
 
         services.AddSingleton<ISlackConfig>(svc => config);
+        services.AddSingleton<IRandomNumberGenerator, RandomNumberGenerator>();
         services.AddSingleton<Core.Hsbot>();
 
         return services;
