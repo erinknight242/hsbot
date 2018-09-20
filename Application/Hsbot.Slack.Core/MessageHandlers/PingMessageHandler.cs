@@ -9,6 +9,10 @@ namespace Hsbot.Slack.Core.MessageHandlers
     {
       private const string CommandText = "ping";
 
+      public PingMessageHandler(IRandomNumberGenerator randomNumberGenerator) : base(randomNumberGenerator)
+      {
+      }
+
       public override IEnumerable<CommandDescription> GetSupportedCommands()
       {
         return new[]
@@ -26,13 +30,9 @@ namespace Hsbot.Slack.Core.MessageHandlers
         return message.StartsWith(CommandText);
       }
 
-      protected override IEnumerable<ResponseMessage> HandleCore(IncomingMessage message)
+      public override IEnumerable<ResponseMessage> Handle(IncomingMessage message)
       {
         yield return message.ReplyToChannel("Pong!");
-      }
-
-      public PingMessageHandler(IRandomNumberGenerator randomNumberGenerator) : base(randomNumberGenerator)
-      {
       }
     }
 }

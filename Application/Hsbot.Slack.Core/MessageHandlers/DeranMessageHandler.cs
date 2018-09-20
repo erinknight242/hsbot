@@ -23,7 +23,7 @@ namespace Hsbot.Slack.Core.MessageHandlers
         yield break;
       }
 
-      protected override IEnumerable<ResponseMessage> HandleCore(IncomingMessage message)
+      public override IEnumerable<ResponseMessage> Handle(IncomingMessage message)
       {
         yield return message.ReplyToChannel("http://i.imgur.com/reDPhBx.jpg");
       }

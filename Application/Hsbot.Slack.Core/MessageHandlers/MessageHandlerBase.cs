@@ -45,24 +45,16 @@ namespace Hsbot.Slack.Core.MessageHandlers
 
       public bool DoesHandle(IncomingMessage message)
       {
+        var handlerOdds = GetHandlerOdds(message);
+
         return (!DirectMentionOnly || message.BotIsMentioned)
                && (TargetedChannels == AllChannels || message.IsForChannel(TargetedChannels))
+               && (handlerOdds >= 1.0 || RandomNumberGenerator.Generate() < handlerOdds)
                && ShouldHandle(message);
       }
 
       protected abstract bool ShouldHandle(IncomingMessage message);
 
-      public IEnumerable<ResponseMessage> Handle(IncomingMessage message)
-      {
-        var handlerOdds = GetHandlerOdds(message);
-        if (handlerOdds < 1.0 && RandomNumberGenerator.Generate() > handlerOdds) yield break;
-
-        foreach (var responseMessage in HandleCore(message))
-        {
-          yield return responseMessage;
-        }
-      }
-
-      protected abstract IEnumerable<ResponseMessage> HandleCore(IncomingMessage message);
+      public abstract IEnumerable<ResponseMessage> Handle(IncomingMessage message);
     }
 }
