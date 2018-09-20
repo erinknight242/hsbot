@@ -35,7 +35,7 @@ namespace Hsbot.Slack.Core.MessageHandlers
       public IEnumerable<ResponseMessage> Handle(IncomingMessage message)
       {
         var handlerOdds = GetHandlerOdds(message);
-        if (handlerOdds < 1.0 && RandomNumberGenerator.Generate() <= handlerOdds) yield break;
+        if (handlerOdds < 1.0 && RandomNumberGenerator.Generate() > handlerOdds) yield break;
 
         foreach (var responseMessage in HandleCore(message))
         {
