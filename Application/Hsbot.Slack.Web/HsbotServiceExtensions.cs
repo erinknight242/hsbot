@@ -14,6 +14,7 @@ namespace Hsbot.Slack.Web
       {
         RegisterMessageHandlers(services);
 
+        services.AddSingleton<ISlothLog, HsbotLog>();
         services.AddSingleton<ISlackConfig>(svc => config);
         services.AddSingleton<IRandomNumberGenerator, RandomNumberGenerator>();
         services.AddSingleton<Core.Hsbot>();

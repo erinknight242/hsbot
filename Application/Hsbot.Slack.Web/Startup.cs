@@ -20,6 +20,7 @@ namespace Hsbot.Slack.Web
 
       public void ConfigureServices(IServiceCollection services)
       {
+        services.AddLogging();
         services.AddHsbot(new HsbotConfig {SlackApiKey = _config["slack:apiKey"]});
 
         //This registration is what will actually run hsbot as a background
