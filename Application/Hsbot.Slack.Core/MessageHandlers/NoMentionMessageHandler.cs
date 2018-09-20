@@ -1,5 +1,4 @@
 using Hsbot.Slack.Core.Random;
-using SlothBot.MessagingPipeline;
 
 namespace Hsbot.Slack.Core.MessageHandlers
 {
@@ -9,11 +8,6 @@ namespace Hsbot.Slack.Core.MessageHandlers
     {
     }
 
-    public override bool DoesHandle(IncomingMessage message)
-    {
-      return !message.BotIsMentioned && ShouldHandle(message);
-    }
-
-    protected abstract bool ShouldHandle(IncomingMessage message);
+    public override bool DirectMentionOnly => false;
   }
 }

@@ -11,6 +11,8 @@ namespace Hsbot.Slack.Core.MessageHandlers
       {
       }
 
+      public override string[] TargetedChannels => FunChannels;
+
       public override double GetHandlerOdds(IncomingMessage message)
       {
         return 0.1;
@@ -28,7 +30,7 @@ namespace Hsbot.Slack.Core.MessageHandlers
 
       protected override bool ShouldHandle(IncomingMessage message)
       {
-        return message.Contains("deran") && message.IsForChannel(FunChannels);
+        return message.Contains("deran");
       }
     }
 }

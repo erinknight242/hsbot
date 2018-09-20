@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Hsbot.Slack.Core.Extensions;
 using Hsbot.Slack.Core.Random;
 using SlothBot.MessagingPipeline;
 
@@ -8,7 +9,23 @@ namespace Hsbot.Slack.Core.MessageHandlers
     {
       protected readonly IRandomNumberGenerator RandomNumberGenerator;
 
+      public static string[] AllChannels = null;
       public static string[] FunChannels = {"#general", "#developers", "#austin", "#houston", "#dallas", "#monterrey"};
+
+      protected MessageHandlerBase(IRandomNumberGenerator randomNumberGenerator)
+      {
+        RandomNumberGenerator = randomNumberGenerator;
+      }
+
+      /// <summary>
+      /// If non-null, defines channel(s) for which the handler will run
+      /// </summary>
+      public virtual string[] TargetedChannels => AllChannels;
+
+      /// <summary>
+      /// If true, the handler will only run when hsbot is directly mentioned by the message
+      /// </summary>
+      public virtual bool DirectMentionOnly => true;
 
       /// <summary>
       /// Odds that a handler will run - should be between 0.0 and 1.0.
@@ -25,12 +42,15 @@ namespace Hsbot.Slack.Core.MessageHandlers
       }
 
       public abstract IEnumerable<CommandDescription> GetSupportedCommands();
-      public abstract bool DoesHandle(IncomingMessage message);
 
-      protected MessageHandlerBase(IRandomNumberGenerator randomNumberGenerator)
+      public bool DoesHandle(IncomingMessage message)
       {
-        RandomNumberGenerator = randomNumberGenerator;
+        return (!DirectMentionOnly || message.BotIsMentioned)
+               && (TargetedChannels == AllChannels || message.IsForChannel(TargetedChannels))
+               && ShouldHandle(message);
       }
+
+      protected abstract bool ShouldHandle(IncomingMessage message);
 
       public IEnumerable<ResponseMessage> Handle(IncomingMessage message)
       {
