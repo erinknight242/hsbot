@@ -1,18 +1,20 @@
-using System;
 using System.Collections.Generic;
+using Hsbot.Slack.Core.Extensions;
 using SlothBot.MessagingPipeline;
 
 namespace Hsbot.Slack.Core.MessageHandlers
 {
     public class Ping : DirectMentionMessageHandler
     {
+      private const string CommandText = "ping";
+
       public override IEnumerable<CommandDescription> GetSupportedCommands()
       {
         return new[]
         {
           new CommandDescription
           {
-            Command = "ping",
+            Command = CommandText,
             Description = "Replies to user who sent the message with 'Pong!'"
           }
         };
@@ -20,7 +22,7 @@ namespace Hsbot.Slack.Core.MessageHandlers
 
       protected override bool ShouldHandle(IncomingMessage message)
       {
-        return message.TargetedText.StartsWith("ping", StringComparison.OrdinalIgnoreCase);
+        return message.StartsWith(CommandText);
       }
 
       public override IEnumerable<ResponseMessage> Handle(IncomingMessage message)
