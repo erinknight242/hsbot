@@ -5,7 +5,7 @@ using SlothBot.MessagingPipeline;
 
 namespace Hsbot.Slack.Core.MessageHandlers
 {
-    public class PingMessageHandler : DirectMentionMessageHandler
+    public class PingMessageHandler : MessageHandlerBase
     {
       private const string CommandText = "ping";
 

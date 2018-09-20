@@ -5,13 +5,14 @@ using SlothBot.MessagingPipeline;
 
 namespace Hsbot.Slack.Core.MessageHandlers
 {
-    public class DeranMessageHandler : NoMentionMessageHandler
+    public class DeranMessageHandler : MessageHandlerBase
     {
       public DeranMessageHandler(IRandomNumberGenerator randomNumberGenerator) : base(randomNumberGenerator)
       {
       }
 
       public override string[] TargetedChannels => FunChannels;
+      public override bool DirectMentionOnly => false;
 
       public override double GetHandlerOdds(IncomingMessage message)
       {

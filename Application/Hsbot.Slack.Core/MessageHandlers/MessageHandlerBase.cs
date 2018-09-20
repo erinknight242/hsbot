@@ -18,12 +18,12 @@ namespace Hsbot.Slack.Core.MessageHandlers
       }
 
       /// <summary>
-      /// If non-null, defines channel(s) for which the handler will run
+      /// If non-null, defines channel(s) for which the handler will run.  Default = all channels (null)
       /// </summary>
       public virtual string[] TargetedChannels => AllChannels;
 
       /// <summary>
-      /// If true, the handler will only run when hsbot is directly mentioned by the message
+      /// If true, the handler will only run when hsbot is directly mentioned by the message.  Default = true
       /// </summary>
       public virtual bool DirectMentionOnly => true;
 
