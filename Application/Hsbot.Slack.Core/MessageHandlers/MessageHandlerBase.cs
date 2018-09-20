@@ -8,6 +8,8 @@ namespace Hsbot.Slack.Core.MessageHandlers
     {
       protected readonly IRandomNumberGenerator RandomNumberGenerator;
 
+      public static string[] FunChannels = {"#general", "#developers", "#austin", "#houston", "#dallas", "#monterrey"};
+
       /// <summary>
       /// Odds that a handler will run - should be between 0.0 and 1.0.
       /// If less than 1.0, a random roll will happen for each incoming message
