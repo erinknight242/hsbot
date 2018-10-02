@@ -32,11 +32,7 @@ module.exports = (robot) ->
               [
                 {
                   breakfast: null
-                  lunch: {
-                    name: "Tamale Addiction",
-                    site: "http://thecampusatarboretum.info/toc.cfm",
-                    time: "11:30am - 1:00pm"
-                  }
+                  lunch: null
                 },
                 {
                   breakfast:
