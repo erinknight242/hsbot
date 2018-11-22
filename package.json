@@ -28,6 +28,7 @@
     "hubot-rules": "^0.1.1",
     "hubot-scripts": "^2.16.1",
     "hubot-shipit": "^0.2.0",
+    "hubot-slack": "^4.5.5",
     "hubot-youtube": "^1.0.2",
     "moment-timezone": "^0.4.1",
     "multiparty": "^3.3.2",

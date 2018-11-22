@@ -4,12 +4,12 @@
 # Dependencies:
 #   node-schedule
 
-schedule = require('node-schedule')
-moment = require('moment-timezone')
+# schedule = require('node-schedule')
+# moment = require('moment-timezone')
 
-timeOffset = moment.tz.zone('America/Chicago').offset(moment())/60
+# timeOffset = moment.tz.zone('America/Chicago').offset(moment())/60
 
-module.exports = (robot) ->
-  basketball = schedule.scheduleJob({hour: 16 + timeOffset, minute: 45, dayOfWeek: 2}, ->
-    robot.messageRoom "18483_austin@conf.hipchat.com", "@here Basketball in 15 minutes on the parking garage roof!"
-  )
+# module.exports = (robot) ->
+#   discGolf = schedule.scheduleJob({ hour: 8 + timeOffset, minute: 30, dayOfWeek: 5}, ->
+#     robot.messageRoom "18483_austin@conf.hipchat.com", "@here Good morning! Disc Golf in 15 minutes. Toss some discs before it gets too hot! (discgolf)"
+#   )

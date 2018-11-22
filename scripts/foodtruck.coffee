@@ -12,7 +12,12 @@ module.exports = (robot) ->
               [
                 {
                   breakfast: null,
-                  lunch: null
+                  lunch:
+                    {
+                      name: "Thai 2 U",
+                      site: "http://thecampusatarboretum.info/toc.cfm",
+                      time: "11:30am - 2:00pm"
+                    }
                 },
                 {
                   breakfast: null,
@@ -27,11 +32,7 @@ module.exports = (robot) ->
               [
                 {
                   breakfast: null
-                  lunch: {
-                    name: "Ramonas Hummus",
-                    site: "https://www.ramonashummus.com/",
-                    time: "11:30am - 2:00pm"
-                  }
+                  lunch: null
                 },
                 {
                   breakfast:
@@ -60,12 +61,7 @@ module.exports = (robot) ->
                       site: "http://www.tacofoodgroup.com/",
                       time: "8:00am - 10:15am"
                     }
-                  lunch:
-                    {
-                      name: "Cluck-N-Burger",
-                      site: "https://www.facebook.com/CLUCKNBURGER/",
-                      time: "11:30am - 1:30pm"
-                    }
+                  lunch: null
                 },
                 {
                   breakfast: null,
@@ -82,12 +78,25 @@ module.exports = (robot) ->
                   breakfast: null,
                   lunch:
                     {
-                      name: "Dragon Bowl",
-                      site: "https://www.facebook.com/DragonBowlATX",
+                      name: "Stony's Pizza",
+                      site: "http://www.stonysatx.com/truck-locator.html",
                       time: "11:30am - 2:00pm"
                     }
                 },
-                null
+                {
+                  breakfast:
+                    {
+                      name: "The Wafel Guys",
+                      site: "http://www.thewafelguys.com/",
+                      time: "8:30am - 10:30am"
+                    }
+                  lunch:
+                    {
+                      name: "Munchiez",
+                      site: "http://thecampusatarboretum.info/toc.cfm",
+                      time: "11:30am - 2:00pm"
+                    }
+                }
               ],
               null]
     today = new Date()
