@@ -10,17 +10,13 @@ nominateHelpText = "/quote example: hsbot hva [to|for] @coworker for awardAcrony
 
 defaultNominationType = "brag"
 errorBarks = [
-  "My time circuits must be shorting out, I couldn't do that (sadpanda), please don't let me get struck by lightning (build)",
-  "What you requested should have worked, BUT it didn't (shrug)",
-  "Bad news: it didn't work (boom); good news: I'm alive! I'm alive! (awesome) Wait, no...that is Johnny # 5, there is no good news (evilburns)"
+  "My time circuits must be shorting out, I couldn't do that :sad_panda:, please don't let me get struck by lightning :build:",
+  "/shrug What you requested should have worked, BUT it didn't",
+  "Bad news: it didn't work :kaboom:; good news: I'm alive! I'm alive! :awesome: Wait, no...that is Johnny # 5, there is no good news :evil_burns:"
 ]
-jiraBragRoomId = 1720638
+slackBragChannel = 'CE9K4LTFD' # could also use #brags-and-awards; but ID is safer in case channel name changes
 jiraBaseUrl = "https://headspring.atlassian.net/rest/api/2/"
-hipChatApiV1BaseUrl = "https://headspring.hipchat.com/v1/"
-hipChatApiV2BaseUrl = "https://headspring.hipchat.com/v2/"
 jiraAuthToken = "Basic #{process.env.HUBOT_JIRA_AUTH}"
-hipChatApiV1AuthToken = process.env.HUBOT_HIPCHAT_V1_AUTHTOKEN
-hipChatApiV2AuthToken = process.env.HUBOT_HIPCHAT_AUTHTOKEN
 
 getAmbiguousUserText = (users) ->
     "Be more specific, I know #{users.length} people named like that: #{(user.name for user in users).join(", ")}"
@@ -234,7 +230,7 @@ module.exports = (robot) ->
       .get() (err, res, body) ->
         jiraNominee = parseJiraUser(err, res, body, colleagueName)
         if jiraNominee.error?
-          #email lookup between HipChat/JIRA failed; try searching by name instead
+          #email lookup between Slack/JIRA failed; try searching by name instead
           q = query: nominee.userName
           msg.http(jiraUserUrl)
             .query(q)
@@ -273,7 +269,7 @@ module.exports = (robot) ->
           .get() (err, res, body) ->
             jiraNominator = parseJiraUser(err, res, body)
             if jiraNominator.error?
-              #email lookup between HipChat/JIRA failed; try searching by name instead
+              #email lookup between Slack/JIRA failed; try searching by name instead
               q = query: nominator.userName
               msg.http(jiraUserUrl)
                 .query(q)
@@ -348,8 +344,6 @@ module.exports = (robot) ->
               msg.send issues.error
               return
 
-            hipChatNotificationUrl = hipChatApiV2BaseUrl + "room/#{jiraBragRoomId}/notification"
-            q2 = auth_token: hipChatApiV2AuthToken
             nomineeNames = ""
             jiraDescription = ""
             jiraReporter = ""
@@ -371,13 +365,7 @@ module.exports = (robot) ->
             if showConfirmation
               notifyBody = getBragNotificationJson(nomineeNames, jiraDescription, jiraReporter)
               #console.log(notifyBody)
-              msg.http(hipChatNotificationUrl)
-                .query(q2)
-                .header("Content-Type", "application/json")
-                .post(notifyBody) (err, res, body) ->
-                  if foundErrors(err, res)
-                    msg.send msg.random errorBarks
-                    return
+              robot.messageRoom slackBragChannel, notifyBody
             else
               msg.send "Unable to match brag(s) with Jira results. Check the Jira HVA project to confirm success."
 
@@ -430,7 +418,7 @@ module.exports = (robot) ->
       .get() (err, res, body) ->
         jiraNominee = parseJiraUser(err, res, body)
         if jiraNominee.error?
-          #email lookup between HipChat/JIRA failed; try searching by name instead
+          #email lookup between Slack/JIRA failed; try searching by name instead
           q = query: nominee.userName
           msg.http(jiraUserUrl)
             .query(q)
@@ -467,18 +455,10 @@ module.exports = (robot) ->
                     msg.send issues.error
                     return
 
-                  hipChatNotificationUrl = hipChatApiV2BaseUrl + "room/#{jiraBragRoomId}/notification"
-                  q2 = auth_token: hipChatApiV2AuthToken
                   for issue in issues
                     notifyBody = getHvaNotificationJson(issue.fields.customfield_12100.displayName, issue.fields.customfield_12101.value, issue.fields.description, issue.fields.reporter.displayName)
                     #console.log(notifyBody)
-                    msg.http(hipChatNotificationUrl)
-                      .query(q2)
-                      .header("Content-Type", "application/json")
-                      .post(notifyBody) (err, res, body) ->
-                        if foundErrors(err, res)
-                          msg.send msg.random errorBarks
-                          return
+                    robot.messageRoom slackBragChannel, notifyBody
 
         q = query: nominator.emailAddress
         msg.http(jiraUserUrl)
@@ -487,7 +467,7 @@ module.exports = (robot) ->
           .get() (err, res, body) ->
             jiraNominator = parseJiraUser(err, res, body)
             if jiraNominator.error?
-              #email lookup between HipChat/JIRA failed; try searching by name instead
+              #email lookup between Slack/JIRA failed; try searching by name instead
               q = query: nominator.userName
               msg.http(jiraUserUrl)
                 .query(q)
@@ -501,96 +481,3 @@ module.exports = (robot) ->
                     submitHVA(jiraNominator)
             else
               submitHVA(jiraNominator)
-
-  robot.respond /brag bomb( (\d+))?$/i, (msg) ->
-    count = msg.match[2] || 5
-    if (count > 10) #max
-      count = 10
-    if (count < 1) #min
-      count = 1
-    queryJson = getQueryJson("brag", count)
-    #console.log("queryJson: " + JSON.stringify(queryJson))
-    jiraSearchUrl = jiraBaseUrl + "search"
-    msg.http(jiraSearchUrl)
-      .header("Authorization", jiraAuthToken)
-      .header("Content-Type", "application/json")
-      .post(queryJson) (err, res, body) ->
-        issues = parseJiraIssues(err, res, body)
-        if (issues.error?)
-          msg.send issues.error
-          return
-
-        #console.log("msg.message.user: #{JSON.stringify(msg.message.user)}")
-        if msg.message.user? and msg.message.user.reply_to?
-          hipChatRoomUrl = hipChatApiV1BaseUrl + "rooms/list"
-          roomQ = { format: 'json', auth_token: hipChatApiV1AuthToken }
-          msg.http(hipChatRoomUrl)
-            .query(roomQ)
-            .get() (err, res, body) ->
-              roomId = parseRoomId(err, res, body, msg.message.user.reply_to)
-              if (roomId.error?)
-                msg.send roomId.error
-                return
-
-              hipChatNotificationUrl = hipChatApiV2BaseUrl + "room/#{roomId}/notification"
-              notifyQ = auth_token: hipChatApiV2AuthToken
-              for issue in issues
-                notifyBody = getBragNotificationJson(issue.fields.customfield_12100.displayName, issue.fields.description, issue.fields.reporter.displayName)
-                #console.log(notifyBody)
-                msg.http(hipChatNotificationUrl)
-                  .query(notifyQ)
-                  .header("Content-Type", "application/json")
-                  .post(notifyBody) (err, res, body) ->
-                    if foundErrors(err, res)
-                      msg.send msg.random errorBarks
-                      return
-        else
-          for issue in issues
-            notifyBody = getBragNotificationJson(issue.fields.customfield_12100.displayName, issue.fields.description, issue.fields.reporter.displayName)
-            msg.send notifyBody
-
-  robot.respond /hva bomb( (\d+))?$/i, (msg) ->
-    count = msg.match[2] || 5
-    if (count > 10) #max
-      count = 10
-    if (count < 1) #min
-      count = 1
-    queryJson = getQueryJson("hva", count)
-    #console.log("queryJson: " + JSON.stringify(queryJson))
-    jiraSearchUrl = jiraBaseUrl + "search"
-    msg.http(jiraSearchUrl)
-      .header("Authorization", jiraAuthToken)
-      .header("Content-Type", "application/json")
-      .post(queryJson) (err, res, body) ->
-        issues = parseJiraIssues(err, res, body)
-        if (issues.error?)
-          msg.send issues.error
-          return
-
-        if msg.message.user? and msg.message.user.reply_to?
-          hipChatRoomUrl = hipChatApiV1BaseUrl + "rooms/list"
-          roomQ = { format: 'json', auth_token: hipChatApiV1AuthToken }
-          msg.http(hipChatRoomUrl)
-            .query(roomQ)
-            .get() (err, res, body) ->
-              roomId = parseRoomId(err, res, body, msg.message.user.reply_to)
-              if (roomId.error?)
-                msg.send roomId.error
-                return
-
-              hipChatNotificationUrl = hipChatApiV2BaseUrl + "room/#{roomId}/notification"
-              notifyQ = auth_token: hipChatApiV2AuthToken
-              for issue in issues
-                notifyBody = getHvaNotificationJson(issue.fields.customfield_12100.displayName, issue.fields.customfield_12101.value, issue.fields.description, issue.fields.reporter.displayName)
-                #console.log(notifyBody)
-                msg.http(hipChatNotificationUrl)
-                  .query(notifyQ)
-                  .header("Content-Type", "application/json")
-                  .post(notifyBody) (err, res, body) ->
-                    if foundErrors(err, res)
-                      msg.send msg.random errorBarks
-                      return
-        else
-          for issue in issues
-            notifyBody = getHvaNotificationJson(issue.fields.customfield_12100.displayName, issue.fields.customfield_12101.value, issue.fields.description, issue.fields.reporter.displayName)
-            msg.send notifyBody
