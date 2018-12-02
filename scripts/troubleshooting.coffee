@@ -12,9 +12,9 @@ module.exports = (robot) ->
     console.log msg
     msg.send 'Message logged'
 
-  robot.respond /send message `(.*)` to (.*)$/i, (msg) ->
+  robot.respond /send message `((.|\n)*)` to (.*)$/i, (msg) ->
     messageText = msg.match[1]
-    channel = msg.match[2]
+    channel = msg.match[3]
     robot.messageRoom channel, messageText
     msg.send "\"#{messageText}\" sent to #{channel}"
 

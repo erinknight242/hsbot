@@ -61,25 +61,19 @@ getQueryJson = (nominationType, count) ->
   }
   JSON.stringify(queryJson)
 
-getBragNotificationJson = (bragTo, bragText, bragFrom) ->
+getBragNotificationText = (bragTo, bragText, bragFrom) ->
   bragText = bragText.replace /(^|\s)((https?:\/\/)?[\w-]+(\.[\w-]+)+\.?(:\d+)?(\/\S*)?)/gi, ->
     uri = arguments[2]
     uri = "http://#{uri}" if not arguments[3]?
     " <a href=\"#{uri}\" target=\"_blank\">#{uri}</a>"
-  bragJson = {
-    "message": "<span>Kudos to <span style=\"font-weight: 700\">#{bragTo}</span></span><p>#{bragText}</p><span style=\"text-transform:uppercase;\">bragged by: <em>#{bragFrom}</em></span>",
-    "message_format": "html",
-    "color": "purple"
-  }
-  JSON.stringify(bragJson)
+  bragMessage = "Kudos to *#{bragTo}*
+  #{bragText}
+  bragged by: _#{bragFrom}_"
 
-getHvaNotificationJson = (nominee, awardType, nominationText, nominator) ->
-  notificationJson = {
-    "message": "<span style=\"font-weight: 700\">#{nominee}</span><span> exhibits </span><span style=\"font-weight: 700\"><em>#{awardType}</em></span><p>#{nominationText}</p><span>nominated by: <em>#{nominator}</em></span>",
-    "message_format": "html",
-    "color": "green"
-  }
-  JSON.stringify(notificationJson)
+getHvaNotificationText = (nominee, awardType, nominationText, nominator) ->
+  notificationText = "#{nominee} exhibits *_#{awardType}_*
+  #{nominationText}
+  nominated by: _#{nominator}_"
 
 module.exports = (robot) ->
   # error checking
@@ -95,9 +89,11 @@ module.exports = (robot) ->
     return false
 
   isNomineeRobot = (nominee) ->
+    console.log nominee
     return nominee.toLowerCase() is robot.name.toLowerCase()
 
   isNomineeSelf = (nominee, self) ->
+    console.log nominee, self
     return nominee.toLowerCase() is self.toLowerCase()
 
   getEmployeeByMention = (mentionName) ->
@@ -186,12 +182,12 @@ module.exports = (robot) ->
     #console.log "Processing nomination for " + colleagueName
     nominationResult = { colleagueName: colleagueName, success: false, errorText: 'Unknown error; did not reach valid exit point' }
     if isNomineeRobot(colleagueName)
-      nominationResult.errorText = "(embarrassed) Honored, truly, but an Artificial Intelligence does not need your bragging"
+      nominationResult.errorText = ":embarrassed: Honored, truly, but an Artificial Intelligence does not need your bragging"
       resolve nominationResult
       return
 
     if not reason?.length
-      nominationResult.errorText = "(disapproval), you should supply a reason for your brag"
+      nominationResult.errorText = ":disapproval:, you should supply a reason for your brag"
       resolve nominationResult
       return
 
@@ -208,7 +204,7 @@ module.exports = (robot) ->
       resolve nominationResult
       return
     if isNomineeSelf(nominee.userName, sender)
-      nominationResult.errorText = "(disapproval) bragging on yourself is not allowed!"
+      nominationResult.errorText = ":disapproval: bragging on yourself is not allowed!"
       resolve nominationResult
       return
     if not nominee.emailAddress?
@@ -363,7 +359,7 @@ module.exports = (robot) ->
                 if not issueMatches
                   showConfirmation = false
             if showConfirmation
-              notifyBody = getBragNotificationJson(nomineeNames, jiraDescription, jiraReporter)
+              notifyBody = getBragNotificationText(nomineeNames, jiraDescription, jiraReporter)
               #console.log(notifyBody)
               robot.messageRoom slackBragChannel, notifyBody
             else
@@ -456,7 +452,7 @@ module.exports = (robot) ->
                     return
 
                   for issue in issues
-                    notifyBody = getHvaNotificationJson(issue.fields.customfield_12100.displayName, issue.fields.customfield_12101.value, issue.fields.description, issue.fields.reporter.displayName)
+                    notifyBody = getHvaNotificationText(issue.fields.customfield_12100.displayName, issue.fields.customfield_12101.value, issue.fields.description, issue.fields.reporter.displayName)
                     #console.log(notifyBody)
                     robot.messageRoom slackBragChannel, notifyBody
 
