@@ -12,12 +12,7 @@ module.exports = (robot) ->
               [
                 {
                   breakfast: null,
-                  lunch:
-                    {
-                      name: "Thai 2 U",
-                      site: "http://thecampusatarboretum.info/toc.cfm",
-                      time: "11:30am - 2:00pm"
-                    }
+                  lunch: null
                 },
                 {
                   breakfast: null,
@@ -84,12 +79,7 @@ module.exports = (robot) ->
                     }
                 },
                 {
-                  breakfast:
-                    {
-                      name: "The Wafel Guys",
-                      site: "http://www.thewafelguys.com/",
-                      time: "8:30am - 10:30am"
-                    }
+                  breakfast: null
                   lunch:
                     {
                       name: "Munchiez",
