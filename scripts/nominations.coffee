@@ -290,11 +290,12 @@ module.exports = (robot) ->
     msg.send nominateHelpText
 
   robot.respond /brag *(about|on)? *((@[a-z0-9]+( *, *and *| *, *& *| *, *| *and *| *& *| *)?)+)(.+)/i, (msg) ->
+    console.log msg
     #console.log("robot name: " + robot.name)
     sender = msg.message.user.name
     #console.log("sender: " + sender)
     colleagueNames = msg.match[2].trim()
-    #console.log("colleagueNames: " + colleagueNames)
+    console.log("colleagueNames: " + colleagueNames)
     reason = msg.match[5].trim()
     #console.log("reason: " + reason)
     nameArray = parseColleagueNames colleagueNames
