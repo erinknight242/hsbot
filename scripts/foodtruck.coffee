@@ -106,7 +106,7 @@ module.exports = (robot) ->
         if (truck && truck.lunch)
           message = "No food truck today, but next week it will be #{truck.lunch.name}"
         else
-          message = "No food truck today (sadpanda)"
+          message = "No food truck today :sadpanda:"
         msg.send message
         return
       if truck.breakfast
@@ -115,8 +115,8 @@ module.exports = (robot) ->
       if truck.lunch
         message = "The lunch food truck for " + weekday + " is #{truck.lunch.name}, and they will be here from #{truck.lunch.time}, which you can verify here: #{truck.lunch.site}"
         msg.send message
-      msg.send "(chompy)"
+      msg.send ":chompy:"
     else
-      msg.send "Awww beans! There's no food truck today. (sadpanda) Try `hsbot lunch me`! ;)"
+      msg.send "Awww beans! There's no food truck today. :sadpanda: Try `hsbot lunch me`! ;)"
   robot.respond /food truck schedule$/i, (msg) ->
     msg.send "Here is the food truck schedule for The Campus: https://raw.githubusercontent.com/HeadspringLabs/hsbot/master/foodtruckschedule.jpg"
