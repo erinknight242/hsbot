@@ -14,9 +14,9 @@ module.exports = (robot) ->
                   breakfast: null,
                   lunch:
                     {
-                      name: "RWB's Chow Bus",
-                      site: "https://streetfoodfinder.com/rwbschowbus",
-                      time: "11:00am - 2:00pm"
+                      name: "Wunder Pig BBQ",
+                      site: "http://www.wunderpig.com",
+                      time: "11:30am - 2:00pm"
                     }
                 },
                 {
@@ -30,7 +30,15 @@ module.exports = (robot) ->
                 }
               ],
               [
-                null,
+                {
+                  breakfast: null,
+                  lunch:
+                    {
+                      name: "RWB's Chow Bus",
+                      site: "https://streetfoodfinder.com/rwbschowbus",
+                      time: "11:00am - 2:00pm"
+                    }
+                },
                 {
                   breakfast:
                     {
