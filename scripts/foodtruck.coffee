@@ -10,15 +10,7 @@ module.exports = (robot) ->
   robot.respond /(food truck|foodtruck)$/i, (msg) ->
     trucks = [null,
               [
-                {
-                  breakfast: null,
-                  lunch:
-                    {
-                      name: "Wunder Pig BBQ",
-                      site: "http://www.wunderpig.com",
-                      time: "11:30am - 2:00pm"
-                    }
-                },
+                null,
                 {
                   breakfast: null,
                   lunch:
