@@ -58,12 +58,7 @@ module.exports = (robot) ->
                       site: "http://www.tacofoodgroup.com/",
                       time: "8:00am - 10:15am"
                     }
-                  lunch:
-                    {
-                      name: "Cluck-n-burger",
-                      site: "http://thecampusatarboretum.info/toc.cfm",
-                      time: "11:30 - 1:30pm"
-                    }
+                  lunch: null
                 },
                 {
                   breakfast: null,
