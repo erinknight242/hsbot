@@ -98,13 +98,15 @@ module.exports = (robot) ->
     return nominee.toLowerCase() is self.toLowerCase()
 
   getEmployeeByMention = (mentionName) ->
+    console.log "mentionName: ", mentionName
     for userId, user of robot.brain.users()
-      if user.mention_name? and user.mention_name.toLowerCase()==mentionName.toLowerCase()
-        #console.log("found mentioned user: " + JSON.stringify(user))
-        if user.name? and user.email_address?
-          userName = user.name.toLowerCase()
+      displayName = user.slack.profile.display_name;
+      if displayName? and displayName.toLowerCase() == mentionName.toLowerCase()
+        console.log("found mentioned user: " + JSON.stringify(user))
+        if displayName? and user.email_address?
+          userName = displayName.toLowerCase()
           emailAddress = user.email_address.toLowerCase()
-          #console.log("userName: #{userName}, email: #{emailAddress}")
+          console.log("userName: #{userName}, email: #{emailAddress}")
           return { "userName": userName, "emailAddress": emailAddress }
     return null
 
