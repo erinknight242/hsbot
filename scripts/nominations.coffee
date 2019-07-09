@@ -100,11 +100,9 @@ module.exports = (robot) ->
   getEmployeeByMention = (mentionName) ->
     for userId, user of robot.brain.users()
       if user.name? and user.name.toLowerCase()==mentionName.toLowerCase()
-        console.log("found mentioned user: " + JSON.stringify(user))
         if user.slack.profile.display_name? and user.email_address?
           userName = user.slack.profile.display_name
           emailAddress = user.email_address.toLowerCase()
-          console.log("userName: #{userName}, email: #{emailAddress}")
           return { "userName": userName, "emailAddress": emailAddress }
     return null
 
@@ -116,11 +114,9 @@ module.exports = (robot) ->
     if matchingUsers.length != 1
       return { "error": getAmbiguousUserText(matchingUsers) }
 
-    #console.log("found fuzzy user: " + JSON.stringify(matchingUsers[0]))
     if matchingUsers[0].name? and matchingUsers[0].email_address?
-      userName = matchingUsers[0].name.toLowerCase()
+      userName = matchingUsers[0].slack.profile.display_name
       emailAddress = matchingUsers[0].email_address.toLowerCase()
-      #console.log("userName: #{userName}, email: #{emailAddress}")
     return { "userName": userName, "emailAddress": emailAddress }
 
   parseJiraUser = (err, res, body, colleagueName) ->
@@ -229,6 +225,7 @@ module.exports = (robot) ->
       .query(q)
       .header("Authorization", jiraAuthToken)
       .get() (err, res, body) ->
+        console.log "err: ", err, "res: ", res, "body: ", body, "CN: ", colleagueName
         jiraNominee = parseJiraUser(err, res, body, colleagueName)
         if jiraNominee.error?
           #email lookup between Slack/JIRA failed; try searching by name instead
