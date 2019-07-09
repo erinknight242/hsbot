@@ -17,7 +17,7 @@ errorBarks = [
 ]
 slackBragChannel = 'CE9K4LTFD' # could also use #brags-and-awards; but ID is safer in case channel name changes
 jiraBaseUrl = "https://headspring.atlassian.net/rest/api/2/"
-jiraAuthToken = "Basic #{process.env.HUBOT_JIRA_AUTH}"
+jiraAuthToken = "#{process.env.HUBOT_JIRA_AUTH}"
 
 getAmbiguousUserText = (users) ->
     "Be more specific, I know #{users.length} people named like that: #{(user.name for user in users).join(", ")}"
