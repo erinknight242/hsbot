@@ -12,7 +12,8 @@ defaultNominationType = "brag"
 errorBarks = [
   "My time circuits must be shorting out, I couldn't do that :sad_panda:, please don't let me get struck by lightning :build:",
   "/shrug What you requested should have worked, BUT it didn't",
-  "Bad news: it didn't work :kaboom:; good news: I'm alive! I'm alive! :awesome: Wait, no...that is Johnny # 5, there is no good news :evil_burns:"
+  "Bad news: it didn't work :kaboom:; good news: I'm alive! I'm alive! :awesome: Wait, no...that is Johnny # 5, there is no good news :evil_burns:",
+  "https://media.giphy.com/media/owRSsSHHoVYFa/giphy.gif"
 ]
 slackBragChannel = 'CE9K4LTFD' # could also use #brags-and-awards; but ID is safer in case channel name changes
 jiraBaseUrl = "https://headspring.atlassian.net/rest/api/2/"
@@ -124,6 +125,7 @@ module.exports = (robot) ->
 
   parseJiraUser = (err, res, body, colleagueName) ->
     if foundErrors(err, res)
+      console.log "Error parsing Jira User", err
       return { "error": errorBarks[Math.floor(Math.random() * errorBarks.length)] }
     result = JSON.parse(body)
     if not result? or not result.users? or result.users.length == 0
@@ -137,6 +139,7 @@ module.exports = (robot) ->
 
   parseJiraIssues = (err, res, body) ->
     if foundErrors(err, res)
+      console.log "Error parsing Jira Issues", err
       return { "error": errorBarks[Math.floor(Math.random() * errorBarks.length)] }
     #console.log("body after search: " + body)
     jiraResult = JSON.parse(body)
@@ -147,6 +150,7 @@ module.exports = (robot) ->
   parseRoomId = (err, res, body, roomJid) ->
     #console.log("room Jid: #{roomJid}")
     if foundErrors(err, res)
+      console.log "Error parsing room id", err
       return { "error": errorBarks[Math.floor(Math.random() * errorBarks.length)] }
     #console.log("room results:\n#{body}")
     roomsResult = JSON.parse(body)
@@ -192,6 +196,7 @@ module.exports = (robot) ->
       return
 
     nominee = getEmployeeByMention(colleagueName)
+    console.log nominee
     if not nominee?
       nominee = getEmployeeByName(colleagueName)
       if nominee.error?
@@ -248,6 +253,7 @@ module.exports = (robot) ->
             .header("Content-Type", "application/json")
             .post(requestJson) (err, res, body) ->
               if foundErrors(err, res)
+                console.log "Error submitting brag", err
                 nominationResult.errorText = msg.random errorBarks
                 resolve nominationResult
                 return
@@ -435,6 +441,7 @@ module.exports = (robot) ->
             .header("Content-Type", "application/json")
             .post(requestJson) (err, res, body) ->
               if foundErrors(err, res)
+                console.log "Error submitting HVA", err
                 msg.send msg.random errorBarks
                 return
               #console.log("body after create: " + body)
