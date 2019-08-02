@@ -22,15 +22,7 @@ module.exports = (robot) ->
                 }
               ],
               [
-                {
-                  breakfast: null,
-                  lunch:
-                    {
-                      name: "RWB's Chow Bus",
-                      site: "https://streetfoodfinder.com/rwbschowbus",
-                      time: "11:00am - 2:00pm"
-                    }
-                },
+                null,
                 {
                   breakfast:
                     {
@@ -71,24 +63,8 @@ module.exports = (robot) ->
                 }
               ],
               [
-                {
-                  breakfast: null,
-                  lunch:
-                    {
-                      name: "Stony's Pizza",
-                      site: "http://www.stonysatx.com/truck-locator.html",
-                      time: "11:30am - 2:00pm"
-                    }
-                },
-                {
-                  breakfast: null
-                  lunch:
-                    {
-                      name: "Munchiez",
-                      site: "http://thecampusatarboretum.info/toc.cfm",
-                      time: "11:30am - 2:00pm"
-                    }
-                }
+                null,
+                null
               ],
               null]
     today = new Date()
