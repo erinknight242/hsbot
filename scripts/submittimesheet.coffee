@@ -41,4 +41,5 @@ module.exports = (robot) ->
 		room = msg.envelope.user.reply_to
 		if true room in rooms
 			val = msg.random odds
-			msg.send "#{pics[val % pics.length]}"
+      if val > 33
+			  msg.send "#{pics[val % pics.length]}"
