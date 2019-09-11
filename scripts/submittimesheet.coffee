@@ -39,7 +39,7 @@ pics = [
 module.exports = (robot) ->
 	robot.hear /submit .*time/i, (msg) ->
 		room = msg.envelope.user.reply_to
-		if true room in rooms
+		if room in rooms
 			val = msg.random odds
       if val > 33
 			  msg.send "#{pics[val % pics.length]}"
