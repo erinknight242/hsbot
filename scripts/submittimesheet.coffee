@@ -2,14 +2,14 @@
 #   Submit your time on time everyone!  Just a friendly image to add when a certain someone reminds everyone
 
 rooms = [
-	process.env.HUBOT_ROOM_HEADSPRING
+  process.env.HUBOT_ROOM_HEADSPRING
 ]
 
 
 odds  = [1...100]
 
 pics = [
-	"https://media.giphy.com/media/A5RlxnMGaf5h6bBdsz/giphy.gif", # Danny DeVito
+  "https://media.giphy.com/media/A5RlxnMGaf5h6bBdsz/giphy.gif", # Danny DeVito
   "https://media.giphy.com/media/QNv4mKyspa8j6/giphy.gif", # Mad Men
   "https://media.giphy.com/media/mD6u5lgvneVag/giphy.gif", # Terry Tate
   "https://imgflip.com/gif/2ipx84", # Elf Elevator
@@ -37,9 +37,9 @@ pics = [
 ]
 
 module.exports = (robot) ->
-	robot.hear /submit .*time/i, (msg) ->
-		room = msg.envelope.user.reply_to
-		if true room in rooms
-			val = msg.random odds
+  robot.hear /submit .*time/i, (msg) ->
+    room = msg.envelope.user.reply_to
+    if room in rooms
+      val = msg.random odds
       if val > 33
-			  msg.send "#{pics[val % pics.length]}"
+        msg.send "#{pics[val % pics.length]}"
