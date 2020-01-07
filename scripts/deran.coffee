@@ -15,7 +15,7 @@ odds  = [1...100]
 
 module.exports = (robot) ->
 	robot.hear /(Deran|deran)/i, (msg) ->
-		room = msg.envelope.user.reply_to
+		room = msg.envelope.room
 		console.log(msg.envelope)
 		if room in rooms
 			val = msg.random odds
