@@ -6,7 +6,7 @@
 
 date = require 'datejs'
 
-trucksbyDayOfWeek = [null,
+trucksByDayOfWeek = [null,
           [
             {
               breakfast: null,
@@ -96,7 +96,7 @@ module.exports = (robot) ->
       day = day + 1
       today.setDate(today.getDate() + 1)
       weekday = today.toString("dddd")
-    truck = trucksbyDayOfWeek[day]
+    truck = trucksByDayOfWeek[day]
     if truck
       if truck.length == 2
         truck = truck[Date.today().getWeek() % 2]
@@ -105,7 +105,7 @@ module.exports = (robot) ->
         if(truck)
           message = "The lunch food truck for " + weekday + " is #{truck.name}, and they will be here from #{truck.time}, which you can verify here: #{truck.site}"
         else
-          truck = trucksbyDayOfWeek[new Date().getDay()][(Date.today().getWeek() + 1) % 2]
+          truck = trucksByDayOfWeek[new Date().getDay()][(Date.today().getWeek() + 1) % 2]
           if (truck && truck.lunch)
             message = "No food truck today, but next week it will be #{truck.lunch.name}"
           else
