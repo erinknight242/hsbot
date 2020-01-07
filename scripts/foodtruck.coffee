@@ -74,6 +74,17 @@ trucksbyDayOfWeek = [null,
           ],
           null]
 
+trucksByDate = [
+  {
+    day: 7,
+    truck: {
+      name: "Bigg Belly BBQ",
+      site: "https://www.facebook.com/Bigg-Belly-BBQ-Co-Austin-TX-1700920133505615/",
+      time: "11:30am - 1:30pm"
+    }
+  }
+]
+
 module.exports = (robot) ->
   robot.respond /(food truck|foodtruck)$/i, (msg) ->
 
@@ -90,11 +101,15 @@ module.exports = (robot) ->
       if truck.length == 2
         truck = truck[Date.today().getWeek() % 2]
       if not truck
-        truck = trucksbyDayOfWeek[new Date().getDay()][(Date.today().getWeek() + 1) % 2]
-        if (truck && truck.lunch)
-          message = "No food truck today, but next week it will be #{truck.lunch.name}"
+        truck = (trucksByDate.filter (i) -> i.day is today.getDate())[0].truck
+        if(truck)
+          message = "The lunch food truck for " + weekday + " is #{truck.name}, and they will be here from #{truck.time}, which you can verify here: #{truck.site}"
         else
-          message = "No food truck today :sadpanda:"
+          truck = trucksbyDayOfWeek[new Date().getDay()][(Date.today().getWeek() + 1) % 2]
+          if (truck && truck.lunch)
+            message = "No food truck today, but next week it will be #{truck.lunch.name}"
+          else
+            message = "No food truck today :sadpanda:"
         msg.send message
         return
       if truck.breakfast
