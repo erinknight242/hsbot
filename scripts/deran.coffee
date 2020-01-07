@@ -17,7 +17,9 @@ module.exports = (robot) ->
 	robot.hear /(Deran|deran)/i, (msg) ->
 		room = msg.envelope.room
 		console.log(msg.envelope)
+		console.log(room)
 		if room in rooms
 			val = msg.random odds
+			console.log(val)
 			if val < 10
 				msg.send "http://i.imgur.com/reDPhBx.jpg"
