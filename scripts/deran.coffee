@@ -16,10 +16,9 @@ odds  = [1...100]
 module.exports = (robot) ->
 	robot.hear /(Deran|deran)/i, (msg) ->
 		room = msg.envelope.room
-		console.log(msg.envelope)
-		console.log("Room is #{room}")
+		#console.log("Room is #{room}")
 		if room in rooms
 			val = msg.random odds
-			console.log("Odds are #{val}")
-			if val < 100
+			#console.log("Odds are #{val}")
+			if val < 20
 				msg.send "http://i.imgur.com/reDPhBx.jpg"
