@@ -12,9 +12,9 @@ module.exports = (robot) ->
         robot.messageRoom process.env.HUBOT_ROOM_DETROIT, "/quote  #{userMessage}"
 
   robot.respond /spy for detroit/ig, (msg) ->
-    if msg.envelope.user.reply_to == process.env.HUBOT_ROOM_DETROIT
+    if msg.envelope.room== process.env.HUBOT_ROOM_DETROIT
       robot.brain.set 'onDetroitDuty', true
 
   robot.respond /stop spying for detroit/ig, (msg) ->
-    if msg.envelope.user.reply_to == process.env.HUBOT_ROOM_DETROIT
+    if msg.envelope.room == process.env.HUBOT_ROOM_DETROIT
       robot.brain.set 'onDetroitDuty', false

@@ -27,7 +27,7 @@ pics = [
 
 module.exports = (robot) ->
 	robot.hear /it just works/i, (msg) ->
-		room = msg.envelope.user.reply_to
+		room = msg.envelope.room
 		if room in rooms
 			val = msg.random odds
 			if val > 50
