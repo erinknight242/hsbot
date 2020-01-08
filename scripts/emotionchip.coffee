@@ -144,8 +144,8 @@ module.exports = (robot) ->
 	robot.listen(
 		(msg) ->
 			return false unless msg.text
-
-			if (!(msg.envelope.room in rooms))
+			console.log msg
+			if (!(msg.room in rooms))
 				return false
 
 			if (msg.text.indexOf(robot.name) == 0 || msg.text.indexOf("/") == 0)
