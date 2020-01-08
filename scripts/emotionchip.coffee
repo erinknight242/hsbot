@@ -144,7 +144,6 @@ module.exports = (robot) ->
 	robot.listen(
 		(msg) ->
 			return false unless msg.text
-			console.log msg
 			if (!(msg.room in rooms))
 				return false
 
