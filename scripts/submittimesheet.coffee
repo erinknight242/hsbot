@@ -2,7 +2,8 @@
 #   Submit your time on time everyone!  Just a friendly image to add when a certain someone reminds everyone
 
 rooms = [
-  process.env.HUBOT_ROOM_HEADSPRING
+  process.env.HUBOT_ROOM_HEADSPRING,
+  process.env.HUBOT_ROOM_BOTTEST
 ]
 
 
