@@ -96,30 +96,31 @@ module.exports = (robot) ->
       day = day + 1
       today.setDate(today.getDate() + 1)
       weekday = today.toString("dddd")
-    truck = trucksByDayOfWeek[day]
-    if truck
-      if truck.length == 2
-        truck = truck[Date.today().getWeek() % 2]
-      if not truck
-        truck = (trucksByDate.filter (i) -> i.day is today.getDate())[0].truck
-        if(truck)
-          message = "The lunch food truck for " + weekday + " is #{truck.name}, and they will be here from #{truck.time}, which you can verify here: #{truck.site}"
-        else
+    truckbyDate = (trucksByDate.filter (i) -> i.day is today.getDate())
+    if truckByDate?
+      truck = truckByDate[0].truck
+      msg.send "The lunch food truck for " + weekday + " is #{truck.name}, and they will be here from #{truck.time}, which you can verify here: #{truck.site}"
+    else
+      truck = trucksByDayOfWeek[day]
+      if truck
+        if truck.length == 2
+          truck = truck[Date.today().getWeek() % 2]
+        if not truck
           truck = trucksByDayOfWeek[new Date().getDay()][(Date.today().getWeek() + 1) % 2]
           if (truck && truck.lunch)
             message = "No food truck today, but next week it will be #{truck.lunch.name}"
           else
             message = "No food truck today :sadpanda:"
-        msg.send message
-        return
-      if truck.breakfast
-        message = "The breakfast food truck for " + weekday + " is #{truck.breakfast.name}, and they will be here from #{truck.breakfast.time}, which you can verify here: #{truck.breakfast.site}"
-        msg.send message
-      if truck.lunch
-        message = "The lunch food truck for " + weekday + " is #{truck.lunch.name}, and they will be here from #{truck.lunch.time}, which you can verify here: #{truck.lunch.site}"
-        msg.send message
-      msg.send ":chompy:"
-    else
-      msg.send "Awww beans! There's no food truck today. :sadpanda: Try `hsbot lunch me`! ;)"
+          msg.send message
+          return
+        if truck.breakfast
+          message = "The breakfast food truck for " + weekday + " is #{truck.breakfast.name}, and they will be here from #{truck.breakfast.time}, which you can verify here: #{truck.breakfast.site}"
+          msg.send message
+        if truck.lunch
+          message = "The lunch food truck for " + weekday + " is #{truck.lunch.name}, and they will be here from #{truck.lunch.time}, which you can verify here: #{truck.lunch.site}"
+          msg.send message
+        msg.send ":chompy:"
+      else
+        msg.send "Awww beans! There's no food truck today. :sadpanda: Try `hsbot lunch me`! ;)"
   robot.respond /food truck schedule$/i, (msg) ->
     msg.send "Here is the food truck schedule for The Campus: https://raw.githubusercontent.com/HeadspringLabs/hsbot/master/foodtruckschedule.jpg"
