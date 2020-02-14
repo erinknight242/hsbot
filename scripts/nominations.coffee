@@ -78,7 +78,7 @@ getHvaNotificationText = (nominee, awardType, nominationText, nominator) ->
 
 module.exports = (robot) ->
   # error checking
-  foundErrors = (err, res) ->
+  foundErrors = (err, res, body) ->
     if err
       robot.emit 'error', err, res
       console.log("errors: " + err + "\n")
@@ -87,7 +87,7 @@ module.exports = (robot) ->
     if res? and (res.statusCode > 204 or res.statusCode < 200)
       robot.emit "Got an HTTP #{res.statusCode} error."
       console.log("Got an HTTP #{res.statusCode} error.")
-      console.log("The http #{res.statusCode} response was: #{res.body}")
+      console.log("The http #{res.statusCode} response was: #{body}")
       return true
     return false
 
@@ -122,7 +122,7 @@ module.exports = (robot) ->
     return { "userName": userName, "emailAddress": emailAddress }
 
   parseJiraUser = (err, res, body, colleagueName) ->
-    if foundErrors(err, res)
+    if foundErrors(err, res, body)
       return { "error": errorBarks[Math.floor(Math.random() * errorBarks.length)] }
     result = JSON.parse(body)
     if not result? or not result.users? or result.users.length == 0
@@ -135,7 +135,7 @@ module.exports = (robot) ->
     return result.users[0]
 
   parseJiraIssues = (err, res, body) ->
-    if foundErrors(err, res)
+    if foundErrors(err, res, body)
       return { "error": errorBarks[Math.floor(Math.random() * errorBarks.length)] }
     console.log("body after search: " + body)
     jiraResult = JSON.parse(body)
@@ -145,7 +145,7 @@ module.exports = (robot) ->
 
   parseRoomId = (err, res, body, roomJid) ->
     console.log("room Jid: #{roomJid}")
-    if foundErrors(err, res)
+    if foundErrors(err, res, body)
       return { "error": errorBarks[Math.floor(Math.random() * errorBarks.length)] }
     console.log("room results:\n#{body}")
     roomsResult = JSON.parse(body)
@@ -246,7 +246,7 @@ module.exports = (robot) ->
             .header("Authorization", jiraAuthToken)
             .header("Content-Type", "application/json")
             .post(requestJson) (err, res, body) ->
-              if foundErrors(err, res)
+              if foundErrors(err, res, body)
                 nominationResult.errorText = msg.random errorBarks
                 resolve nominationResult
                 return
@@ -434,7 +434,7 @@ module.exports = (robot) ->
             .header("Authorization", jiraAuthToken)
             .header("Content-Type", "application/json")
             .post(requestJson) (err, res, body) ->
-              if foundErrors(err, res)
+              if foundErrors(err, res, body)
                 msg.send msg.random errorBarks
                 return
               console.log("body after create: " + body)
