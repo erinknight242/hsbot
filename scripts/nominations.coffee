@@ -87,6 +87,7 @@ module.exports = (robot) ->
     if res? and (res.statusCode > 204 or res.statusCode < 200)
       robot.emit "Got an HTTP #{res.statusCode} error."
       console.log("Got an HTTP #{res.statusCode} error.")
+      console.log("The http #{res.statusCode} response was: #{res}")
       return true
     return false
 
