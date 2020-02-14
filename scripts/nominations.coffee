@@ -223,7 +223,7 @@ module.exports = (robot) ->
       .get() (err, res, body) ->
         jiraNominee = parseJiraUser(err, res, body, colleagueName)
         if jiraNominee.error?
-          #email lookup between Slack/JIRA failed; try searching by name instead
+          console.log("email lookup between Slack/JIRA failed; try searching by name instead \n")
           q = query: nominee.userName
           msg.http(jiraUserUrl)
             .query(q)
@@ -245,6 +245,7 @@ module.exports = (robot) ->
             .header("Content-Type", "application/json")
             .post(requestJson) (err, res, body) ->
               if foundErrors(err, res)
+                console.log("errors submitting brag: " + err "\n")
                 nominationResult.errorText = msg.random errorBarks
                 resolve nominationResult
                 return
@@ -288,14 +289,15 @@ module.exports = (robot) ->
 
   robot.respond /brag *(about|on)? *((@[a-z0-9.-]+( *, *and *| *, *& *| *, *| *and *| *& *| *)?)+)(.+)/i, (msg) ->
     console.log msg
-    console.log("robot name: " + robot.name)
+    console.log("robot name: " + robot.name + "\n")
     sender = msg.message.user.name
-    console.log("sender: " + sender)
+    console.log("sender: " + sender + "\n")
     colleagueNames = msg.match[2].trim()
-    console.log("colleagueNames: " + colleagueNames)
+    console.log("colleagueNames: " + colleagueNames + "\n")
     reason = msg.match[5].trim()
-    console.log("reason: " + reason)
+    console.log("reason: " + reason + "\n")
     nameArray = parseColleagueNames colleagueNames
+    console.log("nameArray" + nameArray + "\n")
     bragResults = []
 
     for colleagueName in nameArray
