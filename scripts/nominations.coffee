@@ -81,6 +81,7 @@ module.exports = (robot) ->
   foundErrors = (err, res) ->
     if err
       robot.emit 'error', err, res
+      console.log("errors: " + err + "\n")
       return true
     console.log(res.statusCode)
     if res? and (res.statusCode > 204 or res.statusCode < 200)
@@ -245,7 +246,6 @@ module.exports = (robot) ->
             .header("Content-Type", "application/json")
             .post(requestJson) (err, res, body) ->
               if foundErrors(err, res)
-                console.log("errors submitting brag: " + err "\n")
                 nominationResult.errorText = msg.random errorBarks
                 resolve nominationResult
                 return
@@ -297,7 +297,7 @@ module.exports = (robot) ->
     reason = msg.match[5].trim()
     console.log("reason: " + reason + "\n")
     nameArray = parseColleagueNames colleagueNames
-    console.log("nameArray" + nameArray + "\n")
+    console.log("nameArray: " + nameArray + "\n")
     bragResults = []
 
     for colleagueName in nameArray
