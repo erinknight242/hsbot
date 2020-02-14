@@ -82,7 +82,7 @@ module.exports = (robot) ->
     if err
       robot.emit 'error', err, res
       return true
-    #console.log(res.statusCode)
+    console.log(res.statusCode)
     if res? and (res.statusCode > 204 or res.statusCode < 200)
       robot.emit "Got an HTTP #{res.statusCode} error."
       console.log("Got an HTTP #{res.statusCode} error.")
@@ -129,23 +129,23 @@ module.exports = (robot) ->
       return { "error": "JIRA found more than one #{colleagueName}?! Please be more specific to proceed" }
     if not result.users[0]? or not result.users[0].name? or not result.users[0].displayName?
       return { "error": "JIRA does not have the proper user information for #{colleagueName}! Please make sure the user is correctly configured in JIRA to continue" }
-    #console.log("woot, found the user in JIRA: " + JSON.stringify(result.users[0]))
+    console.log("woot, found the user in JIRA: " + JSON.stringify(result.users[0]))
     return result.users[0]
 
   parseJiraIssues = (err, res, body) ->
     if foundErrors(err, res)
       return { "error": errorBarks[Math.floor(Math.random() * errorBarks.length)] }
-    #console.log("body after search: " + body)
+    console.log("body after search: " + body)
     jiraResult = JSON.parse(body)
     if not jiraResult? or not jiraResult.issues? or jiraResult.issues.length == 0
       return { "error": "ERROR! could not find any jira issues to bomb you with" }
     return jiraResult.issues
 
   parseRoomId = (err, res, body, roomJid) ->
-    #console.log("room Jid: #{roomJid}")
+    console.log("room Jid: #{roomJid}")
     if foundErrors(err, res)
       return { "error": errorBarks[Math.floor(Math.random() * errorBarks.length)] }
-    #console.log("room results:\n#{body}")
+    console.log("room results:\n#{body}")
     roomsResult = JSON.parse(body)
     if not roomsResult? or not roomsResult.rooms? or roomsResult.rooms.length == 0
       return { "error": "ERROR! could not locate room to notify with jid: #{roomJid}" }
@@ -155,7 +155,7 @@ module.exports = (robot) ->
     if matchingRooms.length > 1
       return { "error": "ERROR! found mulitple matching rooms for jid: #{roomJid} - #{(room.name for room in matchingRooms).join(", ")}" }
     roomId = matchingRooms[0].room_id
-    #console.log(roomId)
+    console.log(roomId)
     return roomId
 
   parseColleagueNames = (nameString) ->
@@ -176,7 +176,7 @@ module.exports = (robot) ->
     return names
 
   processNomination = (msg, resolve, sender, colleagueName, reason) ->
-    #console.log "Processing nomination for " + colleagueName
+    console.log "Processing nomination for " + colleagueName
     nominationResult = { colleagueName: colleagueName, success: false, errorText: 'Unknown error; did not reach valid exit point' }
     if isNomineeRobot(colleagueName)
       nominationResult.errorText = ":embarrassed: Honored, truly, but an Artificial Intelligence does not need your bragging"
@@ -238,7 +238,7 @@ module.exports = (robot) ->
 
         submitBrag = (jiraNominator) ->
           requestJson = getRequestJson(jiraNominator, jiraNominee, reason, "brag", null)
-          #console.log("requestJson: " + JSON.stringify(requestJson))
+          console.log("requestJson: " + JSON.stringify(requestJson))
           jiraIssueUrl = jiraBaseUrl + "issue"
           msg.http(jiraIssueUrl)
             .header("Authorization", jiraAuthToken)
@@ -288,13 +288,13 @@ module.exports = (robot) ->
 
   robot.respond /brag *(about|on)? *((@[a-z0-9.-]+( *, *and *| *, *& *| *, *| *and *| *& *| *)?)+)(.+)/i, (msg) ->
     console.log msg
-    #console.log("robot name: " + robot.name)
+    console.log("robot name: " + robot.name)
     sender = msg.message.user.name
-    #console.log("sender: " + sender)
+    console.log("sender: " + sender)
     colleagueNames = msg.match[2].trim()
     console.log("colleagueNames: " + colleagueNames)
     reason = msg.match[5].trim()
-    #console.log("reason: " + reason)
+    console.log("reason: " + reason)
     nameArray = parseColleagueNames colleagueNames
     bragResults = []
 
@@ -305,7 +305,7 @@ module.exports = (robot) ->
           )
     Promise.all(bragResults)
       .then (results) ->
-        #console.log results
+        console.log results
         successNames = ""
         errorReasons = ""
         successCount = 0;
@@ -358,21 +358,21 @@ module.exports = (robot) ->
                   showConfirmation = false
             if showConfirmation
               notifyBody = getBragNotificationText(nomineeNames, jiraDescription, jiraReporter)
-              #console.log(notifyBody)
+              console.log(notifyBody)
               robot.messageRoom slackBragChannel, notifyBody
             else
               msg.send "Unable to match brag(s) with Jira results. Check the Jira HVA project to confirm success."
 
   robot.respond /hva *(to *|for *)?@([a-zA-Z0-9.-]+) *for *(DFE|PAV|COM|PLG|OWN|GRIT|HUMILITY|CANDOR|CURIOSITY|AGENCY)(.+)/i, (msg) ->
-    #console.log("robot name: " + robot.name)
+    console.log("robot name: " + robot.name)
     sender = msg.message.user.name
-    #console.log("sender: " + sender)
+    console.log("sender: " + sender)
     colleagueName = msg.match[2].trim()
-    #console.log("colleagueName: " + colleagueName)
+    console.log("colleagueName: " + colleagueName)
     awardType = msg.match[3].trim()
-    #console.log("awardType: " + awardType)
+    console.log("awardType: " + awardType)
     reason = msg.match[4].trim()
-    #console.log("reason: " + reason)
+    console.log("reason: " + reason)
 
     if not reason?.length
       msg.send "(disapproval), you should supply a reason for your nomination"
@@ -425,7 +425,7 @@ module.exports = (robot) ->
 
         submitHVA = (jiraNominator) ->
           requestJson = getRequestJson(jiraNominator, jiraNominee, reason, "hva", awardType)
-          #console.log("requestJson: " + JSON.stringify(requestJson))
+          console.log("requestJson: " + JSON.stringify(requestJson))
           jiraIssueUrl = jiraBaseUrl + "issue"
           msg.http(jiraIssueUrl)
             .header("Authorization", jiraAuthToken)
@@ -434,7 +434,7 @@ module.exports = (robot) ->
               if foundErrors(err, res)
                 msg.send msg.random errorBarks
                 return
-              #console.log("body after create: " + body)
+              console.log("body after create: " + body)
               hva = getAwardTypeFromAcronym(awardType)
               if not (msg.message.room? and msg.message.room.toLowerCase().match("\/^brags\\w*\/i")) #don't send confirm message in brags and awards room
                 msg.send "Your nomination of @#{colleagueName} for #{hva} was successfully retrieved and processed!"
@@ -451,7 +451,7 @@ module.exports = (robot) ->
 
                   for issue in issues
                     notifyBody = getHvaNotificationText(issue.fields.customfield_12100.displayName, issue.fields.customfield_12101.value, issue.fields.description, issue.fields.reporter.displayName)
-                    #console.log(notifyBody)
+                    console.log(notifyBody)
                     robot.messageRoom slackBragChannel, notifyBody
 
         q = query: nominator.emailAddress
