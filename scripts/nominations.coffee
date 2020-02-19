@@ -240,7 +240,7 @@ module.exports = (robot) ->
 
         submitBrag = (jiraNominator) ->
           requestJson = getRequestJson(jiraNominator, jiraNominee, reason, "brag", null)
-          console.log("requestJson: " + JSON.stringify(requestJson))
+          console.log("requestJson: #{requestJson}")
           jiraIssueUrl = jiraBaseUrl + "issue"
           msg.http(jiraIssueUrl)
             .header("Authorization", jiraAuthToken)
@@ -331,6 +331,7 @@ module.exports = (robot) ->
           return
 
         queryJson = getQueryJson("brag", successCount)
+        console.log("queryJson: #{queryJson}")
         jiraSearchUrl = jiraBaseUrl + "search"
         msg.http(jiraSearchUrl)
           .header("Authorization", jiraAuthToken)
@@ -428,7 +429,7 @@ module.exports = (robot) ->
 
         submitHVA = (jiraNominator) ->
           requestJson = getRequestJson(jiraNominator, jiraNominee, reason, "hva", awardType)
-          console.log("requestJson: " + JSON.stringify(requestJson))
+          console.log("requestJson: #{requestJson}")
           jiraIssueUrl = jiraBaseUrl + "issue"
           msg.http(jiraIssueUrl)
             .header("Authorization", jiraAuthToken)
@@ -442,6 +443,7 @@ module.exports = (robot) ->
               if not (msg.message.room? and msg.message.room.toLowerCase().match("\/^brags\\w*\/i")) #don't send confirm message in brags and awards room
                 msg.send "Your nomination of @#{colleagueName} for #{hva} was successfully retrieved and processed!"
               queryJson = getQueryJson("hva", 1)
+              console.log("queryJson: #{queryJson}")
               jiraSearchUrl = jiraBaseUrl + "search"
               msg.http(jiraSearchUrl)
                 .header("Authorization", jiraAuthToken)
