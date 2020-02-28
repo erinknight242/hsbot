@@ -47,7 +47,7 @@ getRequestJson = (nominator, nominee, description, nominationType, awardType) ->
        "customfield_12100": { "name": nominee.name },
        "description": description,
        "summary": "#{nominator.displayName} #{summaryType} #{nominee.displayName} on #{nomDate}",
-       "reporter": {"name": nominator.name }
+       "reporter": {"name": nominator.id }
     }
   }
   if awardType?
