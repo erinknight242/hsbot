@@ -128,9 +128,6 @@ module.exports = (robot) ->
     return { "userName": userName, "emailAddress": emailAddress }
 
   parseJiraUser = (err, res, body, colleagueName) ->
-    console.log("Jira user response:")
-    console.log(res)
-
     console.log("Jira user response body:")
     console.log(body)
 
