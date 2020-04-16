@@ -141,7 +141,7 @@ module.exports = (robot) ->
       return { "error": "#{colleagueName}? JIRA doesn't have record of 'em, cannot proceed" }
     if result.users.length != 1
       return { "error": "JIRA found more than one #{colleagueName}?! Please be more specific to proceed" }
-    if not result.users[0]? or not result.users[0].name? or not result.users[0].displayName?
+    if not result.users[0]? or not result.users[0].displayName?
       return { "error": "JIRA does not have the proper user information for #{colleagueName}! Please make sure the user is correctly configured in JIRA to continue" }
     console.log("woot, found the user in JIRA: " + JSON.stringify(result.users[0]))
     return result.users[0]
