@@ -103,6 +103,8 @@ module.exports = (robot) ->
     for userId, user of robot.brain.users()
       if user.name? and user.name.toLowerCase()==mentionName.toLowerCase()
         if user.slack.profile.display_name? and user.email_address?
+          console.log('Slack profile found:')
+          console.log(user.slack.profile)
           userName = user.slack.profile.display_name
           emailAddress = user.email_address.toLowerCase()
           return { "userName": userName, "emailAddress": emailAddress }
@@ -110,6 +112,10 @@ module.exports = (robot) ->
 
   getEmployeeByName = (fuzzyName) ->
     matchingUsers = robot.brain.usersForFuzzyName(fuzzyName)
+    
+    console.log("Matching users by name:")
+    console.log(matchingUsers)
+
     if not matchingUsers?
       return { "error": "#{fuzzyName}? Never heard of 'em, cannot proceed" }
 
@@ -122,6 +128,12 @@ module.exports = (robot) ->
     return { "userName": userName, "emailAddress": emailAddress }
 
   parseJiraUser = (err, res, body, colleagueName) ->
+    console.log("Jira user response:")
+    console.log(res)
+
+    console.log("Jira user response body:")
+    console.log(body)
+
     if foundErrors(err, res, body)
       return { "error": errorBarks[Math.floor(Math.random() * errorBarks.length)] }
     result = JSON.parse(body)
@@ -198,6 +210,9 @@ module.exports = (robot) ->
         resolve nominationResult
         return
 
+    console.log('Found this nominee:')
+    console.log(nominee)
+
     if not nominee.userName?
       nominationResult.errorText = "Could not locate a valid user name for #{colleagueName}, cannot brag"
       resolve nominationResult
@@ -216,6 +231,9 @@ module.exports = (robot) ->
       nominationResult.errorText = nominator.error
       resolve nominationResult
       return
+
+    console.log('Found this nominator:')
+    console.log(nominator)
 
     jiraUserUrl = jiraBaseUrl + "user/picker"
     q = query: nominee.emailAddress
