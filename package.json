@@ -35,7 +35,7 @@
     "node-schedule": "0.2.9",
     "on-finished": "^2.1.0",
     "on-headers": "^1.0.0",
-    "qs": "^2.2.4",
+    "qs": "^6.0.4",
     "serve-static": "^1.7.1",
     "soupselect": "0.2.0",
     "tumblrbot": "^0.1.0",
