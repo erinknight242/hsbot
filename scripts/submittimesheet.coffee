@@ -26,15 +26,16 @@ pics = [
   "https://memecrunch.com/meme/4GV8G/bill-murray-timesheet/image.jpg?w=400&c=1", # Bill Murray
   "https://clockify.me/blog/wp-content/uploads/2019/01/timesheet-meme-33.jpg", # most interesting timesheet in the world
   "https://i.imgur.com/0PtfuRw.png", # Zoolander, so hot right now
-  "https://photo-invivo.com/wp-content/uploads/2019/03/submit-timesheet-meme-great-time-sheet-meme-heartpulsar-of-submit-timesheet-meme.jpg", # Brady Bunch
   "https://i.pinimg.com/236x/bb/e5/20/bbe52050a7550351e4e66d4c56595ced--meme-batman-work-memes.jpg", # Batman hero
   "https://i.imgflip.com/urgdm.jpg", # 99 problems but a timesheet ain't one
   "https://i.imgur.com/mA7ELwI.jpg", # Star Wars
   "http://m.quickmeme.com/img/85/85a715b42634892b459abb4352eb5314030d546fdca072e11154012d10a3544d.jpg", # Evil Raccoon
-  "https://photo-invivo.com/wp-content/uploads/2019/03/timesheets-due-meme-lovely-timesheet-reminder-meme-to-pin-on-pinterest-of-timesheets-due-meme.jpg", # Matrix
-  "https://photo-invivo.com/wp-content/uploads/2019/03/timesheets-due-meme-beautiful-oh-sith-timesheets-are-due-today-timesheet-boyega-of-timesheets-due-meme.jpg", # Finn
+  "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTxrS5kv5Bo85Dz-1W2FMXX6Sk7CeQDiORgPxwvo3nXUDeE14J6&s", # Finn
   "https://www.memecreator.org/static/images/memes/4059437.jpg", # Timesheets in yo timesheets
-  "https://photo-invivo.com/wp-content/uploads/2019/03/submit-timesheet-meme-new-wants-your-timesheet-by-friday-wont-look-at-it-till-next-of-submit-timesheet-meme.jpg" # Lumberg
+  "https://memecreator.org/static/images/memes/4150884.jpg", # Lumberg
+  "https://blog-cdn.everhour.com/blog/wp-content/uploads/2019/09/4.0.0-2.jpg", # Rocky Horror
+  "https://blog-cdn.everhour.com/blog/wp-content/uploads/2019/09/fill-out-your-x83yh5-1-768x432.jpg", # The Office
+  "https://blog-cdn.everhour.com/blog/wp-content/uploads/2019/09/images-1.jpeg" # Geico Camel
 ]
 
 module.exports = (robot) ->

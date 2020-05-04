@@ -39,4 +39,4 @@ answers = [
 module.exports = (robot) ->
   robot.respond /(will (.+)\?)/ig, (msg) ->
     val = msg.random answers.length
-    msg.send '(magic8ball) ' + msg.random answers
+    msg.send ':magic8ball: ' + msg.random answers
