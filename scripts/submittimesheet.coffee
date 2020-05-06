@@ -7,7 +7,7 @@ rooms = [
 ]
 
 
-odds  = [1...100]
+odds  = [1...1000]
 
 pics = [
   "https://media.giphy.com/media/A5RlxnMGaf5h6bBdsz/giphy.gif", # Danny DeVito
@@ -53,5 +53,5 @@ module.exports = (robot) ->
     room = msg.envelope.room
     if room in rooms
       val = msg.random odds
-      if val > 33
+      if val > 333
         msg.send "#{pics[val % pics.length]}"
