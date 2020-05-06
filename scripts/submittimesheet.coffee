@@ -12,7 +12,6 @@ odds  = [1...100]
 pics = [
   "https://media.giphy.com/media/A5RlxnMGaf5h6bBdsz/giphy.gif", # Danny DeVito
   "https://media.giphy.com/media/QNv4mKyspa8j6/giphy.gif", # Mad Men
-  "https://media.giphy.com/media/mD6u5lgvneVag/giphy.gif", # Terry Tate
   "https://imgflip.com/gif/2ipx84", # Elf Elevator
   "https://makeagif.com/i/cOFbWG", # Steve Ballmer
   "https://i.imgur.com/V1gXxhL.gif", # Kid dancing on table
@@ -35,7 +34,18 @@ pics = [
   "https://memecreator.org/static/images/memes/4150884.jpg", # Lumberg
   "https://blog-cdn.everhour.com/blog/wp-content/uploads/2019/09/4.0.0-2.jpg", # Rocky Horror
   "https://blog-cdn.everhour.com/blog/wp-content/uploads/2019/09/fill-out-your-x83yh5-1-768x432.jpg", # The Office
-  "https://blog-cdn.everhour.com/blog/wp-content/uploads/2019/09/images-1.jpeg" # Geico Camel
+  "https://blog-cdn.everhour.com/blog/wp-content/uploads/2019/09/images-1.jpeg", # Geico Camel
+  "https://blog-cdn.everhour.com/blog/wp-content/uploads/2019/09/2.0.0.8.jpg", # Mission Impossible
+  "https://blog-cdn.everhour.com/blog/wp-content/uploads/2019/09/2.0.0.7.jpg", # Dumbledore
+  "https://blog-cdn.everhour.com/blog/wp-content/uploads/2019/09/3b2rz0.jpg", # if you submit, you won't get reminders
+  "https://blog-cdn.everhour.com/blog/wp-content/uploads/2019/09/39j0o1-2.jpg", # Drake
+  "http://puppy-meme.com/wp-content/uploads/2016/08/1471311487258.png", # Puppy
+  "https://preview.redd.it/u0llpg6x3sn41.png?width=500&format=png&auto=webp&s=e4ef8f3414f3a9c3b9ae34710aa3d7a067799d73", # Feel the Bern
+  "https://clockify.me/blog/wp-content/uploads/2019/01/timesheet-meme-24-1.jpg", # I'm not saying it's aliens... but it's aliens
+  "https://clockify.me/blog/wp-content/uploads/2019/01/timesheet-meme-66.jpg", # Alright alright alright
+  "https://www.timecamp.com/blog/wp-content/uploads/2018/10/fill-in-timesheets.jpg", # Darth Vader
+  "https://i.pinimg.com/originals/11/7a/be/117abe92096613b88f845d05ae36a643.jpg", # The North remembers
+  "http://www.quickmeme.com/img/84/841d5e51ea29e70586a490b891adad4e2bed54c231ff824e75e7241c88139e3b.jpg" # by nap time
 ]
 
 module.exports = (robot) ->
