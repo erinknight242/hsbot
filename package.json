@@ -15,7 +15,7 @@
     "finalhandler": "0.3.2",
     "htmlparser": "1.7.7",
     "http-errors": "^1.2.7",
-    "hubot": "^2.13.2",
+    "hubot": "^3.3.2",
     "hubot-azure-scripts": "0.1.6",
     "hubot-diagnostics": "0.0.1",
     "hubot-google-images": "^0.1.5",
